@@ -7,6 +7,7 @@ import os.path as osp
 import glob
 from moviepy.editor import *
 
+sys.path.append('.')
 from src.viz import draw_imgs
 
 def main(args):

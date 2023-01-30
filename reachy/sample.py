@@ -4,7 +4,9 @@ from tqdm import tqdm
 import os
 import pickle
 import argparse
+import sys
 
+sys.path.append('.')
 from src.misc import joint_range
 from src.transform import quat2rep
 
