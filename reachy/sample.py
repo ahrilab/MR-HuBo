@@ -2,6 +2,7 @@ import numpy as np
 import kinpy as kp
 from tqdm import tqdm
 import os
+import os.path as osp
 import pickle
 import argparse
 import sys
@@ -11,13 +12,12 @@ from src.misc import joint_range
 from src.transform import quat2rep
 
 def main(args):
-    os.makedirs('./data/reachy/raw', exist_ok=True)
+    os.makedirs(args.save_path, exist_ok=True)
 
     max_seed = args.max_seed
     num_per_seed = args.num_per_seed
 
     chain = kp.build_chain_from_urdf(open('./reachy.urdf').read())
-    print(chain.get_joint_parameter_names())
 
     for seed in range(max_seed):
         np.random.seed(seed)
@@ -65,14 +65,15 @@ def main(args):
         all_xyzs = np.asarray(all_xyzs)
         all_rots = np.asarray(all_rots)
         all_xyzs4smpl = np.asarray(all_xyzs4smpl)
-        np.savez('./data/reachy/raw/xyzs+rots_{:03}.npz'.format(seed),
+        np.savez(osp.join(args.save_path, 'xyzs+rots_{:03}.npz'.format(seed)),
                   xyzs=all_xyzs, rots=all_rots, xyzs4smpl=all_xyzs4smpl)
-        pickle.dump(all_angles, open('./data/reachy/raw/angles_{:03}.pkl'.format(seed), 'wb'))
+        pickle.dump(all_angles, open(osp.join(args.save_path, 'angles_{:03}.pkl'.format(seed)), 'wb'))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='args for sampling reachy data')
-    parser.add_argument('--max-seed', type=int, default=10, help='maximum seeds for sampling')
-    parser.add_argument('--num-per-seed', type=int, default=10, help='number of samples for each seed')
+    parser.add_argument('--save-path', type=str, default='./data/reachy/raw')
+    parser.add_argument('--max-seed', type=int, default=5, help='maximum seeds for sampling')
+    parser.add_argument('--num-per-seed', type=int, default=10000, help='number of samples for each seed')
     args = parser.parse_args()
 
     main(args)
