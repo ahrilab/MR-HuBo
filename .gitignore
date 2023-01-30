@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+data/reachy/raw/angles_000.pkl
+data/reachy/raw/xyzs+rots_000.npz
+vids/res.mp4
