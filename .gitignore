@@ -141,6 +141,16 @@ data/human/raw/params_006.npz
 data/human/raw/params_007.npz
 data/human/raw/params_008.npz
 data/human/raw/params_009.npz
+data/human/params_000.npz
+data/human/params_001.npz
+data/human/params_002.npz
+data/human/params_003.npz
+data/human/params_004.npz
+data/human/params_005.npz
+data/human/params_006.npz
+data/human/params_007.npz
+data/human/params_008.npz
+data/human/params_009.npz
 data/reachy/raw/angles_001.pkl
 data/reachy/raw/angles_002.pkl
 data/reachy/raw/angles_003.pkl
