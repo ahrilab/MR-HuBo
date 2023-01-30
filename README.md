@@ -12,6 +12,8 @@ pip install -r requirements.txt
 pip install ipython jupyter notebook
 ```
 (+) install [PyRender](https://pyrender.readthedocs.io/en/latest/install/index.html#osmesa)
+(+) prepare SMPL body model (.npz)
+(+) download vposer_v2_05
 
 ## TODO LIST
 - Try training retargeting network again.

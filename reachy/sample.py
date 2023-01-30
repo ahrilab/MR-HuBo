@@ -71,7 +71,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='args for sampling reachy data')
-    parser.add_argument('--max-seed', type=int, default=1, help='maximum seeds for sampling')
+    parser.add_argument('--max-seed', type=int, default=10, help='maximum seeds for sampling')
     parser.add_argument('--num-per-seed', type=int, default=10, help='number of samples for each seed')
     args = parser.parse_args()
 
