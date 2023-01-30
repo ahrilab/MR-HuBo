@@ -86,7 +86,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='args for adjust raw neck from smpl')
     parser.add_argument('--reachy-path', type=str, default='./data/reachy/raw')
-    parser.add_argument('--smpl-path', type=str, default='./data/human/raw')
+    parser.add_argument('--smpl-path', type=str, default='./data/human')
     parser.add_argument('--save-path', type=str, default='./data/reachy/fix')
     args = parser.parse_args()
 

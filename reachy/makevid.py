@@ -25,7 +25,7 @@ def main(args):
         data_idx = f.split('/')[-1].split('_')[-1][:3]
         save_path = osp.join(args.save_path, '{}.mp4'.format(data_idx))
 
-        angles = pickle.load(open(f, 'rb'))        
+        angles = pickle.load(open(f, 'rb'))[:20]        
 
         draw_imgs(angles, chain, args.tmp_path, args.resolution)
         
@@ -40,11 +40,11 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='args for making video of sampled angles')
     parser.add_argument('--fps', type=int, default=1, help='fps for rendering')
-    parser.add_argument('--file-path', type=str, default='./data/reachy/fix')
-    parser.add_argument('--save-path', type=str, default='./vids/reachy/fix')
+    parser.add_argument('--file-path', type=str, default='./data/reachy/fix_all/angles_000.pkl')
+    parser.add_argument('--save-path', type=str, default='./vids/reachy/fix_all.mp4')
     parser.add_argument('--tmp-path', type=str, default='./tmp_imgs')
     parser.add_argument('--resolution', type=int, default=1280, help='resolution for rendering')
-    parser.add_argument('--delete', type=int, default=1)
+    parser.add_argument('--delete', type=int, default=0)
 
     args = parser.parse_args()
 

@@ -1,5 +1,6 @@
 import numpy as np
 from transforms3d.quaternions import quat2mat, mat2quat
+from pytorch3d.transforms import axis_angle_to_matrix
 
 def rotmat2rep(rotmat):
     if len(rotmat.shape) != 2:
