@@ -90,7 +90,7 @@ def run_ik_engine(res_path, motion, batch_size, smpl_path, vposer_dir, num_betas
         {'data': 10., 'poZ_body': .01, 'betas': .5},
     ]
 
-    optimizer_args = {'type': 'LBFGS', 'max_iter': 500, 'lr': 1, 'tolerance_change': 1e-5, 'history_size': 250}
+    optimizer_args = {'type': 'LBFGS', 'max_iter': 1000, 'lr': 1, 'tolerance_change': 1e-3}
     ik_engine = IK_Engine(vposer_expr_dir=vposer_dir,
                             verbosity=verbosity,
                             display_rc=(2, 2),

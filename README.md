@@ -21,3 +21,9 @@ pip install ipython jupyter notebook
     * SMPL joint info is axis angle. turn it into 6d representation.
     * improve the visualization part.
     * get familiar with MPII codes. 
+
+## Process
+    1. run reachy/sample.py to sample robot pose
+    2. run reachy/fit2smpl.py to fit smpl from robot pose
+    3. run reachy/adjust_nect.py to make neck angle same as smpl
+    
