@@ -22,7 +22,7 @@ def main(args):
     for seed in range(max_seed):
         np.random.seed(seed)
         all_xyzs = []
-        all_rots = []
+        all_reps = []
         all_angles = []
         all_xyzs4smpl = []
 
@@ -31,7 +31,7 @@ def main(args):
             ret = chain.forward_kinematics(th)
 
             xyzs = list()
-            rots = list()
+            reps = list()
 
             for k, v in ret.items():
                 curr_xyz = v.pos # should change to 1 2 0 
@@ -39,10 +39,10 @@ def main(args):
                 curr_rep = quat2rep(curr_quat)
 
                 xyzs.append(curr_xyz)
-                rots.append(curr_rep)
+                reps.append(curr_rep)
 
             xyzs = np.vstack(xyzs)
-            rots = np.asarray(rots)
+            reps = np.asarray(reps)
 
             xyzs4smpl = [np.array([0.0, 0.0, 0.65]),
                         np.array([0.0, -0.1, 0.65]),
@@ -59,21 +59,21 @@ def main(args):
             ]
             xyzs4smpl = np.asarray(xyzs4smpl)
             all_xyzs.append(xyzs)
-            all_rots.append(rots)
+            all_reps.append(reps)
             all_xyzs4smpl.append(xyzs4smpl)
             all_angles.append(th)
         all_xyzs = np.asarray(all_xyzs)
-        all_rots = np.asarray(all_rots)
+        all_reps = np.asarray(all_reps)
         all_xyzs4smpl = np.asarray(all_xyzs4smpl)
-        np.savez(osp.join(args.save_path, 'xyzs+rots_{:03}.npz'.format(seed)),
-                  xyzs=all_xyzs, rots=all_rots, xyzs4smpl=all_xyzs4smpl)
+        np.savez(osp.join(args.save_path, 'xyzs+reps_{:03}.npz'.format(seed)),
+                  xyzs=all_xyzs, reps=all_reps, xyzs4smpl=all_xyzs4smpl)
         pickle.dump(all_angles, open(osp.join(args.save_path, 'angles_{:03}.pkl'.format(seed)), 'wb'))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='args for sampling reachy data')
     parser.add_argument('--save-path', type=str, default='./data/reachy/raw')
-    parser.add_argument('--max-seed', type=int, default=100, help='maximum seeds for sampling')
-    parser.add_argument('--num-per-seed', type=int, default=1000, help='number of samples for each seed')
+    parser.add_argument('--max-seed', type=int, default=500, help='maximum seeds for sampling')
+    parser.add_argument('--num-per-seed', type=int, default=2000, help='number of samples for each seed')
     args = parser.parse_args()
 
     main(args)
