@@ -27,7 +27,7 @@ def draw_imgs(angles, chain, tmp_fp, resolution):
 
         viz._ren.RemoveAllViewProps()
 
-        del viz
+        del viz._ren, viz._win, viz._w2if, viz
 
 def render_ret(ret, chain, img_fp, resolution):
     viz = kp.Visualizer(win_size=(resolution, resolution//4*3))

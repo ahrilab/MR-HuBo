@@ -4,8 +4,23 @@ import os.path as osp
 import pickle
 import torch
 from pytorch3d.transforms import axis_angle_to_matrix, matrix_to_rotation_6d
+from human_body_prior.tools.rotation_tools import matrot2aa, aa2matrot
+from human_body_prior.tools.model_loader import load_model
+from human_body_prior.body_model.body_model import BodyModel
+from human_body_prior.models.vposer_model import VPoser
+from torch.distributions import multivariate_normal
 
-def split_train_test(reachy_dir, human_dir, num, split_ratio=10):
+device = 'cuda'
+vposer_dir = './data/vposer_v2_05'
+smpl_path = './data/bodymodel/smplx/neutral.npz'
+
+def split_train_test(reachy_dir, human_dir, num, split_ratio=10, sample_vposer=True):
+    if sample_vposer:
+        vp, ps = load_model(vposer_dir, model_code=VPoser,
+                              remove_words_in_model_weights='vp_model.',
+                              disable_grad=True)
+        vp = vp.to(device)
+
     test_num = num // split_ratio
 
     all_reachy_xyzs = {'train':[], 'test':[]}
@@ -15,6 +30,31 @@ def split_train_test(reachy_dir, human_dir, num, split_ratio=10):
     all_smpl_rots = {'train':[], 'test':[]}
 
     for idx in range(num):
+        smpl = np.load(osp.join(human_dir, 'params_{:03}.npz'.format(idx)))
+        smpl_pose_body = smpl['pose_body']
+        curr_num = len(smpl_pose_body)
+        if sample_vposer:
+            z = vp.encode(torch.from_numpy(smpl_pose_body).to(device))
+            z_mean = z.mean # 2000 32
+            dim_z = z_mean.shape[1]
+            dist = multivariate_normal.MultivariateNormal(loc=torch.zeros(dim_z).to(device), 
+                                                          covariance_matrix=torch.eye(dim_z).to(device))
+            z_prob = torch.exp(dist.log_prob(z_mean))
+            pick_idx = torch.argsort(z_prob, descending=True)[:len(z_mean)//2].detach().cpu().numpy()
+
+        smpl_aa = smpl_pose_body.reshape(curr_num, -1, 3)
+        num_smpl_joints = smpl_aa.shape[1]
+
+        smpl_rot = aa2matrot(torch.from_numpy(smpl_aa.reshape(curr_num*num_smpl_joints, 3)))        
+        smpl_rep = matrix_to_rotation_6d(smpl_rot)
+
+        smpl_rot = smpl_rot.reshape(curr_num, num_smpl_joints, 3, 3)
+        smpl_rep = smpl_rep.reshape(curr_num, num_smpl_joints, 6)
+
+        smpl_rot = smpl_rot.numpy().reshape(curr_num, -1)
+        smpl_rep = smpl_rep.numpy().reshape(curr_num, -1)
+
+
         reachy_angle = pickle.load(open(osp.join(reachy_dir, 'angles_{:03}.pkl'.format(idx)), 'rb'))
         angle_chunk = []
         for ra in reachy_angle:
@@ -24,34 +64,31 @@ def split_train_test(reachy_dir, human_dir, num, split_ratio=10):
             angle_chunk.append(np.array(values))
         angle_chunk = np.asarray(angle_chunk)
 
-        reachy_xyzrot = np.load(osp.join(reachy_dir, 'xyzs+rots_{:03}.npz'.format(idx)))
-        reachy_xyzs = reachy_xyzrot['xyzs']
-        reachy_rots = reachy_xyzrot['rots'] # rots should be changed to rep TODO
+        reachy_xyzrep = np.load(osp.join(reachy_dir, 'xyzs+reps_{:03}.npz'.format(idx)))
+        reachy_xyzs = reachy_xyzrep['xyzs']
+        reachy_reps = reachy_xyzrep['reps'] 
 
-        curr_num = len(reachy_xyzs)
         reachy_xyzs = reachy_xyzs.reshape(curr_num, -1)
-        reachy_rots = reachy_rots.reshape(curr_num, -1)
+        reachy_reps = reachy_reps.reshape(curr_num, -1)
 
-        smpl = np.load(osp.join(human_dir, 'params_{:03}.npz'.format(idx)))
-        smpl_pose_body = smpl['pose_body']
-        smpl_aa = smpl_pose_body.reshape(curr_num, -1, 3)
-
-        smpl_rot = axis_angle_to_matrix(torch.from_numpy(smpl_aa))        
-        smpl_rep = matrix_to_rotation_6d(smpl_rot)
-        
-        smpl_rot = smpl_rot.numpy().reshape(curr_num, -1)
-        smpl_rep = smpl_rep.numpy().reshape(curr_num, -1)
 
         if idx < test_num:
             target = 'test'
         else:
             target = 'train'
 
-        all_reachy_xyzs[target].append(reachy_xyzs)
-        all_reachy_reps[target].append(reachy_rots) # rots are actualy reps. should be corr.
-        all_reachy_angles[target].append(angle_chunk)
-        all_smpl_reps[target].append(smpl_rep)
-        all_smpl_rots[target].append(smpl_rot)
+        if sample_vposer:
+            all_reachy_xyzs[target].append(reachy_xyzs[pick_idx])
+            all_reachy_reps[target].append(reachy_reps[pick_idx]) 
+            all_reachy_angles[target].append(angle_chunk[pick_idx])
+            all_smpl_reps[target].append(smpl_rep[pick_idx])
+            all_smpl_rots[target].append(smpl_rot[pick_idx])
+        else:
+            all_reachy_xyzs[target].append(reachy_xyzs)
+            all_reachy_reps[target].append(reachy_reps) 
+            all_reachy_angles[target].append(angle_chunk)
+            all_smpl_reps[target].append(smpl_rep)
+            all_smpl_rots[target].append(smpl_rot)
         
     for target in ['test', 'train']:
         all_reachy_xyzs[target] = np.concatenate(all_reachy_xyzs[target], axis=0)
