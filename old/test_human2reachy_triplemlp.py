@@ -16,7 +16,7 @@ dim_reachy_xyzs = 93
 dim_reachy_reps = 186
 dim_reachy_angles = 17
 dim_smpl_reps = 126
-dim_hidden = 256
+dim_hidden = 512
 
 device = 'cuda'
 
@@ -24,33 +24,21 @@ chain = kp.build_chain_from_urdf(open('./reachy.urdf').read())
 # serial_chain = kp.build_serial_chain_from_urdf(open('./reachy.urdf').read(), 'right_tip')
 #####################
 
-model = MLP(dim_input=dim_smpl_reps, dim_output=dim_reachy_angles, dim_hidden=dim_hidden).to(device)
-# model = MLP(dim_input=dim_smpl_reps, dim_output=dim_reachy_angles+dim_reachy_xyzs+dim_reachy_reps, dim_hidden=dim_hidden).to(device)
-model.load_state_dict(torch.load('./models/human2reachy_best.pth'))
-model.eval()
+model_pre = MLP(dim_input=dim_smpl_reps, dim_output=dim_reachy_xyzs+dim_reachy_reps, dim_hidden=dim_hidden).to(device)
+model_post = MLP(dim_input=dim_reachy_xyzs+dim_reachy_reps, dim_output=dim_reachy_angles, dim_hidden=dim_hidden).to(device)
+model_recon = MLP(dim_input=dim_reachy_xyzs+dim_reachy_reps, dim_output=dim_smpl_reps, dim_hidden=dim_hidden).to(device)
+
+model_pre.load_state_dict(torch.load('./models/human2reachy_best_pre_v3.pth'))
+model_post.load_state_dict(torch.load('./models/human2reachy_best_post_v3.pth'))
+model_recon.load_state_dict(torch.load('./models/human2reachy_best_recon_v3.pth'))
+
+model_pre.eval()
+model_post.eval()
+model_recon.eval()
 
 #####################
 num_betas = 16
 result = joblib.load(open('./pymaf.pkl', 'rb'))
-
-# smpl_data = {}
-# smpl_data['betas'] = np.zeros((num_betas, ))
-# smpl_data['pose_body'] = result['pose'][:, 3:66]
-# smpl_data['root_orient'] = np.zeros((len(result['pose']), 3))
-# smpl_data['trans'] = np.zeros((len(result['pose']), 3))
-# smpl_data['trans'][:, 1] += 0.5
-
-# transformed_d = transform_smpl_coordinate(bm_fname='./data/bodymodel/smplx/neutral.npz', 
-#                                         trans=smpl_data['trans'], 
-#                                         root_orient=smpl_data['root_orient'],
-#                                         betas=smpl_data['betas'], 
-#                                         rotxyz=[90, 0, 0])
-# smpl_data.update(transformed_d)
-
-# smpl_data['surface_model_type'] = 'smplx'
-# smpl_data['gender'] = 'neutral'
-# smpl_data['mocap_frame_rate'] = 30
-# smpl_data['num_betas'] = num_betas
 
 vid_pose = result['pose'][:, 3:66]
 
@@ -67,14 +55,25 @@ smpl_rep = matrix_to_rotation_6d(smpl_rot)
 smpl_rep = smpl_rep.reshape(length, num_joints, 6).reshape(length, -1)
 
 with torch.no_grad():
-    pred = model(smpl_rep.to(device).float())
-    pred = pred.detach().cpu().numpy()[:, :dim_reachy_angles]
+    pre_pred = model_pre(smpl_rep.to(device).float())
+    post_pred = model_post(pre_pred)
+    smpl_pred = model_recon(pre_pred)
+
+post_pred = post_pred.detach().cpu().numpy()[:, :dim_reachy_angles]
+smpl_pred = smpl_pred.reshape(smpl_pred.shape[0], -1, 6)
+smpl_rotmat = rotation_6d_to_matrix(smpl_pred)
+N, J, _, _ = smpl_rotmat.shape
+smpl_pred_aa = matrot2aa(smpl_rotmat.reshape(N*J, 3, 3))
+smpl_pred_aa = smpl_pred_aa.reshape(N, J, 3).reshape(N, J*3)
+smpl_pred_aa = {'pose_body': smpl_pred_aa.detach().cpu().numpy()}
+
+np.savez('./pymaf_smpl_v3.npz', **smpl_pred_aa)
 
 reachy_angles = []
-for p in pred:
+for p in post_pred:
     reachy_angles.append({k: p[i] for i, k in enumerate(joint_keys)})
 
-pickle.dump(reachy_angles, open('./pymaf_robot.pkl', 'wb'))
+pickle.dump(reachy_angles, open('./pymaf_robot_v3.pkl', 'wb'))
 print('Finish!')
 # with torch.no_grad():
 #     reachy_data = model(smpl_rep.to(device).float())

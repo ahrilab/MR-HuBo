@@ -7,11 +7,11 @@ import torch
 from src.loss import get_geodesic_loss
 from pytorch3d.transforms import rotation_6d_to_matrix 
 
-num = 20
-split_ratio = 10
+num = 500
+split_ratio = 50
 reachy_dir = './data/reachy/fix'
 human_dir = './data/human'
-reachy_xyzs, reachy_reps, reachy_angles, smpl_reps, smpl_rots  = split_train_test(reachy_dir, human_dir, num, split_ratio)
+reachy_xyzs, reachy_reps, reachy_angles, smpl_reps, smpl_rots = split_train_test(reachy_dir, human_dir, num, split_ratio, False)
 
 dim_reachy_xyzs = 93
 dim_reachy_reps = 186
@@ -19,7 +19,7 @@ dim_reachy_angles = 17
 dim_smpl_reps = 126
 dim_hidden = 512
 
-batch_size = 64
+batch_size = 2048
 lr = 1e-4
 device = 'cuda'
 
@@ -40,7 +40,7 @@ optimizer_post = optim.Adam(model_post.parameters(), lr, weight_decay=1e-6)
 
 #####################
 
-max_epoch = 100
+max_epoch = 1000
 
 best_pre_loss = 100000
 best_post_loss = 100000
@@ -63,12 +63,17 @@ for epoch in (range(max_epoch)):
         gt_xyz = sample['reachy_xyz'].float().to(device)
         gt_angle = sample['reachy_angle'].float().to(device)
 
-        post_inp = torch.cat([gt_xyz, gt_rep], dim=-1)
-        post_pred = model_post(post_inp)
-        pred_angle = post_pred[:, :dim_reachy_angles]
+        post_gt_inp = torch.cat([gt_xyz, gt_rep], dim=-1)
+        post_pred_inp = torch.cat([pred_xyz, pred_rep], dim=-1)
+        
+        post_pred_teacher = model_post(post_gt_inp)
+        pred_angle_teacher = post_pred_teacher[:, :dim_reachy_angles]
+        
+        post_pred_student = model_post(post_pred_inp.detach())
+        pred_angle_student = post_pred_student[:, :dim_reachy_angles]
 
-        pre_loss = criterion(pred_xyz, gt_xyz) + criterion(pred_rep, gt_rep) # get_geodesic_loss(pred_rotmat, gt_rotmat)
-        post_loss = criterion(pred_angle, gt_angle)
+        pre_loss = criterion(pred_xyz, gt_xyz) + criterion(pred_rep, gt_rep) # get_geodesic_loss(pred_rotmat, gt_rotmat)# criterion(pred_rep, gt_rep) # get_geodesic_loss(pred_rotmat, gt_rotmat)
+        post_loss = criterion(pred_angle_teacher, gt_angle) + criterion(pred_angle_student, gt_angle)
         
         optimizer_pre.zero_grad()
         pre_loss.backward()
@@ -98,12 +103,17 @@ for epoch in (range(max_epoch)):
             gt_xyz = sample['reachy_xyz'].float().to(device)
             gt_angle = sample['reachy_angle'].float().to(device)
 
-            post_inp = torch.cat([gt_xyz, gt_rep], dim=-1)
-            post_pred = model_post(post_inp)
-            pred_angle = post_pred[:, :dim_reachy_angles]
+            post_gt_inp = torch.cat([gt_xyz, gt_rep], dim=-1)
+            post_pred_inp = torch.cat([pred_xyz, pred_rep], dim=-1)
+            
+            post_pred_teacher = model_post(post_gt_inp)
+            pred_angle_teacher = post_pred_teacher[:, :dim_reachy_angles]
+            
+            post_pred_student = model_post(post_pred_inp.detach())
+            pred_angle_student = post_pred_student[:, :dim_reachy_angles]
 
-            pre_loss = criterion(pred_xyz, gt_xyz) + criterion(pred_rep, gt_rep) # get_geodesic_loss(pred_rotmat, gt_rotmat)
-            post_loss = criterion(pred_angle, gt_angle)
+            pre_loss = criterion(pred_xyz, gt_xyz) + criterion(pred_rep, gt_rep)# get_geodesic_loss(pred_rotmat, gt_rotmat)# criterion(pred_rep, gt_rep) # get_geodesic_loss(pred_rotmat, gt_rotmat)
+            post_loss = criterion(pred_angle_teacher, gt_angle) + criterion(pred_angle_student, gt_angle)
 
             test_pre_loss += pre_loss.item()/len(test_dataloader)
             test_post_loss += post_loss.item()/len(test_dataloader)
@@ -114,9 +124,9 @@ for epoch in (range(max_epoch)):
     best_pre_loss = min(best_pre_loss, test_pre_loss)
     if best_pre_loss == test_pre_loss:
         print('save best pre model')
-        torch.save(model_pre.state_dict(), './models/human2reachy_best_pre.pth')
+        torch.save(model_pre.state_dict(), './models/human2reachy_best_pre_v2.pth')
 
     best_post_loss = min(best_post_loss, test_post_loss)
     if best_post_loss == test_post_loss:
         print('save best post model')
-        torch.save(model_post.state_dict(), './models/human2reachy_best_post.pth')
+        torch.save(model_post.state_dict(), './models/human2reachy_best_post_v2.pth')

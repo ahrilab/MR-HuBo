@@ -7,8 +7,8 @@ import torch
 from src.loss import get_geodesic_loss
 from pytorch3d.transforms import rotation_6d_to_matrix 
 
-num = 20
-split_ratio = 10
+num = 500
+split_ratio = 50
 reachy_dir = './data/reachy/fix'
 human_dir = './data/human'
 reachy_xyzs, reachy_reps, reachy_angles, smpl_reps, smpl_rots  = split_train_test(reachy_dir, human_dir, num, split_ratio)
@@ -93,5 +93,5 @@ for epoch in (range(max_epoch)):
     best_loss = min(best_loss, test_loss)
     if best_loss == test_loss:
         print('save best model')
-        torch.save(model.state_dict(), './models/human2reachy_best.pth')
+        torch.save(model.state_dict(), './models/human2reachy_single_best.pth')
 

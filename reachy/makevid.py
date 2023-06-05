@@ -6,7 +6,7 @@ import os
 import os.path as osp
 import glob
 from moviepy.editor import *
-
+# import pytorch_kinematics as pk
 sys.path.append('.')
 from src.viz import draw_imgs
 
@@ -28,9 +28,10 @@ def main(args):
         else:
             save_path = args.save_path
 
+        # TODO: Check how below "angles" look like.
         angles = pickle.load(open(f, 'rb'))        
 
-        draw_imgs(angles, chain, args.tmp_path, args.resolution)
+        draw_imgs(angles, chain, args.tmp_path, args.resolution, args.smooth)
         
         clip = ImageSequenceClip(args.tmp_path, fps=args.fps)
         clip.write_videofile(save_path, fps=args.fps)
@@ -42,12 +43,13 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='args for making video of sampled angles')
-    parser.add_argument('--fps', type=int, default=30, help='fps for rendering')
-    parser.add_argument('--file-path', type=str, default='./pymaf_robot.pkl')
-    parser.add_argument('--save-path', type=str, default='./pymaf_robot.mp4')
-    parser.add_argument('--tmp-path', type=str, default='./tmp_imgs')
+    parser.add_argument('--fps', type=int, default=60, help='fps for rendering')
+    parser.add_argument('--file-path', type=str, default='./pymaf_robot_v2.pkl')
+    parser.add_argument('--save-path', type=str, default='./pymaf_robot_v2.mp4')
+    parser.add_argument('--tmp-path', type=str, default='./raw_results')
     parser.add_argument('--resolution', type=int, default=1280, help='resolution for rendering')
     parser.add_argument('--delete', type=int, default=0)
+    parser.add_argument('--smooth', type=int, default=1)
 
     args = parser.parse_args()
 

@@ -16,24 +16,20 @@ dim_reachy_xyzs = 93
 dim_reachy_reps = 186
 dim_reachy_angles = 17
 dim_smpl_reps = 126
-dim_hidden = 512
+dim_hidden = 256
 
 device = 'cuda'
 
 chain = kp.build_chain_from_urdf(open('./reachy.urdf').read())
 # serial_chain = kp.build_serial_chain_from_urdf(open('./reachy.urdf').read(), 'right_tip')
-##################### Load Model
+#####################
 
-model_pre = MLP(dim_input=dim_smpl_reps, dim_output=dim_reachy_xyzs+dim_reachy_reps, dim_hidden=dim_hidden).to(device)
-model_post = MLP(dim_input=dim_reachy_xyzs+dim_reachy_reps, dim_output=dim_reachy_angles, dim_hidden=dim_hidden).to(device)
+model = MLP(dim_input=dim_smpl_reps, dim_output=dim_reachy_angles, dim_hidden=dim_hidden).to(device)
+# model = MLP(dim_input=dim_smpl_reps, dim_output=dim_reachy_angles+dim_reachy_xyzs+dim_reachy_reps, dim_hidden=dim_hidden).to(device)
+model.load_state_dict(torch.load('./models/human2reachy_single_best.pth'))
+model.eval()
 
-model_pre.load_state_dict(torch.load('./models/human2reachy_best_pre_v2.pth'))
-model_post.load_state_dict(torch.load('./models/human2reachy_best_post_v2.pth'))
-
-model_pre.eval()
-model_post.eval()
-
-##################### get SMPL's 6D information of Detection result from pymaf.
+#####################
 num_betas = 16
 result = joblib.load(open('./pymaf.pkl', 'rb'))
 
@@ -52,15 +48,14 @@ smpl_rep = matrix_to_rotation_6d(smpl_rot)
 smpl_rep = smpl_rep.reshape(length, num_joints, 6).reshape(length, -1)
 
 with torch.no_grad():
-    pre_pred = model_pre(smpl_rep.to(device).float())
-    post_pred = model_post(pre_pred)
-    post_pred = post_pred.detach().cpu().numpy()[:, :dim_reachy_angles]
+    pred = model(smpl_rep.to(device).float())
+    pred = pred.detach().cpu().numpy()[:, :dim_reachy_angles]
 
 reachy_angles = []
-for p in post_pred:
+for p in pred:
     reachy_angles.append({k: p[i] for i, k in enumerate(joint_keys)})
 
-pickle.dump(reachy_angles, open('./pymaf_robot_v2.pkl', 'wb'))
+pickle.dump(reachy_angles, open('./pymaf_robot_v1.pkl', 'wb'))
 print('Finish!')
 # with torch.no_grad():
 #     reachy_data = model(smpl_rep.to(device).float())

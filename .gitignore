@@ -1617,3 +1617,16 @@ models/human2reachy_best_post.pth
 models/human2reachy_best_pre.pth
 .gitignore
 pymaf_robot.pkl
+
+# videos
+**/*.mp4
+
+# Human model data
+data/human/*.npz
+
+# reachy model data
+data/reachy/fix/*.pkl
+data/reachy/fix/*.npz
+
+# models
+models/

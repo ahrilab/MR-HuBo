@@ -9,10 +9,21 @@ from human_body_prior.tools.model_loader import load_model
 from human_body_prior.body_model.body_model import BodyModel
 from human_body_prior.models.vposer_model import VPoser
 from torch.distributions import multivariate_normal
+from scipy.stats import normaltest
+import random
 
 device = 'cuda'
 vposer_dir = './data/vposer_v2_05'
 smpl_path = './data/bodymodel/smplx/neutral.npz'
+
+def draw(probs):
+    val = random.random()
+    csum = np.cumsum(probs)
+    i = sum(1 - np.array(csum>=val, dtype=int))
+    if i == 2000:
+        return -1
+    else:
+        return i
 
 def split_train_test(reachy_dir, human_dir, num, split_ratio=10, sample_vposer=True):
     if sample_vposer:
@@ -30,17 +41,25 @@ def split_train_test(reachy_dir, human_dir, num, split_ratio=10, sample_vposer=T
     all_smpl_rots = {'train':[], 'test':[]}
 
     for idx in range(num):
+        print(idx, '/', num)
         smpl = np.load(osp.join(human_dir, 'params_{:03}.npz'.format(idx)))
         smpl_pose_body = smpl['pose_body']
         curr_num = len(smpl_pose_body)
         if sample_vposer:
             z = vp.encode(torch.from_numpy(smpl_pose_body).to(device))
-            z_mean = z.mean # 2000 32
+            z_mean = z.mean.detach().cpu() # 2000 32
             dim_z = z_mean.shape[1]
-            dist = multivariate_normal.MultivariateNormal(loc=torch.zeros(dim_z).to(device), 
-                                                          covariance_matrix=torch.eye(dim_z).to(device))
+            dist = multivariate_normal.MultivariateNormal(loc=torch.zeros(dim_z), 
+                                                          covariance_matrix=torch.eye(dim_z))
             z_prob = torch.exp(dist.log_prob(z_mean))
-            pick_idx = torch.argsort(z_prob, descending=True)[:len(z_mean)//2].detach().cpu().numpy()
+            z_prob = z_prob/torch.sum(z_prob)
+
+            n_sample = 500
+            sample_idx = []
+            while len(sample_idx) < n_sample:
+                i = draw(z_prob)
+                if i not in sample_idx and i > 0:
+                    sample_idx.append(i)
 
         smpl_aa = smpl_pose_body.reshape(curr_num, -1, 3)
         num_smpl_joints = smpl_aa.shape[1]
@@ -71,18 +90,17 @@ def split_train_test(reachy_dir, human_dir, num, split_ratio=10, sample_vposer=T
         reachy_xyzs = reachy_xyzs.reshape(curr_num, -1)
         reachy_reps = reachy_reps.reshape(curr_num, -1)
 
-
         if idx < test_num:
             target = 'test'
         else:
             target = 'train'
 
         if sample_vposer:
-            all_reachy_xyzs[target].append(reachy_xyzs[pick_idx])
-            all_reachy_reps[target].append(reachy_reps[pick_idx]) 
-            all_reachy_angles[target].append(angle_chunk[pick_idx])
-            all_smpl_reps[target].append(smpl_rep[pick_idx])
-            all_smpl_rots[target].append(smpl_rot[pick_idx])
+            all_reachy_xyzs[target].append(reachy_xyzs[sample_idx])
+            all_reachy_reps[target].append(reachy_reps[sample_idx]) 
+            all_reachy_angles[target].append(angle_chunk[sample_idx])
+            all_smpl_reps[target].append(smpl_rep[sample_idx])
+            all_smpl_rots[target].append(smpl_rot[sample_idx])
         else:
             all_reachy_xyzs[target].append(reachy_xyzs)
             all_reachy_reps[target].append(reachy_reps) 

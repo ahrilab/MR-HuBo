@@ -25,7 +25,7 @@ def main(args):
     for f in files:
         data_idx = f.split('/')[-1].split('_')[-1][:3]
 
-        if int(data_idx) > 20:
+        if int(data_idx) > -1:
             reachy_data = np.load(f)
 
             motion = reachy_data['xyzs4smpl']
@@ -35,6 +35,7 @@ def main(args):
             motion[:, :, 2] = reachy_data['xyzs4smpl'][:, :, 0]
 
             # running IK from the code makes huge memory usage. Doesn't it empty cache?
+            # TODO: memory leak seems to happen in codes from VPoser. Any possible solution?
             smpl_data = run_ik_engine(osp.join(args.res_path, 'params_{}.npz'.format(data_idx)), 
                                     motion, batch_size, args.smpl_path, args.vposer_path, num_betas, device, args.verbosity)
             
