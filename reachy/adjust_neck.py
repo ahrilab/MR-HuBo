@@ -18,25 +18,36 @@ def main(args):
 
     chain = kp.build_chain_from_urdf(open('./reachy.urdf').read())
 
-    files = sorted(glob.glob(osp.join(args.reachy_path, '*.pkl')))
+    files = sorted(glob.glob(osp.join(args.reachy_path, '*.pkl')))  # /data/reachy/raw -> all angles
 
-    for f in files:
+    for f in files:         # Reachy Files
         all_xyzs = []
         all_reps = []
         all_angles = []
         all_xyzs4smpl = []
 
-        raw_angles = pickle.load(open(f, 'rb'))
+        raw_angles = pickle.load(open(f, 'rb'))     # list of joints angle dicts (num_iter, 17) of {k: joint, v: angle}
         data_idx = f.split('/')[-1].split('_')[-1][:3]
-        smpl_data = np.load(osp.join(args.smpl_path, 'params_{}.npz'.format(data_idx)))
+        smpl_data = np.load(osp.join(args.smpl_path, 'params_{}.npz'.format(data_idx)))     # fit2smpl에서 생성한 SMPL 데이터
 
-        if 360 <= int(data_idx):
+        # 왜 360 이상인 데이터만 진행한 것인가요?
+        if 360 <= int(data_idx):                    # data index는 0~499
             print(data_idx)
-            for i in range(len(raw_angles)):
+            for i in range(len(raw_angles)):        # 각각의 data 파일 안에 2000개의 pose 데이터가 있음.
+                
+                # th는 reachy의 angle 데이터
+                # smpl_data['poses']는 reachy xyz -> smpl xyz 로 만든 데이터
+                # reachy 데이터와 smpl 데이터는 각각 2000개 이며, 서로 pair임.
+
+                # smpl_data['poses'] 에서 neck에 해당하는 (index: 12) axis angle 정보를 euler angle로 변환하고,
+                # 이 값을 reachy의 neck angle로 설정.
+                # 즉 reachy의 neck angle은 smpl이 가능한 (사람이 가능한) neck angle로 설정됨.
+                
                 th = raw_angles[i]
 
-                neck_aa = smpl_data['poses'][i].reshape(-1, 3)[12]
-                neck_euler = matrix_to_euler_angles(axis_angle_to_matrix(torch.Tensor(neck_aa)), 'ZXY')
+                # 원래 smpl_data['poses']의 shape: (2000, 165)
+                neck_aa = smpl_data['poses'][i].reshape(-1, 3)[12]                                      # neck axis angle
+                neck_euler = matrix_to_euler_angles(axis_angle_to_matrix(torch.Tensor(neck_aa)), 'ZXY') # axis angle -> matrix -> euler (오일러)
     
                 th['neck_roll'] = neck_euler[0]
                 th['neck_pitch'] = neck_euler[1]
