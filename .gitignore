@@ -2,7 +2,7 @@
 __pycache__/
 
 # output directory
-output/
+out/
 
 # data elements (which can be produced by code)
 data/human/*.npz
@@ -12,7 +12,13 @@ data/reachy/fix/*.pkl
 data/reachy/fix/*.npz
 
 # ignore bodymodel/smplx because it's too big
-data/bodymodel/smplx/neutral.npz
+data/bodymodel/
+
+# ignore vposer snapshots (checkpoints) because they're too big
+data/vposer_v2_05/
 
 # DS_Store for OS X
-DS_Store
+.DS_Store
+
+# vscode environment settings
+.vscode/
