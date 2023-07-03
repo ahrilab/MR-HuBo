@@ -14,5 +14,11 @@ data/reachy/fix/*.npz
 # ignore bodymodel/smplx because it's too big
 data/bodymodel/smplx/neutral.npz
 
+# ignore vposer snapshots (checkpoints) because they're too big
+data/vposer_v2_05/snapshots/*.ckpt
+
 # DS_Store for OS X
-DS_Store
+.DS_Store
+
+# vscode environment settings
+.vscode/
