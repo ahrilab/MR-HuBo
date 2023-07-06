@@ -19,15 +19,9 @@ pip install -r requirements.txt
 
 - Download data for SMPL
   
-  You can download data for rendering SMPL-X & VPoser Model via the below links.
-  
-  - Body model: https://drive.google.com/drive/folders/1GDaH7S-HJyLteRj1qjT6bjiR0dzWrux4?usp=sharing
-  - Pre-trained VPoser model: https://drive.google.com/drive/folders/1BKq4QdhleadzJmFIKOH9p9phaLEQ8XJy?usp=sharing
+  You can download data for rendering SMPL-X & VPoser Model via [this link](https://smpl-x.is.tue.mpg.de/download.php).
   
   You should move `bodymodel/` and `poser_v2_05/` into the `data/` folder.
-  
-  > The original link for data is 'https://smpl-x.is.tue.mpg.de/download.php', and they require to sign up into their system. So we should check the license for these SMPL-X & VPoser data.
-
 
 
 ## How to use codes.
