@@ -1,6 +1,8 @@
 """
-    run_inverse_kenematics_engine
-xyz4smpl            =>           smpl_data
+This script is for fitting reachy's pose data to SMPL parameters
+by running Inverse Kinematics engine of VPoser.
+
+smpl_params = run_ik_engine(xyzs4smpl of reachy)
 """
 
 import argparse
@@ -21,8 +23,8 @@ def main(args):
     device = 'cuda'
 
     if osp.isdir(args.reachy_path):
-        os.makedirs(args.res_path, exist_ok=True)                       # ?
-        os.makedirs(args.vid_path, exist_ok=True)                       # visualize 시, 저장할 비디오 폴더
+        os.makedirs(args.human_path, exist_ok=True)
+        os.makedirs(args.vid_path, exist_ok=True)
 
         files = sorted(glob.glob(osp.join(args.reachy_path, '*.npz')))  # reachy의 xyz + reps 데이터
     else:
@@ -43,18 +45,17 @@ def main(args):
 
             # running IK from the code makes huge memory usage. Doesn't it empty cache?
             # TODO: memory leak seems to happen in codes from VPoser. Any possible solution?
-            smpl_data = run_ik_engine(osp.join(args.res_path, 'params_{}.npz'.format(data_idx)), 
-                                    motion, batch_size, args.smpl_path, args.vposer_path, num_betas, device, args.verbosity)
-            
-            print('trans: {}'.format(smpl_data['trans'].shape))
-            print('betas: {}'.format(smpl_data['betas'].shape))
-            print('root_orient: {}'.format(smpl_data['root_orient'].shape))
-            print('poZ_body: {}'.format(smpl_data['poZ_body'].shape))
-            print('pose_body: {}'.format(smpl_data['pose_body'].shape))
-            print('poses: {}'.format(smpl_data['poses'].shape))
-
-            # print(smpl_data)
-            # {
+            smpl_data = run_ik_engine(
+                osp.join(args.human_path, "params_{}.npz".format(data_idx)),
+                motion,
+                batch_size,
+                args.smpl_path,
+                args.vposer_path,
+                num_betas,
+                device,
+                args.verbosity,
+            )
+            # smpl_data: {
             #   trans: (2000, 3),
             #   betas: (16,),
             #   root_orient: (2000, 3),
@@ -64,9 +65,8 @@ def main(args):
             #   surface_model_type: 'smplx',
             #   gender: 'neutral',
             #   mocap_frame_rate: 30,
-            #   num_betas: 16
-            # }
-            
+            #   num_betas: 16}
+
         if args.visualize:
             print('start visualizing...')
             make_vids(osp.join(args.vid_path, '{}.mp4'.format(data_idx)),

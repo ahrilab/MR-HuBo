@@ -1,4 +1,9 @@
-# pickle with angles -> render -> save -> makevid
+"""
+Make video of reachy motions from pickle files of angles.
+
+- pickle with angles -> render -> save -> makevid
+"""
+
 import argparse
 import pickle
 import kinpy as kp

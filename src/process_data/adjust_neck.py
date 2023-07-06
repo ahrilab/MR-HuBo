@@ -1,3 +1,12 @@
+"""
+Adjust reachy raw neck angle to human possible neck angle.
+
+1. Get neck axis angle from smpl data and convert it to euler angle.
+2. Set the SMPL nect euler angle as reachy neck angle. (reachy's neck angle is adjusted to human possible angle.)
+3. Obtain forward kinematics result of reachy using fixed angle data.
+4. Save the fixed angle & forward kinematics result of reachy.
+"""
+
 import numpy as np
 import kinpy as kp
 import torch

@@ -17,9 +17,7 @@ joint_range= {'r_shoulder_pitch': [-2.618, 1.57],
              'neck_yaw': [-1.4, 1.4]
              }
 """
-Possible range of each joint's roll, pitch, yaw angles. -> maybe?
-
-joint list: [(shoulder, elbow, forearm, wrist for R, L), neck]
+Miscellaneous functions and variables.
 """
 
 reachy_to_smpl_idx=[0, 2, 1, 5, 4, 9, 12, 17, 19, 21, 53, 40, 42, 16, 18, 20, 38, 25, 27, 24, 23]
