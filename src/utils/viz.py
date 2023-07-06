@@ -12,13 +12,13 @@ from utils.misc import joint_range
 
 
 def draw_imgs(angles, chain, tmp_fp, resolution, smooth):
-    viz = kp.Visualizer(win_size=(resolution, resolution//4*3))
+    viz = kp.Visualizer(win_size=(resolution, resolution // 4 * 3))
     viz._ren.ResetCamera(-0.75, 0.75, -0.75, 0.75, 0, 0.75)
     viz._ren.GetActiveCamera().Azimuth(90)
     viz._ren.GetActiveCamera().Roll(-90)
     # viz._win.SetOffScreenRendering(1)
     if smooth:
-        print('median filtering....')
+        print("median filtering....")
         keys = list(joint_range.keys())
         for ki, k in enumerate(keys):
             values = np.array([th[k] for th in angles])
@@ -26,7 +26,7 @@ def draw_imgs(angles, chain, tmp_fp, resolution, smooth):
             for thi, th in enumerate(angles):
                 th[k] = values[thi]
                 # angles[thi] = th
-        print('filtering done')
+        print("filtering done")
 
     for i, th in enumerate(angles):
         if i % 1 == 0:
@@ -40,7 +40,7 @@ def draw_imgs(angles, chain, tmp_fp, resolution, smooth):
             viz._w2if.Update()
 
             writer = vtkPNGWriter()
-            writer.SetFileName(osp.join(tmp_fp, '{:04}.png'.format(i)))
+            writer.SetFileName(osp.join(tmp_fp, "{:04}.png".format(i)))
             writer.SetInputConnection(viz._w2if.GetOutputPort())
             writer.Write()
 
@@ -48,8 +48,9 @@ def draw_imgs(angles, chain, tmp_fp, resolution, smooth):
 
     del viz._ren, viz._win, viz._w2if, viz
 
+
 def render_ret(ret, chain, img_fp, resolution):
-    viz = kp.Visualizer(win_size=(resolution, resolution//4*3))
+    viz = kp.Visualizer(win_size=(resolution, resolution // 4 * 3))
     viz._ren.ResetCamera(-0.75, 0.75, -0.75, 0.75, 0, 0.75)
     viz._ren.GetActiveCamera().Azimuth(90)
     viz._ren.GetActiveCamera().Roll(-90)
