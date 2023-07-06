@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot name="reachy">
     <mujoco>
-        <compiler meshdir="./meshes/" balanceinertia="true"/>
+        <compiler meshdir="data/reachy_meshes/" balanceinertia="true"/>
     </mujoco>
 <!-- Torso Link -->
 
@@ -16,7 +16,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/torso.obj"/>
+            <mesh filename="data/reachy_meshes/torso.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -38,7 +38,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/head.obj"/>
+            <mesh filename="data/reachy_meshes/head.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -58,7 +58,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/antenna.obj"/>
+            <mesh filename="data/reachy_meshes/antenna.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -78,7 +78,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/antenna.obj"/>
+            <mesh filename="data/reachy_meshes/antenna.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -100,7 +100,7 @@
     <visual name="">
         <origin xyz="0.0 0.04 0.0" rpy="1.57 1.57 0.0"/>
         <geometry>
-            <mesh filename="./meshes/shoulder.obj"/>
+            <mesh filename="data/reachy_meshes/shoulder.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -120,7 +120,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/shoulder_x.obj"/>
+            <mesh filename="data/reachy_meshes/shoulder_x.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -140,7 +140,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 -0.0526" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/upper_arm.obj"/>
+            <mesh filename="data/reachy_meshes/upper_arm.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -160,7 +160,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/forearm.obj"/>
+            <mesh filename="data/reachy_meshes/forearm.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -180,7 +180,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 -0.100" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/wrist.obj"/>
+            <mesh filename="data/reachy_meshes/wrist.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -200,7 +200,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/wrist2hand.obj"/>
+            <mesh filename="data/reachy_meshes/wrist2hand.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -220,7 +220,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 1.57 0.0"/>
         <geometry>
-            <mesh filename="./meshes/r_gripper_thumb.obj"/>
+            <mesh filename="data/reachy_meshes/r_gripper_thumb.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -240,7 +240,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 1.57 0.0"/>
         <geometry>
-            <mesh filename="./meshes/r_gripper_finger.obj"/>
+            <mesh filename="data/reachy_meshes/r_gripper_finger.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -265,7 +265,7 @@
     <visual name="">
         <origin xyz="0.0 -0.04 0.0" rpy="-1.57 1.57 0.0"/>
         <geometry>
-            <mesh filename="./meshes/shoulder.obj"/>
+            <mesh filename="data/reachy_meshes/shoulder.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -285,7 +285,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/shoulder_x.obj"/>
+            <mesh filename="data/reachy_meshes/shoulder_x.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -305,7 +305,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 -0.0526" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/upper_arm.obj"/>
+            <mesh filename="data/reachy_meshes/upper_arm.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -325,7 +325,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/forearm.obj"/>
+            <mesh filename="data/reachy_meshes/forearm.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -345,7 +345,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 -0.1" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/wrist.obj"/>
+            <mesh filename="data/reachy_meshes/wrist.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -365,7 +365,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="./meshes/wrist2hand.obj"/>
+            <mesh filename="data/reachy_meshes/wrist2hand.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -385,7 +385,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 1.57 0.0"/>
         <geometry>
-            <mesh filename="./meshes/l_gripper_thumb.obj"/>
+            <mesh filename="data/reachy_meshes/l_gripper_thumb.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -405,7 +405,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 1.57 0.0"/>
         <geometry>
-            <mesh filename="./meshes/l_gripper_finger.obj"/>
+            <mesh filename="data/reachy_meshes/l_gripper_finger.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -649,7 +649,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.5236"/>
         <geometry>
-            <mesh filename="./meshes/orbita_arm.obj"/>
+            <mesh filename="data/reachy_meshes/orbita_arm.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -670,7 +670,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 2.618"/>
         <geometry>
-            <mesh filename="./meshes/orbita_arm.obj"/>
+            <mesh filename="data/reachy_meshes/orbita_arm.obj"/>
         </geometry>
     </visual>
     <collision>
@@ -691,7 +691,7 @@
     <visual name="">
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 -1.57"/>
         <geometry>
-            <mesh filename="./meshes/orbita_arm.obj"/>
+            <mesh filename="data/reachy_meshes/orbita_arm.obj"/>
         </geometry>
     </visual>
     <collision>
