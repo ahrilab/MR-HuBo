@@ -2,11 +2,14 @@ import kinpy as kp
 import vtk
 from vtk import vtkPNGWriter
 import os.path as osp
-from vtk.util.numpy_support import vtk_to_numpy
+
+# from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import medfilt, savgol_filter
-from misc import joint_range
+
+from utils.misc import joint_range
+
 
 def draw_imgs(angles, chain, tmp_fp, resolution, smooth):
     viz = kp.Visualizer(win_size=(resolution, resolution//4*3))

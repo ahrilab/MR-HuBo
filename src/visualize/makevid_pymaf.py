@@ -3,8 +3,11 @@ import joblib
 import numpy as np
 
 import sys
-sys.path.append('.')
+
+sys.path.append("./src")
 from utils.hbp import transform_smpl_coordinate, make_vids
+from utils.consts import *
+
 
 def main(args):
     num_betas = 16

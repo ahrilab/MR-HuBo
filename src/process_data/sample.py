@@ -19,9 +19,11 @@ import pickle
 import argparse
 import sys
 
-sys.path.append('.')
+sys.path.append("./src")
 from utils.misc import joint_range
 from utils.transform import quat2rep
+from utils.consts import *
+
 
 def main(args):
     os.makedirs(args.save_path, exist_ok=True)
@@ -29,8 +31,8 @@ def main(args):
     max_seed = args.max_seed            # how many random seed to be used for sampling
     num_per_seed = args.num_per_seed    # how many poses to be sampled for each random seed.
 
-    # What is 'chain' & 'urdf'?
-    chain = kp.build_chain_from_urdf(open('./reachy.urdf').read())
+    chain = kp.build_chain_from_urdf(open(REACHY_URDF_PATH).read())
+    # Reachy urdf: Definition of 31 joints, 31 links for reachy robot.
 
     for seed in range(max_seed):
         np.random.seed(seed)            # Ensuring that random values are uniform for the same seed, but different for different seeds.
@@ -65,30 +67,14 @@ def main(args):
 
                 xyzs.append(curr_xyz)
                 reps.append(curr_rep)
+                # xyzs & reps are lists of 31 elements, each element is a 3D or 6D numpy array.
 
-            # vstack 이전의 xyzs: list of numpy arrays.
-            xyzs = np.vstack(xyzs)              # xyzs.shape: (31, 3)
-            reps = np.asarray(reps)             # reps.shape: (31, 6)
-            reachy_to_smpl_idx=[0, 2, 1, 5, 4, 9, 12, 17, 19, 21, 53, 40, 42, 16, 18, 20, 38, 25, 27, 24, 23]
-            # -> length: 21, smpl의 index: 23, smpl-x Body: 21
+            # Q: In this case, `vstack` and `asarray` works the same?
+            xyzs = np.vstack(xyzs)  # xyzs.shape: (31, 3)
+            reps = np.asarray(reps)  # reps.shape: (31, 6)
+            #########################################################
 
-            # I tried to map XYZ points of robot body to SMPL joints. The joint order needs to be aligned properly.
-            # TODO: plot the robot XYZ positions to be saved, and find out whether the robot joints are well aligned with SMPL joints.
-            # -> smplx 모듈의 create()로 시도해봤는데 SMPL이 뒤틀려서 나옴
-            xyzs4smpl = [np.array([0.0, 0.0, 0.65]),    # pelvis
-                        np.array([0.0, -0.1, 0.65]),    # right hip
-                        np.array([0.0, 0.1, 0.65]),     # left hip
-                        np.array([0.0, -0.1, 0.36]),    # right knee
-                        np.array([0.0, 0.1, 0.36]),     # left knee
-                        np.array([0.0, 0.0, 0.9]),      # spine 3
-                        np.array([0.0, 0.0, 1.05]),     # neck
-                        xyzs[2], xyzs[5], xyzs[7], xyzs[8],
-                        xyzs[9], xyzs[10], xyzs[11], xyzs[14],
-                        xyzs[16], xyzs[17], xyzs[18], xyzs[19],
-                        np.array([xyzs[27][0]-0.01, xyzs[27][1], xyzs[27][2]]), # righ camera
-                        np.array([xyzs[26][0]-0.01, xyzs[26][1], xyzs[26][2]]), # left camera                                                    
-            ]
-            xyzs4smpl = np.asarray(xyzs4smpl)       # shape: (21, 3)
+            xyzs4smpl = np.asarray(get_xyzs4smpl(xyzs))  # shape: (21, 3)
             all_xyzs.append(xyzs)
             all_reps.append(reps)
             all_xyzs4smpl.append(xyzs4smpl)

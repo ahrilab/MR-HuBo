@@ -18,7 +18,8 @@ from human_body_prior.tools.omni_tools import create_list_chunks
 from body_visualizer.tools.vis_tools import render_smpl_params
 from body_visualizer.tools.vis_tools import imagearray2file
 
-from misc import reachy_to_smpl_idx
+from utils.misc import reachy_to_smpl_idx
+
 
 class SourceKeyPoints(nn.Module):
     def __init__(self,

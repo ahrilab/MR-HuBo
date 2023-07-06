@@ -6,15 +6,17 @@ import os
 import os.path as osp
 import glob
 from moviepy.editor import *
-# import pytorch_kinematics as pk
 import sys
-sys.path.append('.')
+
+sys.path.append("./src")
 from utils.viz import draw_imgs
+from utils.consts import *
+
 
 def main(args):
     os.makedirs(args.tmp_path, exist_ok=True)
 
-    chain = kp.build_chain_from_urdf(open('./reachy.urdf').read())
+    chain = kp.build_chain_from_urdf(open(REACHY_URDF_PATH).read())
 
     if osp.isdir(args.file_path):
         os.makedirs(args.save_path, exist_ok=True)

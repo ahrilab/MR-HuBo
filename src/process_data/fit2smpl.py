@@ -7,12 +7,13 @@ import argparse
 import numpy as np
 import os.path as osp
 import os
-
-import sys
-sys.path.append('.')
-
-from utils.hbp import run_ik_engine, make_vids
 import glob
+import sys
+
+sys.path.append("./src")
+from utils.hbp import run_ik_engine, make_vids
+from utils.consts import *
+
 
 def main(args):
     num_betas = 16
