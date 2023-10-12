@@ -6,10 +6,11 @@ out/
 
 # data elements (which can be produced by code)
 data/human/*.npz
-data/reachy/raw/*.pkl
-data/reachy/raw/*.npz
-data/reachy/fix/*.pkl
-data/reachy/fix/*.npz
+data/reachy/motions/
+# data/reachy/motions/raw/*.pkl
+# data/reachy/motions/raw/*.npz
+# data/reachy/motions/fix/*.pkl
+# data/reachy/motions/fix/*.npz
 
 # ignore bodymodel/smplx because it's too big
 data/bodymodel/
