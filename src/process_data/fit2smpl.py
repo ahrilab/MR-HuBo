@@ -15,43 +15,50 @@ import sys
 sys.path.append("./src")
 from utils.hbp import run_ik_engine, make_vids
 from utils.consts import *
+from utils.types import RobotType, Fit2SMPLArgs
+from utils.RobotConfig import RobotConfig
 
 
-def main(args):
-    num_betas = 16
+def main(args: Fit2SMPLArgs):
+    robot_config = RobotConfig(args.robot_type)
     batch_size = 100
     device = "cuda"
+    video_path = args.video_result_path
 
-    if osp.isdir(args.reachy_path):
-        os.makedirs(args.human_path, exist_ok=True)
-        os.makedirs(args.vid_path, exist_ok=True)
+    # create directory for results
+    os.makedirs(HUMAN_PARAM_PATH, exist_ok=True)
+    os.makedirs(video_path, exist_ok=True)
 
-        files = sorted(glob.glob(osp.join(args.reachy_path, "*.npz")))  # reachy의 xyz + reps 데이터
-    else:
-        files = [args.reachy_path]
+    # data files of robot's xyzs + reps
+    robot_xyzs_reps_files = sorted(
+        glob.glob(osp.join(robot_config.RAW_DATA_PATH, "*.npz"))
+    )
 
-    for f in files:
-        data_idx = f.split("/")[-1].split("_")[-1][:3]  # DATA_PATH/xyzs+reps_000.npz => 000
+    for f in robot_xyzs_reps_files:
+        # DATA_PATH/xyzs+reps_0000.npz => 0000
+        # data keys in a file: 'xyzs', 'reps', 'xyzs4smpl'
+        data_idx = f.split("/")[-1].split("_")[-1][:4]
 
         if int(data_idx) > -1:
-            reachy_data = np.load(f)
+            robot_xyzs_reps_data = np.load(f)
 
-            motion = reachy_data["xyzs4smpl"]
-            motion = np.zeros_like(reachy_data["xyzs4smpl"])  # shape: (Num_iters, 21, 3)
-            # (x, y, z) => (y, z, x)
-            motion[:, :, 0] = reachy_data["xyzs4smpl"][:, :, 1]
-            motion[:, :, 1] = reachy_data["xyzs4smpl"][:, :, 2]
-            motion[:, :, 2] = reachy_data["xyzs4smpl"][:, :, 0]
+            # xyzs4smpl shape: (Num_iters, 21, 3)
+            xyzs4smpl = np.zeros_like(robot_xyzs_reps_data["xyzs4smpl"])
+
+            # Convert (x, y, z) => (y, z, x)
+            xyzs4smpl[:, :, 0] = robot_xyzs_reps_data["xyzs4smpl"][:, :, 1]
+            xyzs4smpl[:, :, 1] = robot_xyzs_reps_data["xyzs4smpl"][:, :, 2]
+            xyzs4smpl[:, :, 2] = robot_xyzs_reps_data["xyzs4smpl"][:, :, 0]
 
             # running IK from the code makes huge memory usage. Doesn't it empty cache?
             # TODO: memory leak seems to happen in codes from VPoser. Any possible solution?
             smpl_data = run_ik_engine(
-                osp.join(args.human_path, "params_{}.npz".format(data_idx)),
-                motion,
+                osp.join(HUMAN_PARAM_PATH, human_params_path(data_idx)),
+                xyzs4smpl,
                 batch_size,
-                args.smpl_path,
-                args.vposer_path,
-                num_betas,
+                SMPL_PATH,
+                VPOSER_PATH,
+                NUM_BETAS,
                 device,
                 args.verbosity,
             )
@@ -70,26 +77,34 @@ def main(args):
         if args.visualize:
             print("start visualizing...")
             make_vids(
-                osp.join(args.vid_path, reachy2smpl_vid_path(data_idx)),
+                osp.join(video_path, reachy2smpl_vid_path(data_idx)),
                 smpl_data,
-                len(motion),
-                args.smpl_path,
-                num_betas,
+                MOTION_PER_SEED,
+                SMPL_PATH,
+                NUM_BETAS,
                 args.fps,
             )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="args for fitting reachy to smpl")
-    parser.add_argument("--vposer-path", type=str, default=VPOSER_PATH)
-    parser.add_argument("--smpl-path", type=str, default=SMPL_PATH)
-    parser.add_argument("--reachy-path", type=str, default=REACHY_RAW_PATH)
-    parser.add_argument("--human-path", type=str, default=HUMAN_PARAM_PATH)
-    parser.add_argument("--vid-path", type=str, default=VIDEO_PATH)
-    parser.add_argument("--visualize", type=int, default=0)
-    parser.add_argument("--verbosity", type=int, default=0)
-    parser.add_argument("--fps", type=int, default=5)
+    # fmt: off
+    parser.add_argument(
+        "--robot-type", "-r",
+        type=RobotType,
+        required=True,
+        help=f"Select the robot type: {RobotType._member_names_}"
+    )
+    parser.add_argument("--video-result-path", "-vp", type=str, default=VIDEO_PATH)
+    parser.add_argument("--visualize", "-viz", action="store_true")
+    parser.add_argument(
+        "--verbosity", "-ver",
+        type=int, choices=range(0, 3), default=0,
+        help="verbosity: 0: silent, 1: text, 2: text/visual. running 2 over ssh would need extra work"
+    )
+    parser.add_argument("--fps", type=int, default=5)  # frame per second
+    # fmt: on
 
-    args = parser.parse_args()
+    args: Fit2SMPLArgs = parser.parse_args()
 
     main(args)
