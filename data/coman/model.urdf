@@ -290,10 +290,10 @@
             <inertia ixx="4.7672294E-4" ixy="3.9936567E-6" ixz="-2.4802574E-6" iyy="5.458038E-4" iyz="3.3389575E-6" izz="5.126859E-4"/>
         </inertial>
         <visual>
-            <origin rpy="0 0 3.14159265359" xyz="0.0 -0.023 -0.52"/>
+            <origin rpy="0 0 3.14159265359" xyz="0.0 0.023 -0.52"/>
             <material name="dark_grey"/>
             <geometry name="RHipMot_visual">
-                <mesh filename="./meshes/Leg0.STL" scale="0.03937 -0.03937 0.03937"/>
+                <mesh filename="./meshes/Leg0.STL" scale="0.03937 0.03937 0.03937"/>
             </geometry>
         </visual>
         <collision>
@@ -310,10 +310,10 @@
             <inertia ixx="9.165719E-4" ixy="1.4449904E-6" ixz="-1.6685011E-5" iyy="0.00104849584" iyz="-2.5492874E-5" izz="6.8637197E-4"/>
         </inertial>
         <visual>
-            <origin rpy="0 0 3.14159265359" xyz="0.0 -0.0726 -0.52"/>
+            <origin rpy="0 0 3.14159265359" xyz="0.0 0.0726 -0.52"/>
             <material name="dark_grey"/>
             <geometry name="LThighUpLeg_visual">
-                <mesh filename="./meshes/Leg1.STL" scale="0.03937 -0.03937 0.03937"/>
+                <mesh filename="./meshes/Leg1.STL" scale="0.03937 0.03937 0.03937"/>
             </geometry>
         </visual>
         <collision>
@@ -330,10 +330,10 @@
             <inertia ixx="0.0038979546" ixy="-1.7802399E-6" ixz="2.6403262E-5" iyy="0.0039360845" iyz="-4.5227110E-5" izz="9.0218711E-4"/>
         </inertial>
         <visual>
-            <origin rpy="0 0 3.14159265359" xyz="0.0 -0.0726 -0.4176"/>
+            <origin rpy="0 0 3.14159265359" xyz="0.0 0.0726 -0.4176"/>
             <material name="dark_grey"/>
             <geometry name="LThighLowLeg_visual">
-                <mesh filename="./meshes/Leg2.STL" scale="0.03937 -0.03937 0.03937"/>
+                <mesh filename="./meshes/Leg2.STL" scale="0.03937 0.03937 0.03937"/>
             </geometry>
         </visual>
         <collision>
@@ -350,10 +350,10 @@
             <inertia ixx="0.0040604004" ixy="-1.1227206E-5" ixz="1.2260973E-5" iyy="0.004005652855" iyz="-5.1899176E-4" izz="0.0012414054"/>
         </inertial>
         <visual>
-            <origin rpy="0 0 3.14159265359" xyz="0.0 -0.0726 -0.2942"/>
+            <origin rpy="0 0 3.14159265359" xyz="0.0 0.0726 -0.2942"/>
             <material name="dark_grey"/>
             <geometry name="LLowLeg_visual">
-                <mesh filename="./meshes/Leg3.STL" scale="0.03937 -0.03937 0.03937"/>
+                <mesh filename="./meshes/Leg3.STL" scale="0.03937 0.03937 0.03937"/>
             </geometry>
         </visual>
         <collision>
@@ -370,10 +370,10 @@
             <inertia ixx="3.2034425E-4" ixy="-7.6346303E-6" ixz="2.5430158E-7" iyy="3.6584358E-4" iyz="3.6889276E-6" izz="3.6065156E-4"/>
         </inertial>
         <visual>
-            <origin rpy="0 0 3.14159265359" xyz="0.0 -0.0726 -0.0932"/>
+            <origin rpy="0 0 3.14159265359" xyz="0.0 0.0726 -0.0932"/>
             <material name="dark_grey"/>
             <geometry name="LFootmot_visual">
-                <mesh filename="./meshes/Leg4.STL" scale="0.03937 -0.03937 0.03937"/>
+                <mesh filename="./meshes/Leg4.STL" scale="0.03937 0.03937 0.03937"/>
             </geometry>
         </visual>
         <collision>
@@ -664,7 +664,7 @@
             <inertia ixx="7.8337456E-4" ixy="-1.9035768E-4" ixz="-3.0037676E-6" iyy="6.3399921E-4" iyz="-4.3840774E-6" izz="0.001008054"/>
         </inertial>
         <visual>
-            <origin rpy="0 0 3.14159265359" xyz="-0.005305 -0.0825 -0.844329"/>
+            <origin rpy="0 0 3.14159265359" xyz="-0.005305 -0.0825 0.844329"/>
             <material name="dark_grey"/>
             <geometry name="LShp_visual">
                 <mesh filename="./meshes/Arm0.STL" scale="0.03937 -0.03937 0.03937"/>
@@ -684,10 +684,10 @@
             <inertia ixx="4.5812904E-4" ixy="2.4111086E-7" ixz="9.2521185E-6" iyy="4.3089204E-4" iyz="4.721695E-7" izz="3.4174855E-4"/>
         </inertial>
         <visual>
-            <origin rpy="0 0 3.14159265359" xyz="-0.005305 -0.1558 -0.844329"/>
+            <origin rpy="0 0 3.14159265359" xyz="-0.005305 0.1558 -0.844329"/>
             <material name="dark_grey"/>
             <geometry name="LShr_visual">
-                <mesh filename="./meshes/Arm1.STL" scale="0.03937 -0.03937 0.03937"/>
+                <mesh filename="./meshes/Arm1.STL" scale="0.03937 0.03937 0.03937"/>
             </geometry>
         </visual>
         <collision>
@@ -704,10 +704,10 @@
             <inertia ixx="0.0030934574" ixy="-6.6702837E-5" ixz="3.0222291E-4" iyy="0.0029181573" iyz="5.2663661E-4" izz="8.0830389E-4"/>
         </inertial>
         <visual>
-            <origin rpy="0 0 3.14159265359" xyz="-0.005305 -0.1558 -0.79952053"/>
+            <origin rpy="0 0 3.14159265359" xyz="-0.005305 0.1558 -0.79952053"/>
             <material name="dark_grey"/>
             <geometry name="LShy_visual">
-                <mesh filename="./meshes/Arm2.STL" scale="0.03937 -0.03937 0.03937"/>
+                <mesh filename="./meshes/Arm2.STL" scale="0.03937 0.03937 0.03937"/>
             </geometry>
         </visual>
         <collision>
@@ -1035,7 +1035,7 @@
             <origin rpy="-1.5707963268 0 0" xyz="0.007 -0.01 -0.04"/>
             <material name="hand_color"/>
             <geometry name="LSoftHand_visual">
-                <mesh filename="./meshes/SoftHandOpen.STL" scale="-0.1 0.1 0.1"/>
+                <mesh filename="./meshes/SoftHandOpen.STL" scale="-0.1 0.1 -0.1"/>
             </geometry>
         </visual>
         <collision>
