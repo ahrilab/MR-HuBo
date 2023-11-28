@@ -9,6 +9,7 @@ class RobotType(Enum):
 
     REACHY = "REACHY"
     COMAN = "COMAN"
+    YUMI = "YUMI"
 
 
 class SampleArgs(argparse.Namespace):
@@ -28,7 +29,8 @@ class Fit2SMPLArgs(argparse.Namespace):
 
     robot_type: RobotType
     video_result_path: str
-    visualize: int
+    video_extension: str
+    visualize: bool
     verbosity: int
     fps: int
 
@@ -38,4 +40,19 @@ class AdjustNeckArgs(argparse.Namespace):
     Arguments for Adjust neck joints of robot Python Codes
     """
 
+    robot_type: RobotType
+
+
+class MakeRobotVideoArgs(argparse.Namespace):
+    """
+    Arguments for Making Robot Video Python Codes
+    """
+
+    motion_path: str
+    result_path: str
+    tmp_path: str
+    fps: int
+    resolution: int
+    delete: bool
+    smooth: bool
     robot_type: RobotType
