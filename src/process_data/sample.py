@@ -61,7 +61,7 @@ def main(args: SampleArgs):
             # np.random.rand() * (MAX - MIN) + MIN: Random value in range (MIN, MAX).
             angles = {
                 k: ((np.random.rand() * (v[1] - v[0])) + v[0])
-                for k, v in robot_config.joint_range.items()
+                for k, v in robot_config.joi_range.items()
             }
             # fmt: on
 
