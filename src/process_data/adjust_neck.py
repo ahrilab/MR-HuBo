@@ -47,7 +47,9 @@ def main(args: AdjustNeckArgs):
         # smpl_data: SMPL data generated from fit2smpl.py
         raw_angles = pickle.load(open(f, "rb"))
         data_idx = f.split("/")[-1].split("_")[-1][:4]
-        smpl_data = np.load(osp.join(HUMAN_PARAM_PATH, human_params_path(data_idx)))
+        smpl_data = np.load(
+            osp.join(robot_config.ROBOT_TO_SMPL_PATH, smpl_params_path(data_idx))
+        )
 
         for i in range(len(raw_angles)):  # len(raw_angles) = 2000
             # 1. Get neck axis angle from smpl data and convert it to euler angle.
@@ -62,7 +64,7 @@ def main(args: AdjustNeckArgs):
             theta = raw_angles[i]
 
             # neck axis angle. shape: (3,)
-            neck_aa = smpl_data["poses"][i].reshape(-1, 3)[SMPL_NECK_IDX]
+            neck_aa = smpl_data["poses"][i].reshape(-1, 3)[SMPLX_JOINT_INDEX.neck.value]
 
             # axis angle -> matrix -> euler angle (roll, pitch, yaw)
             neck_euler = matrix_to_euler_angles(
