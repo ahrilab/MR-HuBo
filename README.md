@@ -17,7 +17,9 @@ cd retargeting4reachy
 pip install -r requirements.txt
 ```
 
-- Download data for SMPL
+
+
+- Download data for SMPL (edit)
   
   You can download data for rendering SMPL-X & VPoser Model via [this link](https://smpl-x.is.tue.mpg.de/download.php).
   
