@@ -4,13 +4,11 @@ __pycache__/
 # output directory
 out/
 
+# log directory
+log/
+
 # data elements (which can be produced by code)
-data/human/*.npz
-data/reachy/motions/
-# data/reachy/motions/raw/*.pkl
-# data/reachy/motions/raw/*.npz
-# data/reachy/motions/fix/*.pkl
-# data/reachy/motions/fix/*.npz
+data/**/motions/
 
 # ignore bodymodel/smplx because it's too big
 data/bodymodel/
@@ -18,8 +16,13 @@ data/bodymodel/
 # ignore vposer snapshots (checkpoints) because they're too big
 data/vposer_v2_05/
 
+# ignore amass motions, only provide the list of motions we use
+# data/gt_motions/amass_data/*.npz
+
 # DS_Store for OS X
 .DS_Store
 
 # vscode environment settings
 .vscode/
+
+src/playground/
