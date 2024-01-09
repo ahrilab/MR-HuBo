@@ -198,7 +198,15 @@ def run_ik_engine(
     return d
 
 
-def make_vids(vid_path, smpl_data, len_motion, smpl_path, num_betas, fps, rotate=True):
+def make_vids(
+    vid_path: str,
+    smpl_data: dict,
+    len_motion: int,
+    smpl_path: str,
+    num_betas: int,
+    fps: int,
+    rotate: bool = True,
+):
     """
     Render human body animation from smpl parameters
 
@@ -214,7 +222,7 @@ def make_vids(vid_path, smpl_data, len_motion, smpl_path, num_betas, fps, rotate
     """
 
     bm = BodyModel(bm_fname=smpl_path, num_betas=num_betas)
-    smpl_dict = np.load(smpl_path)
+    smpl_dict: dict = np.load(smpl_path)  # smpl body model
     mean_pose_hand = np.repeat(
         np.concatenate([smpl_dict["hands_meanl"], smpl_dict["hands_meanr"]])[None],
         axis=0,
@@ -234,6 +242,8 @@ def make_vids(vid_path, smpl_data, len_motion, smpl_path, num_betas, fps, rotate
 
     # fmt: off
     img_array = render_smpl_params(bm, body_parms, [-90 if rotate else 0, 0, 0])[None, None]
-    imagearray2file(img_array, outpath=vid_path, fps=fps)
-    # imagearray2file(img_array, outpath=vid_path, duration=1000 / fps)
+    if vid_path.endswith(".gif"):
+        imagearray2file(img_array, outpath=vid_path, duration=1000 / fps)
+    else:
+        imagearray2file(img_array, outpath=vid_path, fps=fps)
     # fmt: on
