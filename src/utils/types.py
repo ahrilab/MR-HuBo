@@ -9,7 +9,6 @@ class RobotType(Enum):
 
     REACHY = "REACHY"
     COMAN = "COMAN"
-    YUMI = "YUMI"
 
 
 class SampleArgs(argparse.Namespace):
@@ -56,3 +55,20 @@ class MakeRobotVideoArgs(argparse.Namespace):
     delete: bool
     smooth: bool
     robot_type: RobotType
+
+
+class TrainArgs(argparse.Namespace):
+    robot_type: RobotType
+
+
+class TestArgs(argparse.Namespace):
+    robot_type: RobotType
+    human_pose_path: str
+    robot_pose_result_path: str
+
+
+class PybulletRenderArgs(argparse.Namespace):
+    robot_type: RobotType
+    smooth: bool
+    view: str
+    extention: str
