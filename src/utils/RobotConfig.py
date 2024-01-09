@@ -24,6 +24,10 @@ class RobotConfig:
             self.joi_keys = REACHY_JOI_KEYS
             self.smpl_joint_idx = REACHY_SMPL_JOINT_IDX
             self.convert_xyzs = reachy_xyzs_to_smpl_xyzs
+            self.xyzs_dim = REACHY_XYZS_DIM
+            self.reps_dim = REACHY_REPS_DIM
+            self.angles_dim = REACHY_ANGLES_DIM
+            self.smpl_reps_dim = REACHY_SMPL_REPS_DIM
 
         elif robot_type == RobotType.COMAN:
             self.URDF_PATH = COMAN_URDF_PATH
@@ -34,20 +38,14 @@ class RobotConfig:
             self.joi_keys = COMAN_JOI_KEYS
             self.smpl_joint_idx = COMAN_SMPL_JOINT_IDX
             self.convert_xyzs = coman_xyzs_to_smpl_xyzs
-
-        elif robot_type == RobotType.YUMI:
-            self.URDF_PATH = YUMI_URDF_PATH
-            self.joint_keys = []
+            self.xyzs_dim = COMAN_XYZS_DIM
+            self.reps_dim = COMAN_REPS_DIM
+            self.angles_dim = COMAN_ANGLES_DIM
+            self.smpl_reps_dim = COMAN_SMPL_REPS_DIM
 
         # Please add here if you want to add a new robot type
         # elif robot_type == RobotType.NEW_ROBOT:
-        #     self.URDF_PATH = NEW_ROBOT_URDF_PATH
-        #     self.RAW_DATA_PATH = NEW_ROBOT_RAW_PATH
-        #     self.FIX_DATA_PATH = NEW_ROBOT_FIX_PATH
-        #     self.joint_range = NEW_ROBOT_JOINT_RANGE
-        #     self.joint_keys = NEW_ROBOT_JOINT_RANGE.keys()
-        #     self.smpl_joint_idx = NEW_ROBOT_SMPL_JOINT_IDX
-        #     self.convert_xyzs = convert_new_robot_xyzs_to_smpl_xyzs
+        #     ...
 
         # If the robot type is not a member of the robot types
         else:

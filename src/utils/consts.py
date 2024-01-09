@@ -3,8 +3,15 @@ from enum import Enum
 from typing import Callable, List
 
 # Constants for seeds
-NUM_SEEDS = 500
+NUM_SEEDS = 1000
 MOTION_PER_SEED = 2000
+
+# Constants for training
+HIDDEN_DIM = 512
+BATCH_SIZE = 2048
+LEARNING_RATE = 1e-4
+DEVICE = "cuda"
+NUM_EPOCHS = 1000
 
 # fmt: off
 # Constants for Human
@@ -322,6 +329,12 @@ reachy_xyzs_to_smpl_xyzs: Callable[[List[np.ndarray]], List[np.ndarray]] = (
     ]
 )
 
+# Train Parameters
+REACHY_XYZS_DIM = len(REACHY_LINK_INDEX) * 3            # 31 links * 3 xyzs = 93
+REACHY_REPS_DIM = len(REACHY_LINK_INDEX) * 6            # 31 links * 6 reps = 186
+REACHY_ANGLES_DIM = len(REACHY_JOI)                     # 17 joints
+REACHY_SMPL_REPS_DIM = len(REACHY_SMPL_JOINT_IDX) * 6   # 21 joints * 6 reps = 126
+
 # fmt: on
 
 ################################
@@ -425,7 +438,7 @@ COMAN_JOI_KEYS = COMAN_JOI.keys()
 
 
 # SMPL-X Index for COMAN
-# Total 25 joints
+# Total 23 joints
 COMAN_SMPL_JOINT_IDX = [
 
     # base
@@ -492,6 +505,13 @@ def coman_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> List[np.ndarray]:
 
     smpl_xyzs = [xyz + np.array([0, 0, 0.65]) for xyz in smpl_xyzs]
     return smpl_xyzs
+
+# Train Parameters
+COMAN_XYZS_DIM = len(ComanLinkIndex) * 3            # 64 links * 3 xyzs = 192
+COMAN_REPS_DIM = len(ComanLinkIndex) * 6            # 64 links * 6 reps = 384
+COMAN_ANGLES_DIM = len(COMAN_JOI)                   # 14 joints
+COMAN_SMPL_REPS_DIM = len(COMAN_SMPL_JOINT_IDX) * 6 # 23 joints * 6 reps = 138
+
 # fmt: on
 
 ################################

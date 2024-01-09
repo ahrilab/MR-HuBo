@@ -16,37 +16,28 @@ from model.net import MLP
 def infer_human2robot(args: TestArgs):
     robot_config = RobotConfig(args.robot_type)
 
-    dim_hidden = HIDDEN_DIM
-    device = DEVICE
-
-    ##################### Load Model
+    # Load Model
     model_pre = MLP(
         dim_input=robot_config.smpl_reps_dim,
-        dim_output=robot_config.xyzs_dim + robot_config.reps_dim,
-        dim_hidden=dim_hidden,
-    ).to(device)
+        dim_output=robot_config.reps_dim,
+        dim_hidden=HIDDEN_DIM,
+    ).to(DEVICE)
     model_post = MLP(
-        dim_input=robot_config.xyzs_dim + robot_config.reps_dim,
+        dim_input=robot_config.reps_dim,
         dim_output=robot_config.angles_dim,
-        dim_hidden=dim_hidden,
-    ).to(device)
+        dim_hidden=HIDDEN_DIM,
+    ).to(DEVICE)
 
     model_pre.load_state_dict(
         torch.load(
-            f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_best_pre_v1.pth"
+            f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_pre_v1.pth",
         )
     )
     model_post.load_state_dict(
         torch.load(
-            f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_best_post_v1.pth"
+            f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_post_1.pth",
         )
     )
-
-    # model_pre.load_state_dict(torch.load(f"out/models/old/human2robot_best_pre_v2.pth"))
-    # model_post.load_state_dict(
-    #     torch.load(f"out/models/old/human2robot_best_post_v2.pth")
-    # )
-
     model_pre.eval()
     model_post.eval()
 
@@ -72,7 +63,7 @@ def infer_human2robot(args: TestArgs):
     smpl_rep = smpl_rep.reshape(length, num_joints, 6).reshape(length, -1)
 
     with torch.no_grad():
-        pre_pred = model_pre(smpl_rep.to(device).float())
+        pre_pred = model_pre(smpl_rep.to(DEVICE).float())
         post_pred = model_post(pre_pred)
         post_pred = post_pred.detach().cpu().numpy()[:, : robot_config.angles_dim]
 
