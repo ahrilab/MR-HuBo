@@ -1,26 +1,42 @@
 import kinpy as kp
+from kinpy.chain import Chain
 import vtk
 from vtk import vtkPNGWriter
 import os.path as osp
+from typing import List
 
 # from vtk.util.numpy_support import vtk_to_numpy
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import medfilt, savgol_filter
 
-from utils.misc import joint_range
 
-
-def draw_imgs(angles, chain, tmp_fp, resolution, smooth):
+def draw_imgs(
+    angles: List[dict],
+    chain: Chain,
+    tmp_fp: str,
+    resolution: int,
+    smooth: bool,
+    joint_keys: List[str],
+    camera_dist: float = 0.75,  # distance from the camera to the robot
+):
     viz = kp.Visualizer(win_size=(resolution, resolution // 4 * 3))
-    viz._ren.ResetCamera(-0.75, 0.75, -0.75, 0.75, 0, 0.75)
+    viz._ren.ResetCamera(
+        -camera_dist,
+        camera_dist,
+        -camera_dist,
+        camera_dist,
+        camera_dist / 3,
+        camera_dist,
+        # 0,
+        # 1,
+    )
     viz._ren.GetActiveCamera().Azimuth(90)
     viz._ren.GetActiveCamera().Roll(-90)
     # viz._win.SetOffScreenRendering(1)
     if smooth:
         print("median filtering....")
-        keys = list(joint_range.keys())
-        for ki, k in enumerate(keys):
+        for ki, k in enumerate(joint_keys):
             values = np.array([th[k] for th in angles])
             values = savgol_filter(values, 25, 2)
             for thi, th in enumerate(angles):
