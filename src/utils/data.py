@@ -1,15 +1,13 @@
-from torch.utils.data import dataloader, Dataset
+from torch.utils.data import Dataset
 import numpy as np
 import os.path as osp
 import pickle
 import torch
-from pytorch3d.transforms import axis_angle_to_matrix, matrix_to_rotation_6d
-from human_body_prior.tools.rotation_tools import matrot2aa, aa2matrot
+from pytorch3d.transforms import matrix_to_rotation_6d
+from human_body_prior.tools.rotation_tools import aa2matrot
 from human_body_prior.tools.model_loader import load_model
-from human_body_prior.body_model.body_model import BodyModel
 from human_body_prior.models.vposer_model import VPoser
 from torch.distributions import multivariate_normal
-from scipy.stats import normaltest
 import random
 
 device = "cuda"
@@ -27,7 +25,22 @@ def draw(probs):
         return i
 
 
-def split_train_test(reachy_dir, human_dir, num, split_ratio=10, sample_vposer=True):
+def split_train_test(
+    input_path: str,
+    target_path: str,
+    num_data: int,
+    split_ratio: int = 10,
+    sample_vposer: bool = True,
+):
+    """
+    Args:
+    ----------
+    input_path (str): path to load SMPL parameters
+    target_path (str): path to load robot joint angles & xyzs+reps
+    num_data (int): number of total data
+    split_ratio (int): ratio of train/test split
+    sample_vposer (bool): whether to sample from VPoser latent space
+    """
     if sample_vposer:
         vp, ps = load_model(
             vposer_dir,
@@ -37,24 +50,26 @@ def split_train_test(reachy_dir, human_dir, num, split_ratio=10, sample_vposer=T
         )
         vp = vp.to(device)
 
-    test_num = num // split_ratio
+    test_num = num_data // split_ratio
 
-    all_reachy_xyzs = {"train": [], "test": []}
-    all_reachy_reps = {"train": [], "test": []}
-    all_reachy_angles = {"train": [], "test": []}
+    all_robot_xyzs = {"train": [], "test": []}
+    all_robot_reps = {"train": [], "test": []}
+    all_robot_angles = {"train": [], "test": []}
     all_smpl_reps = {"train": [], "test": []}
     all_smpl_rots = {"train": [], "test": []}
 
-    for idx in range(num):
-        print(idx, "/", num)
-        smpl = np.load(osp.join(human_dir, "params_{:03}.npz".format(idx)))
+    for idx in range(num_data):
+        print(idx, "/", num_data)
+        smpl = np.load(osp.join(input_path, "params_{:04}.npz".format(idx)))
         smpl_pose_body = smpl["pose_body"]
         curr_num = len(smpl_pose_body)
         if sample_vposer:
             z = vp.encode(torch.from_numpy(smpl_pose_body).to(device))
             z_mean = z.mean.detach().cpu()  # 2000 32
             dim_z = z_mean.shape[1]
-            dist = multivariate_normal.MultivariateNormal(loc=torch.zeros(dim_z), covariance_matrix=torch.eye(dim_z))
+            dist = multivariate_normal.MultivariateNormal(
+                loc=torch.zeros(dim_z), covariance_matrix=torch.eye(dim_z)
+            )
             z_prob = torch.exp(dist.log_prob(z_mean))
             z_prob = z_prob / torch.sum(z_prob)
 
@@ -68,7 +83,9 @@ def split_train_test(reachy_dir, human_dir, num, split_ratio=10, sample_vposer=T
         smpl_aa = smpl_pose_body.reshape(curr_num, -1, 3)
         num_smpl_joints = smpl_aa.shape[1]
 
-        smpl_rot = aa2matrot(torch.from_numpy(smpl_aa.reshape(curr_num * num_smpl_joints, 3)))
+        smpl_rot = aa2matrot(
+            torch.from_numpy(smpl_aa.reshape(curr_num * num_smpl_joints, 3))
+        )
         smpl_rep = matrix_to_rotation_6d(smpl_rot)
 
         smpl_rot = smpl_rot.reshape(curr_num, num_smpl_joints, 3, 3)
@@ -77,21 +94,23 @@ def split_train_test(reachy_dir, human_dir, num, split_ratio=10, sample_vposer=T
         smpl_rot = smpl_rot.numpy().reshape(curr_num, -1)
         smpl_rep = smpl_rep.numpy().reshape(curr_num, -1)
 
-        reachy_angle = pickle.load(open(osp.join(reachy_dir, "angles_{:03}.pkl".format(idx)), "rb"))
+        robot_angle = pickle.load(
+            open(osp.join(target_path, "angles_{:04}.pkl".format(idx)), "rb")
+        )
         angle_chunk = []
-        for ra in reachy_angle:
+        for ra in robot_angle:
             values = []
             for k in sorted(list(ra.keys())):
                 values.append(ra[k])
             angle_chunk.append(np.array(values))
         angle_chunk = np.asarray(angle_chunk)
 
-        reachy_xyzrep = np.load(osp.join(reachy_dir, "xyzs+reps_{:03}.npz".format(idx)))
-        reachy_xyzs = reachy_xyzrep["xyzs"]
-        reachy_reps = reachy_xyzrep["reps"]
+        robot_xyzrep = np.load(osp.join(target_path, "xyzs+reps_{:04}.npz".format(idx)))
+        robot_xyzs = robot_xyzrep["xyzs"]
+        robot_reps = robot_xyzrep["reps"]
 
-        reachy_xyzs = reachy_xyzs.reshape(curr_num, -1)
-        reachy_reps = reachy_reps.reshape(curr_num, -1)
+        robot_xyzs = robot_xyzs.reshape(curr_num, -1)
+        robot_reps = robot_reps.reshape(curr_num, -1)
 
         if idx < test_num:
             target = "test"
@@ -99,39 +118,39 @@ def split_train_test(reachy_dir, human_dir, num, split_ratio=10, sample_vposer=T
             target = "train"
 
         if sample_vposer:
-            all_reachy_xyzs[target].append(reachy_xyzs[sample_idx])
-            all_reachy_reps[target].append(reachy_reps[sample_idx])
-            all_reachy_angles[target].append(angle_chunk[sample_idx])
+            all_robot_xyzs[target].append(robot_xyzs[sample_idx])
+            all_robot_reps[target].append(robot_reps[sample_idx])
+            all_robot_angles[target].append(angle_chunk[sample_idx])
             all_smpl_reps[target].append(smpl_rep[sample_idx])
             all_smpl_rots[target].append(smpl_rot[sample_idx])
         else:
-            all_reachy_xyzs[target].append(reachy_xyzs)
-            all_reachy_reps[target].append(reachy_reps)
-            all_reachy_angles[target].append(angle_chunk)
+            all_robot_xyzs[target].append(robot_xyzs)
+            all_robot_reps[target].append(robot_reps)
+            all_robot_angles[target].append(angle_chunk)
             all_smpl_reps[target].append(smpl_rep)
             all_smpl_rots[target].append(smpl_rot)
 
     for target in ["test", "train"]:
-        all_reachy_xyzs[target] = np.concatenate(all_reachy_xyzs[target], axis=0)
-        all_reachy_reps[target] = np.concatenate(all_reachy_reps[target], axis=0)
-        all_reachy_angles[target] = np.concatenate(all_reachy_angles[target], axis=0)
+        all_robot_xyzs[target] = np.concatenate(all_robot_xyzs[target], axis=0)
+        all_robot_reps[target] = np.concatenate(all_robot_reps[target], axis=0)
+        all_robot_angles[target] = np.concatenate(all_robot_angles[target], axis=0)
         all_smpl_reps[target] = np.concatenate(all_smpl_reps[target], axis=0)
         all_smpl_rots[target] = np.concatenate(all_smpl_rots[target], axis=0)
 
     return (
-        all_reachy_xyzs,
-        all_reachy_reps,
-        all_reachy_angles,
+        all_robot_xyzs,
+        all_robot_reps,
+        all_robot_angles,
         all_smpl_reps,
         all_smpl_rots,
     )
 
 
-class R4Rdata(Dataset):
-    def __init__(self, reachy_xyz, reachy_rep, reachy_angle, smpl_rep, smpl_rot):
-        self.reachy_xyz = reachy_xyz
-        self.reachy_rep = reachy_rep
-        self.reachy_angle = reachy_angle
+class H2RMotionData(Dataset):
+    def __init__(self, robot_xyz, robot_rep, robot_angle, smpl_rep, smpl_rot):
+        self.robot_xyz = robot_xyz
+        self.robot_rep = robot_rep
+        self.robot_angle = robot_angle
         self.smpl_rep = smpl_rep
         self.smpl_rot = smpl_rot
 
@@ -141,9 +160,9 @@ class R4Rdata(Dataset):
     def __getitem__(self, idx):
         sample = dict()
 
-        sample["reachy_xyz"] = self.reachy_xyz[idx]
-        sample["reachy_rep"] = self.reachy_rep[idx]
-        sample["reachy_angle"] = self.reachy_angle[idx]
+        sample["robot_xyz"] = self.robot_xyz[idx]
+        sample["robot_rep"] = self.robot_rep[idx]
+        sample["robot_angle"] = self.robot_angle[idx]
         sample["smpl_rep"] = self.smpl_rep[idx]
         sample["smpl_rot"] = self.smpl_rot[idx]
 
