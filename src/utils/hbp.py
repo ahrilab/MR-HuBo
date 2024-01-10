@@ -101,7 +101,6 @@ def transform_smpl_coordinate(
 
 
 def run_ik_engine(
-    res_path: str,
     motion: np.ndarray,
     batch_size: int,
     smpl_path: str,
@@ -193,7 +192,6 @@ def run_ik_engine(
     d["gender"] = "neutral"
     d["mocap_frame_rate"] = 30
     d["num_betas"] = num_betas
-    np.savez(res_path, **d)
 
     return d
 

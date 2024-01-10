@@ -32,6 +32,7 @@ class Fit2SMPLArgs(argparse.Namespace):
     visualize: bool
     verbosity: int
     fps: int
+    restart_idx: int
 
 
 class AdjustNeckArgs(argparse.Namespace):

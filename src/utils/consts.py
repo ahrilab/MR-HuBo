@@ -15,9 +15,10 @@ NUM_EPOCHS = 1000
 
 # fmt: off
 # Constants for Human
-VPOSER_PATH      = "./data/vposer_v2_05"
-SMPL_PATH        = "./data/bodymodel/smplx/neutral.npz"
-NUM_BETAS        = 16
+VPOSER_PATH         = "./data/vposer_v2_05"
+SMPL_PATH           = "./data/bodymodel/smplx/neutral.npz"
+NUM_BETAS           = 16
+VPOSER_BATCH_SIZE   = 500
 
 # Path rules for data
 robot_xyzs_reps_path = (lambda data_idx: f"xyzs+reps_{data_idx:04}.npz"
