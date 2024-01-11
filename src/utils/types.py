@@ -72,4 +72,6 @@ class PybulletRenderArgs(argparse.Namespace):
     robot_type: RobotType
     smooth: bool
     view: str
-    extention: str
+    robot_pose_path: str
+    output_path: str
+    fps: int

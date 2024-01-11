@@ -2,10 +2,10 @@ import pybullet as pb
 import pybullet_data
 import sys
 import pickle
-from typing import List, Dict
 import imageio
 import argparse
 import numpy as np
+from typing import List, Dict
 from scipy.signal import savgol_filter
 
 sys.path.append("src/")
@@ -16,8 +16,6 @@ from utils.types import RobotType, PybulletRenderArgs
 def main(args: PybulletRenderArgs):
     # robot의 정보를 가져옴
     robot_config = RobotConfig(RobotType.COMAN)
-
-    extention = args.extention
     view = args.view
 
     # load joint data
@@ -38,8 +36,6 @@ def main(args: PybulletRenderArgs):
                 th[k] = values[thi]
         print("filtering done")
 
-    # motions = motions[500:]
-
     # pybullet 시뮬레이터 초기화
     pb.connect(pb.GUI)
     pb.setAdditionalSearchPath(pybullet_data.getDataPath())
@@ -49,7 +45,13 @@ def main(args: PybulletRenderArgs):
     pb.loadURDF("plane.urdf")
 
     # 로봇의 URDF 파일을 로드
-    robot_id = pb.loadURDF(robot_config.URDF_PATH)
+    if robot_config.robot_type == RobotType.COMAN:
+        robot_id = pb.loadURDF(robot_config.URDF_4_RENDER_PATH, [0, 0, 0.53])
+    else:
+        robot_id = pb.loadURDF(robot_config.URDF_PATH, [0, 0, 0.53])
+
+    # Set the mass of the robot to 0, so that it is not affected by gravity (not rolling on the ground & not falling)
+    pb.changeDynamics(robot_id, -1, mass=0)
 
     # Set the initial position of the robot on the ground
     initial_position = [0, 0, 0.53]  # Adjust the values as needed
@@ -87,26 +89,22 @@ def main(args: PybulletRenderArgs):
 
         frames.append(img[2])
 
-    if extention == "gif":
-        imageio.mimsave(
-            f"out/pybullet/coman_boxing_12_{view}{'_s' if args.smooth else ''}.{extention}",
-            frames,
-            duration=16.7,
-        )
-    elif extention == "mp4":
-        imageio.mimsave(
-            f"out/pybullet/coman_boxing_12_{view}{'_s' if args.smooth else ''}.{extention}",
-            frames,
-            fps=60,
-        )
+    if args.output_path is not None:
+        output_path = args.output_path
+    else:
+        output_path = f"out/pybullet/coman_{view}{'_s' if args.smooth else ''}.gif"
 
-    # pb.stopStateRecording(video_recorder)
+    extension = output_path.split(".")[-1]
+    if extension == "gif":
+        imageio.mimwrite(output_path, frames, duration=1000 / args.fps)
+    elif extension == "mp4":
+        imageio.mimsave(output_path, frames, fps=args.fps)
+
     pb.disconnect()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="args for render with pybullet")
-    parser.add_argument("--extention", "-e", type=str, default="gif")
     parser.add_argument(
         "--view",
         "-v",
@@ -115,8 +113,10 @@ if __name__ == "__main__":
         choices=["front", "side"],
         help="view of camera (front or side)",
     )
+    parser.add_argument("--fps", type=int, default=60)
     parser.add_argument("--smooth", "-s", action="store_true")
     parser.add_argument("--robot_pose_path", "-rp", type=str, required=False)
+    parser.add_argument("--output_path", "-op", type=str, required=False)
 
     args: PybulletRenderArgs = parser.parse_args()
     main(args)
