@@ -343,10 +343,11 @@ REACHY_SMPL_REPS_DIM = len(REACHY_SMPL_JOINT_IDX) * 6   # 21 joints * 6 reps = 1
 ################################
 
 # fmt: off
-COMAN_RAW_PATH  = "./data/coman/motions/raw"
-COMAN_FIX_PATH  = "./data/coman/motions/fix"
-COMAN_SMPL_PATH = "./data/coman/motions/coman2smpl"
-COMAN_URDF_PATH = "./data/coman/coman.urdf"
+COMAN_RAW_PATH              = "./data/coman/motions/raw"
+COMAN_FIX_PATH              = "./data/coman/motions/fix"
+COMAN_SMPL_PATH             = "./data/coman/motions/coman2smpl"
+COMAN_URDF_PATH             = "./data/coman/coman.urdf"
+COMAN_URDF_4_RENDER_PATH    = "./data/coman/coman_nohands.urdf"
 
 # link index of coman
 class ComanLinkIndex(Enum):

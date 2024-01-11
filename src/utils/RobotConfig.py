@@ -31,6 +31,7 @@ class RobotConfig:
 
         elif robot_type == RobotType.COMAN:
             self.URDF_PATH = COMAN_URDF_PATH
+            self.URDF_4_RENDER_PATH = COMAN_URDF_4_RENDER_PATH
             self.RAW_DATA_PATH = COMAN_RAW_PATH
             self.FIX_DATA_PATH = COMAN_FIX_PATH
             self.ROBOT_TO_SMPL_PATH = COMAN_SMPL_PATH
