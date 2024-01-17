@@ -1,3 +1,13 @@
+"""
+Render the motion of the robot with pybullet simulator.
+
+Usage:
+    python src/visualize/pybullet_render.py -v VIEW --fps FPS [-s] -rp ROBOT_POSE_PATH -op OUTPUT_PATH
+
+Example:
+    python src/visualize/pybullet_render.py -v front --fps 120 -s -rp ./out/pred_motions/COMAN/rep_only_02_05.pkl -op ./out/pybullet/rep_only_02_05.mp4
+"""
+
 import pybullet as pb
 import pybullet_data
 import sys
@@ -15,7 +25,7 @@ from utils.types import RobotType, PybulletRenderArgs
 
 def main(args: PybulletRenderArgs):
     # robot의 정보를 가져옴
-    robot_config = RobotConfig(RobotType.COMAN)
+    robot_config = RobotConfig(args.robot_type)
     view = args.view
 
     # load joint data
@@ -31,7 +41,7 @@ def main(args: PybulletRenderArgs):
         print("median filtering....")
         for ki, k in enumerate(robot_config.joi_keys):
             values = np.array([th[k] for th in motions])
-            values = savgol_filter(values, 25, 2)
+            values = savgol_filter(values, 50, 2)
             for thi, th in enumerate(motions):
                 th[k] = values[thi]
         print("filtering done")
@@ -113,7 +123,8 @@ if __name__ == "__main__":
         choices=["front", "side"],
         help="view of camera (front or side)",
     )
-    parser.add_argument("--fps", type=int, default=60)
+    parser.add_argument("--robot_type", "-r", type=RobotType, default=RobotType.COMAN)
+    parser.add_argument("--fps", type=int, default=120)
     parser.add_argument("--smooth", "-s", action="store_true")
     parser.add_argument("--robot_pose_path", "-rp", type=str, required=False)
     parser.add_argument("--output_path", "-op", type=str, required=False)
