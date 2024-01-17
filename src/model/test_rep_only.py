@@ -1,3 +1,14 @@
+"""
+Predict robot angles from SMPL parameters.
+Load a pre-trained model and SMPL parameter file, predict robot angles, and save it into a file.
+
+Usage:
+    python src/model/test_rep_only.py -r ROBOT_TYPE -hp HUMAN_POSE_PATH -rp ROBOT_POSE_RESULT_PATH
+
+Example:
+    python src/model/test_rep_only.py -r REACHY -hp ./data/gt_motions/amass_data/02_05_stageii.npz -rp ./out/pred_motions/REACHY/mr_result_REACHY_v1.pkl
+"""
+
 import joblib
 import torch
 import pickle
@@ -35,7 +46,7 @@ def infer_human2robot(args: TestArgs):
     )
     model_post.load_state_dict(
         torch.load(
-            f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_post_1.pth",
+            f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_post_v1.pth",
         )
     )
     model_pre.eval()
@@ -79,7 +90,10 @@ def infer_human2robot(args: TestArgs):
     else:
         pickle.dump(
             robot_angles,
-            open(f"./out/pymaf_{robot_config.robot_type.name}_v1.pkl", "wb"),
+            open(
+                f"./out/{robot_config.robot_type.name}/mr_result_{robot_config.robot_type.name}_v1.pkl",
+                "wb",
+            ),
         )
     print("Finish!")
 

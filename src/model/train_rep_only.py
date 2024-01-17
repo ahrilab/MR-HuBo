@@ -1,9 +1,22 @@
+"""
+Train the model to predict robot joint angles from SMPL parameters.
+
+Usage:
+    python src/model/train_rep_only.py -r [robot_type]
+
+Example:
+    python src/model/train_rep_only.py -r REACHY
+"""
+
 import argparse
 import sys
 import torch
 import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import DataLoader
+from tqdm import tqdm
+import wandb
+import time
 
 sys.path.append("./src")
 from utils.data import split_train_test, H2RMotionData
@@ -23,11 +36,17 @@ def train(args: TrainArgs):
     lr = LEARNING_RATE
     device = DEVICE
 
+    if args.wandb:
+        wandb.init(project="mr_hubo")
+        current_time = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
+        run_name = f"human2{args.robot_type.name}_rep_only_{current_time}"
+        wandb.run.name = run_name
+
     # prepare dataset
     robot_config = RobotConfig(args.robot_type)
     # fmt: off
     input_path = robot_config.ROBOT_TO_SMPL_PATH    # input: SMPL parameters
-    target_path = robot_config.RAW_DATA_PATH        # target: robot joint angles
+    target_path = robot_config.TARGET_DATA_PATH     # target: robot joint angles
     # fmt: on
 
     robot_xyzs, robot_reps, robot_angles, smpl_reps, smpl_rots = split_train_test(
@@ -70,7 +89,9 @@ def train(args: TrainArgs):
     best_pre_loss = 1e10
     best_post_loss = 1e10
     criterion = nn.MSELoss()
-    for epoch in range(NUM_EPOCHS):
+
+    print("Start training...")
+    for epoch in tqdm(range(NUM_EPOCHS)):
         train_pre_loss = 0.0
         train_post_loss = 0.0
         model_pre.train()
@@ -138,6 +159,15 @@ def train(args: TrainArgs):
                 epoch, train_pre_loss, train_post_loss, test_pre_loss, test_post_loss
             )
         )
+        if args.wandb:
+            wandb.log(
+                {
+                    "train_pre_loss": train_pre_loss,
+                    "train_post_loss": train_post_loss,
+                    "test_pre_loss": test_pre_loss,
+                    "test_post_loss": test_post_loss,
+                }
+            )
 
         # Save the best model
         best_pre_loss = min(best_pre_loss, test_pre_loss)
@@ -151,7 +181,7 @@ def train(args: TrainArgs):
         if best_post_loss == test_post_loss:
             torch.save(
                 model_post.state_dict(),
-                f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_post_1.pth",
+                f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_post_v1.pth",
             )
 
 
@@ -162,6 +192,12 @@ if __name__ == "__main__":
         "-r",
         type=RobotType,
         default=RobotType.REACHY,
+    )
+    parser.add_argument(
+        "--wandb",
+        "-w",
+        action="store_true",
+        help="Use wandb to log training process",
     )
     args: TrainArgs = parser.parse_args()
 

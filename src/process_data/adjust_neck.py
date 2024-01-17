@@ -17,6 +17,7 @@ import argparse
 import sys
 import glob
 from pytorch3d.transforms import axis_angle_to_matrix, matrix_to_euler_angles
+from tqdm import tqdm
 
 sys.path.append("./src")
 from utils.transform import quat2rep
@@ -37,7 +38,7 @@ def main(args: AdjustNeckArgs):
     # raw_angle_files: files of reachy raw angles
     raw_angle_files = sorted(glob.glob(osp.join(robot_config.RAW_DATA_PATH, "*.pkl")))
 
-    for f in raw_angle_files:  # Reachy Files
+    for f in tqdm(raw_angle_files):  # Reachy Files
         total_xyzs = []
         total_reps = []
         total_angles = []

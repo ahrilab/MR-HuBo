@@ -60,6 +60,7 @@ class MakeRobotVideoArgs(argparse.Namespace):
 
 class TrainArgs(argparse.Namespace):
     robot_type: RobotType
+    wandb: bool
 
 
 class TestArgs(argparse.Namespace):

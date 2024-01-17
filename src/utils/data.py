@@ -9,10 +9,11 @@ from human_body_prior.tools.model_loader import load_model
 from human_body_prior.models.vposer_model import VPoser
 from torch.distributions import multivariate_normal
 import random
+from tqdm import tqdm
+import sys
 
-device = "cuda"
-vposer_dir = "./data/vposer_v2_05"
-smpl_path = "./data/bodymodel/smplx/neutral.npz"
+sys.path.append("./src")
+from utils.consts import *
 
 
 def draw(probs):
@@ -43,12 +44,12 @@ def split_train_test(
     """
     if sample_vposer:
         vp, ps = load_model(
-            vposer_dir,
+            VPOSER_PATH,
             model_code=VPoser,
             remove_words_in_model_weights="vp_model.",
             disable_grad=True,
         )
-        vp = vp.to(device)
+        vp = vp.to(DEVICE)
 
     test_num = num_data // split_ratio
 
@@ -58,13 +59,14 @@ def split_train_test(
     all_smpl_reps = {"train": [], "test": []}
     all_smpl_rots = {"train": [], "test": []}
 
-    for idx in range(num_data):
-        print(idx, "/", num_data)
+    print("Loading data...")
+    for idx in tqdm(range(num_data)):
+        # print(idx, "/", num_data)
         smpl = np.load(osp.join(input_path, "params_{:04}.npz".format(idx)))
         smpl_pose_body = smpl["pose_body"]
         curr_num = len(smpl_pose_body)
         if sample_vposer:
-            z = vp.encode(torch.from_numpy(smpl_pose_body).to(device))
+            z = vp.encode(torch.from_numpy(smpl_pose_body).to(DEVICE))
             z_mean = z.mean.detach().cpu()  # 2000 32
             dim_z = z_mean.shape[1]
             dist = multivariate_normal.MultivariateNormal(

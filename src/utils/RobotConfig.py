@@ -19,6 +19,7 @@ class RobotConfig:
             self.URDF_PATH = REACHY_URDF_PATH
             self.RAW_DATA_PATH = REACHY_RAW_PATH
             self.FIX_DATA_PATH = REACHY_FIX_PATH
+            self.TARGET_DATA_PATH = REACHY_FIX_PATH
             self.ROBOT_TO_SMPL_PATH = REACHY_SMPL_PATH
             self.joi_range = REACHY_JOI_RANGE
             self.joi_keys = REACHY_JOI_KEYS
@@ -33,7 +34,7 @@ class RobotConfig:
             self.URDF_PATH = COMAN_URDF_PATH
             self.URDF_4_RENDER_PATH = COMAN_URDF_4_RENDER_PATH
             self.RAW_DATA_PATH = COMAN_RAW_PATH
-            self.FIX_DATA_PATH = COMAN_FIX_PATH
+            self.TARGET_DATA_PATH = COMAN_RAW_PATH
             self.ROBOT_TO_SMPL_PATH = COMAN_SMPL_PATH
             self.joi_range = COMAN_JOI_RANGE
             self.joi_keys = COMAN_JOI_KEYS
