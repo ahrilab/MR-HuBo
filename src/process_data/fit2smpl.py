@@ -3,6 +3,12 @@ This script is for fitting reachy's pose data to SMPL parameters
 by running Inverse Kinematics engine of VPoser.
 
 smpl_params = run_ik_engine(xyzs4smpl of reachy)
+
+Usage:
+    python fit2smpl.py -r <robot_type> -i <restart_idx> -viz -ver <verbosity> -vp <video_result_path> -e <video_extension> --fps <fps>
+
+Example:
+    python fit2smpl.py -r NAO -i 0 -viz -ver 0 -vp ./out/sample -e mp4 --fps 1
 """
 
 import argparse
@@ -24,11 +30,11 @@ def main(args: Fit2SMPLArgs):
     robot_config = RobotConfig(args.robot_type)
     batch_size = VPOSER_BATCH_SIZE
     device = DEVICE
-    video_path = args.video_result_path
+    video_dir = args.video_result_dir
 
     # create directory for results
     os.makedirs(robot_config.ROBOT_TO_SMPL_PATH, exist_ok=True)
-    os.makedirs(video_path, exist_ok=True)
+    os.makedirs(video_dir, exist_ok=True)
 
     # data files of robot's xyzs + reps
     robot_xyzs_reps_files = sorted(
@@ -90,7 +96,7 @@ def main(args: Fit2SMPLArgs):
                 print("start visualizing...")
                 make_vids(
                     osp.join(
-                        video_path,
+                        video_dir,
                         robot2smpl_vid_path(
                             robot_config.robot_type.name, data_idx, args.video_extension
                         ),
@@ -107,7 +113,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="args for fitting reachy to smpl")
     # fmt: off
     parser.add_argument("--fps", type=int, default=1)  # frame per second
-    parser.add_argument("--video-result-path", "-vp", type=str, default=VIDEO_PATH)
+    parser.add_argument("--video-result-dir", "-vp", type=str, default=VIDEO_PATH)
     parser.add_argument("--video-extension", "-e", type=str, default="mp4")
     parser.add_argument("--visualize", "-viz", action="store_true")
     parser.add_argument(

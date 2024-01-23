@@ -240,8 +240,5 @@ def make_vids(
 
     # fmt: off
     img_array = render_smpl_params(bm, body_parms, [-90 if rotate else 0, 0, 0])[None, None]
-    if vid_path.endswith(".gif"):
-        imagearray2file(img_array, outpath=vid_path, duration=1000 / fps)
-    else:
-        imagearray2file(img_array, outpath=vid_path, fps=fps)
+    imagearray2file(img_array, outpath=vid_path, fps=fps)
     # fmt: on

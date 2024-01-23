@@ -9,6 +9,12 @@ Data number: 500 (number of seeds) * 2000 (poses per seed) = 1,000,000
 
 => Store xyzs, reps, xyzs4smpl into xyzs+reps.npy file,
    Store angle into angle.pkl file (Total number of files: 500 + 500).
+
+Usage:
+    python sample.py -r [robot_type]
+
+Example:
+    python sample.py -r NAO
 """
 
 import numpy as np
@@ -88,7 +94,7 @@ def main(args: SampleArgs):
             # fmt: off
             xyzs = np.vstack(xyzs)                                   # xyzs.shape: (# of robot links, 3)
             reps = np.asarray(reps)                                  # reps.shape: (# of robot links, 6)
-            xyzs4smpl = np.asarray(robot_config.convert_xyzs(xyzs))  # shape: (21, 3)
+            xyzs4smpl = np.asarray(robot_config.convert_xyzs(xyzs))  # shape: (# of pos4smpl, 3)
             # fmt: on
 
             # Append the iteration items into the total list

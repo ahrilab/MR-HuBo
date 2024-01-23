@@ -29,7 +29,7 @@ class Fit2SMPLArgs(argparse.Namespace):
     """
 
     robot_type: RobotType
-    video_result_path: str
+    video_result_dir: str
     video_extension: str
     visualize: bool
     verbosity: int
