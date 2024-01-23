@@ -45,6 +45,17 @@ class RobotConfig:
             self.angles_dim = COMAN_ANGLES_DIM
             self.smpl_reps_dim = COMAN_SMPL_REPS_DIM
 
+        elif robot_type == RobotType.NAO:
+            self.URDF_PATH = NAO_URDF_PATH
+            self.RAW_DATA_PATH = NAO_RAW_PATH
+            self.TARGET_DATA_PATH = NAO_RAW_PATH
+            self.ROBOT_TO_SMPL_PATH = NAO_SMPL_PATH
+            self.joi_range = NAO_JOI_RANGE
+            self.joi_keys = NAO_JOI_KEYS
+            self.smpl_joint_idx = NAO_SMPL_JOINT_IDX
+            self.convert_xyzs = nao_xyzs_to_smpl_xyzs
+            self.exclude_links = NAO_EXCLUDE_LINKS
+
         # Please add here if you want to add a new robot type
         # elif robot_type == RobotType.NEW_ROBOT:
         #     ...

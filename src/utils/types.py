@@ -9,8 +9,10 @@ class RobotType(Enum):
 
     REACHY = "REACHY"
     COMAN = "COMAN"
+    NAO = "NAO"
 
 
+# Argument Types
 class SampleArgs(argparse.Namespace):
     """
     Arguments for Sampling Python Codes
@@ -76,3 +78,8 @@ class PybulletRenderArgs(argparse.Namespace):
     robot_pose_path: str
     output_path: str
     fps: int
+
+
+class PlotBaseArgs(argparse.Namespace):
+    robot_type: RobotType
+    random_pose: bool
