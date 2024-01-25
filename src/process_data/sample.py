@@ -1,6 +1,6 @@
 """
 Sample random Reachy poses for training and testing.
-Data number: 500 (number of seeds) * 2000 (poses per seed) = 1,000,000
+Data number: 1,000 (number of seeds) * 2,000 (poses per seed) = 2,000,000
 
 1. Sample random values within the range of each joint (Reachy) -> 17 elements
 2. Get xyz pos and rotation (Quaternion Representation) of 31 joints (Reachy) using forward kenematics
@@ -8,13 +8,14 @@ Data number: 500 (number of seeds) * 2000 (poses per seed) = 1,000,000
 4. Create xyzs4smpl (SMPL) with 21 elements using Reachy joint xyz
 
 => Store xyzs, reps, xyzs4smpl into xyzs+reps.npy file,
-   Store angle into angle.pkl file (Total number of files: 500 + 500).
+   Store angle into angle.pkl file (Total number of files: 1,000 + 1,000).
 
 Usage:
-    python sample.py -r [robot_type]
+    python sample.py -r [robot_type] -s [num_seeds] -m [motions_per_seed] -mc -nc [num_cores]
 
 Example:
     python sample.py -r NAO
+    python sample.py -r NAO -mc -nc 20
 """
 
 import numpy as np
@@ -25,6 +26,7 @@ import os.path as osp
 import pickle
 import argparse
 import sys
+from multiprocessing import Pool
 
 sys.path.append("./src")
 from utils.transform import quat2rep
@@ -33,7 +35,7 @@ from utils.types import RobotType, SampleArgs
 from utils.RobotConfig import RobotConfig
 
 
-def main(args: SampleArgs):
+def main(args: SampleArgs, core_idx: int):
     # load the robot configurations which is matched with the robot type
     robot_config = RobotConfig(args.robot_type)
 
@@ -48,7 +50,11 @@ def main(args: SampleArgs):
     # build a kinematic chain from robot's urdf
     chain = kp.build_chain_from_urdf(open(robot_config.URDF_PATH).read())
 
-    for seed in range(num_seeds):
+    # only sample the data for the current core_idx.
+    task_list = range(num_seeds)
+    task_list = [seed for seed in task_list if seed % args.num_cores == core_idx]
+
+    for seed in tqdm(task_list):
         # Ensuring that random values are uniform for the same seed,
         # but different for different seeds.
         np.random.seed(seed)
@@ -58,7 +64,7 @@ def main(args: SampleArgs):
         total_angles = []
         total_xyzs4smpl = []
 
-        for i in tqdm(range(motions_per_seed)):
+        for i in range(motions_per_seed):
             # fmt: off
             # angles: list of joints angle dicts (num_iter, joint_num) of {k: joint, v: angle}
             #         (roll, pitch, yaw of joints)
@@ -151,7 +157,29 @@ if __name__ == "__main__":
         default=MOTION_PER_SEED,
         help="number of motion samples for each seed",
     )
+    parser.add_argument(
+        "--multi-cpu",
+        "-mc",
+        action="store_true",
+        help="use multiple cpus for sampling",
+    )
+    parser.add_argument(
+        "--num-cores",
+        "-nc",
+        type=int,
+        default=1,
+        help="number of cores for multiprocessing",
+    )
 
     args: SampleArgs = parser.parse_args()
 
-    main(args)
+    if args.multi_cpu:
+        pool = Pool(args.num_cores)
+        args_with_idx_list = []
+        for i in range(args.num_cores):
+            args_with_idx_list.append((args, i))
+
+        pool.starmap(main, args_with_idx_list)
+
+    else:
+        main(args, 0)

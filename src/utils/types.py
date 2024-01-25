@@ -21,6 +21,8 @@ class SampleArgs(argparse.Namespace):
     num_seeds: int
     motions_per_seed: int
     robot_type: RobotType
+    multi_cpu: bool
+    num_cores: int
 
 
 class Fit2SMPLArgs(argparse.Namespace):
@@ -35,6 +37,8 @@ class Fit2SMPLArgs(argparse.Namespace):
     verbosity: int
     fps: int
     restart_idx: int
+    multi_cpu: bool
+    num_cores: int
 
 
 class AdjustNeckArgs(argparse.Namespace):

@@ -5,10 +5,12 @@ by running Inverse Kinematics engine of VPoser.
 smpl_params = run_ik_engine(xyzs4smpl of reachy)
 
 Usage:
-    python fit2smpl.py -r <robot_type> -i <restart_idx> -viz -ver <verbosity> -vp <video_result_path> -e <video_extension> --fps <fps>
+    python fit2smpl.py -r <robot_type> -i <restart_idx> -viz -ver <verbosity> -vp <video_result_path> -e <video_extension> --fps <fps> -mc -nc <num_cores>
 
 Example:
     python fit2smpl.py -r NAO -i 0 -viz -ver 0 -vp ./out/sample -e mp4 --fps 1
+    python fit2smpl.py -r NAO
+    python fit2smpl.py -r NAO -i 0 -mc -nc 4
 """
 
 import argparse
@@ -18,6 +20,7 @@ import os
 import glob
 import sys
 from tqdm import tqdm
+from multiprocessing import Pool
 
 sys.path.append("./src")
 from utils.hbp import run_ik_engine, make_vids
@@ -26,7 +29,7 @@ from utils.types import RobotType, Fit2SMPLArgs
 from utils.RobotConfig import RobotConfig
 
 
-def main(args: Fit2SMPLArgs):
+def main(args: Fit2SMPLArgs, core_idx: int):
     robot_config = RobotConfig(args.robot_type)
     batch_size = VPOSER_BATCH_SIZE
     device = DEVICE
@@ -40,6 +43,12 @@ def main(args: Fit2SMPLArgs):
     robot_xyzs_reps_files = sorted(
         glob.glob(osp.join(robot_config.RAW_DATA_PATH, "*.npz"))
     )
+
+    task_list = range(len(robot_xyzs_reps_files))
+    task_list = [idx for idx in task_list if idx >= args.restart_idx]
+    task_list = [idx for idx in task_list if idx % args.num_cores == core_idx]
+
+    robot_xyzs_reps_files = [robot_xyzs_reps_files[idx] for idx in task_list]
 
     for f in tqdm(robot_xyzs_reps_files):
         # DATA_PATH/xyzs+reps_0000.npz => 0000
@@ -132,8 +141,27 @@ if __name__ == "__main__":
         type=int, default=0,
         help="restart index for fitting"
     )
+    parser.add_argument(
+        "--multi-cpu", "-mc",
+        action="store_true",
+        help="use multiple cpus for fitting"
+    )
+    parser.add_argument(
+        "--num-cores", "-nc",
+        type=int, default=1,
+        help="number of cores for multiprocessing"
+    )
     # fmt: on
 
     args: Fit2SMPLArgs = parser.parse_args()
 
-    main(args)
+    if args.multi_cpu:
+        pool = Pool(args.num_cores)
+        args_with_idx_list = []
+        for i in range(args.num_cores):
+            args_with_idx_list.append((args, i))
+
+        pool.starmap(main, args_with_idx_list)
+
+    else:
+        main(args, 0)
