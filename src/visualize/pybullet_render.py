@@ -1,11 +1,11 @@
 """
-Render the motion of the robot with pybullet simulator.
+Render the motion of the robot with pybullet simulator and save it as a gif or mp4 file.
 
 Usage:
     python src/visualize/pybullet_render.py -v VIEW --fps FPS [-s] -rp ROBOT_POSE_PATH -op OUTPUT_PATH
 
 Example:
-    python src/visualize/pybullet_render.py -v front --fps 120 -s -rp ./out/pred_motions/COMAN/rep_only_02_05.pkl -op ./out/pybullet/rep_only_02_05.mp4
+    python src/visualize/pybullet_render.py -v front --fps 120 -s -rp ./out/pred_motions/COMAN/rep_only_02_05_stageii.pkl -op ./out/pybullet/rep_only_02_05.mp4
 """
 
 import pybullet as pb
