@@ -1,98 +1,113 @@
-import kinpy as kp
-import numpy as np
-from kinpy.transform import Transform
-from model.net import MLP
 import joblib
 import torch
 import pickle
-from utils.loss import rep2rotmat
-from utils.misc import joint_range, ret_keys
-from utils.viz import render_ret
-from utils.hbp import transform_smpl_coordinate
-from pytorch3d.transforms import (
-    axis_angle_to_matrix,
-    matrix_to_quaternion,
-    rotation_6d_to_matrix,
-    matrix_to_rotation_6d,
-)
-from human_body_prior.tools.rotation_tools import matrot2aa, aa2matrot
+import sys
+import argparse
+from pytorch3d.transforms import matrix_to_rotation_6d
+from human_body_prior.tools.rotation_tools import aa2matrot
 
-dim_reachy_xyzs = 93
-dim_reachy_reps = 186
-dim_reachy_angles = 17
-dim_smpl_reps = 126
-dim_hidden = 512
+sys.path.append("./src")
+from utils.RobotConfig import RobotConfig
+from utils.types import RobotType, TestArgs
+from utils.consts import *
+from model.net import MLP
 
-device = "cuda"
 
-chain = kp.build_chain_from_urdf(open("./reachy.urdf").read())
-# serial_chain = kp.build_serial_chain_from_urdf(open('./reachy.urdf').read(), 'right_tip')
-##################### Load Model
+def infer_human2robot(args: TestArgs):
+    robot_config = RobotConfig(args.robot_type)
 
-model_pre = MLP(
-    dim_input=dim_smpl_reps,
-    dim_output=dim_reachy_xyzs + dim_reachy_reps,
-    dim_hidden=dim_hidden,
-).to(device)
-model_post = MLP(
-    dim_input=dim_reachy_xyzs + dim_reachy_reps,
-    dim_output=dim_reachy_angles,
-    dim_hidden=dim_hidden,
-).to(device)
+    dim_hidden = HIDDEN_DIM
+    device = DEVICE
 
-model_pre.load_state_dict(torch.load("./models/human2reachy_best_pre_v2.pth"))
-model_post.load_state_dict(torch.load("./models/human2reachy_best_post_v2.pth"))
+    ##################### Load Model
+    model_pre = MLP(
+        dim_input=robot_config.smpl_reps_dim,
+        dim_output=robot_config.xyzs_dim + robot_config.reps_dim,
+        dim_hidden=dim_hidden,
+    ).to(device)
+    model_post = MLP(
+        dim_input=robot_config.xyzs_dim + robot_config.reps_dim,
+        dim_output=robot_config.angles_dim,
+        dim_hidden=dim_hidden,
+    ).to(device)
 
-model_pre.eval()
-model_post.eval()
+    model_pre.load_state_dict(
+        torch.load(
+            f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_best_pre_v1.pth"
+        )
+    )
+    model_post.load_state_dict(
+        torch.load(
+            f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_best_post_v1.pth"
+        )
+    )
 
-##################### get SMPL's 6D information of Detection result from pymaf.
-num_betas = 16
-result = joblib.load(open("./pymaf.pkl", "rb"))
+    # model_pre.load_state_dict(torch.load(f"out/models/old/human2robot_best_pre_v2.pth"))
+    # model_post.load_state_dict(
+    #     torch.load(f"out/models/old/human2robot_best_post_v2.pth")
+    # )
 
-vid_pose = result["pose"][:, 3:66]
+    model_pre.eval()
+    model_post.eval()
 
-joint_keys = sorted([k for k, v in joint_range.items()])
+    ##################### get SMPL's 6D information of Detection result from pymaf.
+    if args.human_pose_path.endswith(".pkl"):
+        result = joblib.load(open(args.human_pose_path, "rb"))
+        vid_pose = result["pose"][:, 3:66]
+    elif args.human_pose_path.endswith(".npz"):
+        result = np.load(args.human_pose_path)
+        vid_pose = result["poses"][:, 3:66].astype(np.float32)
 
-length = len(vid_pose)
-smpl_aa = vid_pose.reshape(length, -1, 3)
-num_joints = smpl_aa.shape[1]
-smpl_aa = smpl_aa.reshape(length * num_joints, 3)
+    # joi_keys = robot_config.joi_keys
+    joint_keys = sorted([k for k, v in robot_config.joi_range.items()])
 
-smpl_rot = aa2matrot(torch.from_numpy(smpl_aa))
-smpl_rep = matrix_to_rotation_6d(smpl_rot)
+    length = len(vid_pose)
+    smpl_aa = vid_pose.reshape(length, -1, 3)
+    num_joints = smpl_aa.shape[1]
+    smpl_aa = smpl_aa.reshape(length * num_joints, 3)
 
-smpl_rep = smpl_rep.reshape(length, num_joints, 6).reshape(length, -1)
+    smpl_rot = aa2matrot(torch.from_numpy(smpl_aa))
+    smpl_rep = matrix_to_rotation_6d(smpl_rot)
 
-with torch.no_grad():
-    pre_pred = model_pre(smpl_rep.to(device).float())
-    post_pred = model_post(pre_pred)
-    post_pred = post_pred.detach().cpu().numpy()[:, :dim_reachy_angles]
+    smpl_rep = smpl_rep.reshape(length, num_joints, 6).reshape(length, -1)
 
-reachy_angles = []
-for p in post_pred:
-    reachy_angles.append({k: p[i] for i, k in enumerate(joint_keys)})
+    with torch.no_grad():
+        pre_pred = model_pre(smpl_rep.to(device).float())
+        post_pred = model_post(pre_pred)
+        post_pred = post_pred.detach().cpu().numpy()[:, : robot_config.angles_dim]
 
-pickle.dump(reachy_angles, open("./pymaf_robot_v2.pkl", "wb"))
-print("Finish!")
-# with torch.no_grad():
-#     reachy_data = model(smpl_rep.to(device).float())
-#     reachy_xyz = reachy_data[:, dim_reachy_angles:dim_reachy_angles+dim_reachy_xyzs].reshape(length, -1, 3)
-#     reachy_rep = reachy_data[:, dim_reachy_angles+dim_reachy_xyzs:]
-#     reachy_rotmat = rotation_6d_to_matrix(reachy_rep.reshape(length, -1, 6))
-#     reachy_quat = matrix_to_quaternion(reachy_rotmat)
+    robot_angles = []
+    for p in post_pred:
+        robot_angles.append({k: p[i] for i, k in enumerate(joint_keys)})
 
-# reachy_xyz = reachy_xyz.detach().cpu().numpy()
-# reachy_quat = reachy_quat.detach().cpu().numpy()
+    if args.robot_pose_result_path:
+        pickle.dump(
+            robot_angles,
+            open(args.robot_pose_result_path, "wb"),
+        )
+    else:
+        pickle.dump(
+            robot_angles,
+            open(f"./out/pymaf_{robot_config.robot_type.name}_v1.pkl", "wb"),
+        )
+    print("Finish!")
 
-# for t in range(length):
-#     curr_xyz = reachy_xyz[t]
-#     curr_rot = reachy_quat[t]
 
-#     ret = dict()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--robot_type",
+        "-r",
+        type=RobotType,
+        default=RobotType.REACHY,
+    )
+    parser.add_argument("--human_pose_path", "-hp", type=str, default="./out/pymaf.pkl")
+    parser.add_argument(
+        "--robot_pose_result_path",
+        "-rp",
+        type=str,
+        required=False,
+    )
+    args: TestArgs = parser.parse_args()
 
-#     for ki, k in enumerate(ret_keys):
-#         ret[k] = Transform(rot=curr_rot[ki], pos=curr_xyz[ki])
-
-#     render_ret(ret, chain, './test.png', 1280)
-#     print()
+    infer_human2robot(args)

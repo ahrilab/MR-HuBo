@@ -19,27 +19,43 @@ pip install -r requirements.txt
 
 
 
-- Download data for SMPL (edit)
+- Download data for SMPL
   
-  You can download data for rendering SMPL-X & VPoser Model via [this link](https://smpl-x.is.tue.mpg.de/download.php).
-  
+  You can download data for rendering SMPL-X & VPoser Model via [this link](https://smpl-x.is.tue.mpg.de/download.php).\
   You should move `bodymodel/` and `poser_v2_05/` into the `data/` folder.
 
+- Download GT motions of robots
+
+  You can download ground truth motions of robots via [this link](https://drive.google.com/file/d/102uf0paypd8zQCJhIqqBLtXoFDrjxh04/view?usp=sharing).\
+  You should move this 'mr_gt.pkl' file into 'data/gt_motions/' path.
 
 ## How to use codes.
+> (We should reorganize this README file)
+
+### (Temp block for Prof. Ahn) How to visualize the COMAN robot in Pybullet simulator.
+- Run an interactive simulator
+  ```bash
+  python src/visualize/pybullet_interactive.py -r [robot_type] -v [view]
+  ```
+
+- Load a COMAN motion data and generate a video
+  ```bash
+  python src/visualize/pybullet_render.py -v VIEW --fps FPS [-s] -rp ROBOT_POSE_PATH -op OUTPUT_PATH
+  ```
+
+  Check each code file for details.
+
 
 1. run `src/process_data/sample.py` to sample the robot pose. 
 ```bash
-python src/process_data/sample.py --max-seed 500 --num-per-seed 2000
+python src/process_data/sample.py -r REACHY
 ```
-- max_seed: The number of random seeds to be used for sampling
-- num-per-seed: The number of poses to be sampled for each random seed.
 
 2. run `src/process_data/fit2smpl.py` to fit human SMPL from the robot pose
 ```bash
-python src/process_data/fit2smpl.py
+python src/process_data/fit2smpl.py -r REACHY
 ```
-- set --visualize 1 if you want to save the converted human SMPL as a data
+- add -viz arguments if you want to save the converted human SMPL as a data
   
 3. run `src/process_data/adjust_neck.py` to make the neck angle the same as smpl
 ```bash

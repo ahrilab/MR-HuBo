@@ -17,31 +17,40 @@ import argparse
 import sys
 import glob
 from pytorch3d.transforms import axis_angle_to_matrix, matrix_to_euler_angles
+from tqdm import tqdm
 
 sys.path.append("./src")
 from utils.transform import quat2rep
 from utils.consts import *
+from utils.types import RobotType, AdjustNeckArgs
+from utils.RobotConfig import RobotConfig
 
 
-def main(args):
-    os.makedirs(args.reachy_fix_path, exist_ok=True)
+def main(args: AdjustNeckArgs):
+    robot_config = RobotConfig(args.robot_type)
 
-    chain = kp.build_chain_from_urdf(open(REACHY_URDF_PATH).read())
+    # create directory for results
+    os.makedirs(robot_config.FIX_DATA_PATH, exist_ok=True)
+
+    # kinematic chain from robot's urdf
+    chain = kp.build_chain_from_urdf(open(robot_config.URDF_PATH).read())
 
     # raw_angle_files: files of reachy raw angles
-    raw_angle_files = sorted(glob.glob(osp.join(args.reachy_raw_path, "*.pkl")))
+    raw_angle_files = sorted(glob.glob(osp.join(robot_config.RAW_DATA_PATH, "*.pkl")))
 
-    for f in raw_angle_files:  # Reachy Files
-        all_xyzs = []
-        all_reps = []
-        all_angles = []
-        all_xyzs4smpl = []
+    for f in tqdm(raw_angle_files):  # Reachy Files
+        total_xyzs = []
+        total_reps = []
+        total_angles = []
+        total_xyzs4smpl = []
 
-        # raw_angles: list of joints angle dicts (num_iter, 17) of {k: joint, v: angle}
+        # raw_angles: list of joints angle dicts (num_iter, num_joints) of {k: joint, v: angle}
         # smpl_data: SMPL data generated from fit2smpl.py
         raw_angles = pickle.load(open(f, "rb"))
-        data_idx = f.split("/")[-1].split("_")[-1][:3]
-        smpl_data = np.load(osp.join(args.human_path, human_params_path(data_idx)))
+        data_idx = f.split("/")[-1].split("_")[-1][:4]
+        smpl_data = np.load(
+            osp.join(robot_config.ROBOT_TO_SMPL_PATH, smpl_params_path(data_idx))
+        )
 
         for i in range(len(raw_angles)):  # len(raw_angles) = 2000
             # 1. Get neck axis angle from smpl data and convert it to euler angle.
@@ -55,10 +64,13 @@ def main(args):
 
             theta = raw_angles[i]
 
-            neck_aa = smpl_data["poses"][i].reshape(-1, 3)[SMPL_NECK_IDX]  # neck axis angle. shape: (3,)
+            # neck axis angle. shape: (3,)
+            neck_aa = smpl_data["poses"][i].reshape(-1, 3)[SMPLX_JOINT_INDEX.neck.value]
+
+            # axis angle -> matrix -> euler angle (roll, pitch, yaw)
             neck_euler = matrix_to_euler_angles(
                 axis_angle_to_matrix(torch.Tensor(neck_aa)), "ZXY"
-            )  # axis angle -> matrix -> euler angle (roll, pitch, yaw)
+            )
 
             theta["neck_roll"] = neck_euler[0]
             theta["neck_pitch"] = neck_euler[1]
@@ -80,29 +92,37 @@ def main(args):
             xyzs = np.vstack(xyzs)
             reps = np.asarray(reps)
 
-            xyzs4smpl = np.asarray(get_xyzs4smpl(xyzs))
-            all_xyzs.append(xyzs)
-            all_reps.append(reps)
-            all_xyzs4smpl.append(xyzs4smpl)
-            all_angles.append(theta)
-        all_xyzs = np.asarray(all_xyzs)
-        all_reps = np.asarray(all_reps)
-        all_xyzs4smpl = np.asarray(all_xyzs4smpl)
+            xyzs4smpl = np.asarray(robot_config.convert_xyzs(xyzs))
+            total_xyzs.append(xyzs)
+            total_reps.append(reps)
+            total_xyzs4smpl.append(xyzs4smpl)
+            total_angles.append(theta)
+        total_xyzs = np.asarray(total_xyzs)
+        total_reps = np.asarray(total_reps)
+        total_xyzs4smpl = np.asarray(total_xyzs4smpl)
 
         np.savez(
-            osp.join(args.reachy_fix_path, reachy_xyzs_reps_path(data_idx)),
-            xyzs=all_xyzs,
-            reps=all_reps,
-            xyzs4smpl=all_xyzs4smpl,
+            osp.join(robot_config.FIX_DATA_PATH, robot_xyzs_reps_path(data_idx)),
+            xyzs=total_xyzs,
+            reps=total_reps,
+            xyzs4smpl=total_xyzs4smpl,
         )
-        pickle.dump(all_angles, open(osp.join(args.reachy_fix_path, reachy_angles_path(data_idx)), "wb"))
+        pickle.dump(
+            total_angles,
+            open(
+                osp.join(robot_config.FIX_DATA_PATH, robot_angles_path(data_idx)), "wb"
+            ),
+        )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="args for adjust raw neck from smpl")
-    parser.add_argument("--reachy-raw-path", type=str, default=REACHY_RAW_PATH)
-    parser.add_argument("--human-path", type=str, default=HUMAN_PARAM_PATH)
-    parser.add_argument("--reachy-fix-path", type=str, default=REACHY_FIX_PATH)
-    args = parser.parse_args()
+    parser.add_argument(
+        "--robot-type",
+        "-r",
+        type=RobotType,
+        help=f"Select the robot type: {RobotType._member_names_}",
+    )
+    args: AdjustNeckArgs = parser.parse_args()
 
     main(args)
