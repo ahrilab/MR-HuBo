@@ -83,3 +83,8 @@ class PybulletRenderArgs(argparse.Namespace):
 class PlotBaseArgs(argparse.Namespace):
     robot_type: RobotType
     random_pose: bool
+
+
+class EvaluateArgs(argparse.Namespace):
+    robot_type: RobotType
+    evaluate_type: str
