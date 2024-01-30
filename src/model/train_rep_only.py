@@ -2,10 +2,10 @@
 Train the model to predict robot joint angles from SMPL parameters.
 
 Usage:
-    python src/model/train_rep_only.py -r [robot_type]
+    python src/model/train_rep_only.py -r [robot_type] [-w]
 
 Example:
-    python src/model/train_rep_only.py -r REACHY
+    python src/model/train_rep_only.py -r REACHY -w
 """
 
 import argparse
@@ -13,10 +13,11 @@ import sys
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from torch.utils.data import DataLoader
-from tqdm import tqdm
 import wandb
 import time
+import os
+from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 sys.path.append("./src")
 from utils.data import split_train_test, H2RMotionData
@@ -44,6 +45,11 @@ def train(args: TrainArgs):
 
     # prepare dataset
     robot_config = RobotConfig(args.robot_type)
+
+    # create directory to save models
+    model_save_path = f"out/models/{robot_config.robot_type.name}"
+    os.makedirs(model_save_path, exist_ok=True)
+
     # fmt: off
     input_path = robot_config.ROBOT_TO_SMPL_PATH    # input: SMPL parameters
     target_path = robot_config.TARGET_DATA_PATH     # target: robot joint angles
@@ -73,7 +79,7 @@ def train(args: TrainArgs):
 
     # define model, optimizer, and loss function
     model_pre = MLP(
-        dim_input=robot_config.smpl_reps_dim,
+        dim_input=SMPL_JOINT_REPS_DIM,
         dim_output=robot_config.reps_dim,
         dim_hidden=dim_hidden,
     ).to(device)
@@ -169,19 +175,23 @@ def train(args: TrainArgs):
                 }
             )
 
-        # Save the best model
+        # Save the best model for every 50 epochs
+        if epoch % 50 == 0:
+            best_pre_loss = 1e10
+            best_post_loss = 1e10
+
         best_pre_loss = min(best_pre_loss, test_pre_loss)
         if best_pre_loss == test_pre_loss:
             torch.save(
                 model_pre.state_dict(),
-                f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_pre_v1.pth",
+                f"{model_save_path}/human2{robot_config.robot_type.name}_rep_only_pre_{epoch//50}.pth",
             )
 
         best_post_loss = min(best_post_loss, test_post_loss)
         if best_post_loss == test_post_loss:
             torch.save(
                 model_post.state_dict(),
-                f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_post_v1.pth",
+                f"{model_save_path}/human2{robot_config.robot_type.name}_rep_only_post_{epoch//50}.pth",
             )
 
 

@@ -115,7 +115,7 @@ NAO_SMPL_JOINT_IDX = [
     SMPLX_JOINT_INDEX.left_wrist.value,
 ]
 
-# convert NAO's link xyzs (?) into smpl xyzs (21)
+# convert NAO's link xyzs (45) into smpl xyzs (14)
 def nao_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> np.ndarray:
 
     r_sh2el = xyzs[NAO_LINK_INDEX.RElbow.value] - xyzs[NAO_LINK_INDEX.RShoulder.value]
@@ -186,9 +186,20 @@ NAO_FINGER_LINKS = [
 ]
 NAO_EXCLUDE_LINKS += NAO_FINGER_LINKS
 
+NAO_EVALUATE_LINKS = [
+    'LShoulder',
+    'LElbow',
+    'l_wrist',
+    'l_gripper',
+    'RShoulder',
+    'RElbow',
+    'r_wrist',
+    'r_gripper',
+]
+
 # Train Parameters
-NAO_XYZS_DIM = len(NAO_LINK_INDEX) * 3          # ? links * 3 xyzs = ?
-NAO_REPS_DIM = len(NAO_LINK_INDEX) * 6          # ? links * 6 reps = ?
+NAO_XYZS_DIM = len(NAO_LINK_INDEX) * 3          # 45 links * 3 xyzs = 135
+NAO_REPS_DIM = len(NAO_LINK_INDEX) * 6          # 45 links * 6 reps = 270
 NAO_ANGLES_DIM = len(NAO_JOI)                   # 8 joints
 NAO_SMPL_REPS_DIM = len(NAO_SMPL_JOINT_IDX) * 6 # 14 joints * 6 reps = 84
 # fmt: on

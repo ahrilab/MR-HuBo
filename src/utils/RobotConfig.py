@@ -55,6 +55,10 @@ class RobotConfig:
             self.smpl_joint_idx = NAO_SMPL_JOINT_IDX
             self.convert_xyzs = nao_xyzs_to_smpl_xyzs
             self.exclude_links = NAO_EXCLUDE_LINKS
+            self.xyzs_dim = NAO_XYZS_DIM
+            self.reps_dim = NAO_REPS_DIM
+            self.angles_dim = NAO_ANGLES_DIM
+            self.smpl_reps_dim = NAO_SMPL_REPS_DIM
 
         # Please add here if you want to add a new robot type
         # elif robot_type == RobotType.NEW_ROBOT:

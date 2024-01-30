@@ -29,7 +29,7 @@ def infer_human2robot(args: TestArgs):
 
     # Load Model
     model_pre = MLP(
-        dim_input=robot_config.smpl_reps_dim,
+        dim_input=SMPL_JOINT_REPS_DIM,
         dim_output=robot_config.reps_dim,
         dim_hidden=HIDDEN_DIM,
     ).to(DEVICE)
@@ -39,16 +39,11 @@ def infer_human2robot(args: TestArgs):
         dim_hidden=HIDDEN_DIM,
     ).to(DEVICE)
 
-    model_pre.load_state_dict(
-        torch.load(
-            f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_pre_v1.pth",
-        )
-    )
-    model_post.load_state_dict(
-        torch.load(
-            f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_post_v1.pth",
-        )
-    )
+    pre_model_path = f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_pre_best.pth"
+    post_model_path = f"out/models/{robot_config.robot_type.name}/human2{robot_config.robot_type.name}_rep_only_post_best.pth"
+
+    model_pre.load_state_dict(torch.load(pre_model_path))
+    model_post.load_state_dict(torch.load(post_model_path))
     model_pre.eval()
     model_post.eval()
 

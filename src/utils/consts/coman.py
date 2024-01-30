@@ -105,7 +105,7 @@ COMAN_JOI_KEYS = COMAN_JOI.keys()
 
 
 # SMPL-X Index for COMAN
-# Total 23 joints
+# Total 21 joints
 COMAN_SMPL_JOINT_IDX = [
 
     # base
@@ -136,7 +136,7 @@ COMAN_SMPL_JOINT_IDX = [
     SMPLX_JOINT_INDEX.left_pinky1.value,
 ]
 
-# convert COMAN's link xyzs (64) into smpl xyzs (25)
+# convert COMAN's link xyzs (64) into smpl xyzs (21)
 def coman_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> List[np.ndarray]:
     smpl_xyzs = [
         xyzs[ComanLinkIndex.WASIT_IDX.value],                                                   # pelvis
@@ -177,4 +177,4 @@ def coman_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> List[np.ndarray]:
 COMAN_XYZS_DIM      = len(ComanLinkIndex) * 3           # 64 links * 3 xyzs = 192
 COMAN_REPS_DIM      = len(ComanLinkIndex) * 6           # 64 links * 6 reps = 384
 COMAN_ANGLES_DIM    = len(COMAN_JOI)                    # 14 joints
-COMAN_SMPL_REPS_DIM = len(COMAN_SMPL_JOINT_IDX) * 6     # 23 joints * 6 reps = 138
+COMAN_SMPL_REPS_DIM = len(COMAN_SMPL_JOINT_IDX) * 6     # 21 joints * 6 reps = 126

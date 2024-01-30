@@ -2,7 +2,7 @@
 
 # Get the robot name and check if it is valid
 robot_name=$1
-valid_robot_names=("REACHY" "COMAN")
+valid_robot_names=("REACHY" "COMAN" "NAO")
 
 if [[ ! " ${valid_robot_names[@]} " =~ " ${robot_name} " ]]; then
     echo "Invalid robot name. Please choose between 'REACHY' and 'COMAN'."
