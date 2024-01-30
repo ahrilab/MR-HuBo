@@ -40,6 +40,7 @@ def main(args: EvaluateArgs):
         "56_02",
     ]
 
+    total_motion_loss = 0.0
     for m_i, motion in enumerate(motions):
         robot_motion_path = (
             f"out/pred_motions/{args.robot_type.name}/rep_only_{motion}_stageii.pkl"
@@ -73,10 +74,13 @@ def main(args: EvaluateArgs):
                     )
                     pose_loss += joint_loss
 
+                pose_loss /= len(common_keys)
                 motion_loss += pose_loss
 
             motion_loss /= len(pred_motion)
             print(f"{motion} motion loss: {motion_loss}")
+
+            total_motion_loss += motion_loss
 
         elif args.evaluate_type == "link":
             robot_config = RobotConfig(args.robot_type)
@@ -93,9 +97,9 @@ def main(args: EvaluateArgs):
                 gt_fk_result = chain.forward_kinematics(gt_joints)
 
                 if m_i == 0 and pose_idx == 0:
-                    print(f"number of links: {len(pred_fk_result)}")
+                    print(f"number of links: {len(robot_config.evaluate_links)}")
 
-                for link in pred_fk_result:
+                for link in robot_config.evaluate_links:
                     pred_value = pred_fk_result[link].pos
                     gt_value = gt_fk_result[link].pos
 
@@ -103,10 +107,16 @@ def main(args: EvaluateArgs):
                     link_loss = math.sqrt(link_loss.sum())
                     pose_loss += link_loss
 
+                pose_loss /= len(robot_config.evaluate_links)
                 motion_loss += pose_loss
 
             motion_loss /= len(pred_motion)
             print(f"{motion} motion loss: {motion_loss}")
+
+            total_motion_loss += motion_loss
+
+    total_motion_loss /= len(motions)
+    print(f"total motion loss (mean): {total_motion_loss}")
 
 
 if __name__ == "__main__":

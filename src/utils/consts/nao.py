@@ -191,6 +191,7 @@ NAO_EVALUATE_LINKS = [
     'LElbow',
     'l_wrist',
     'l_gripper',
+
     'RShoulder',
     'RElbow',
     'r_wrist',

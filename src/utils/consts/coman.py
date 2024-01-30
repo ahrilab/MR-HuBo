@@ -173,6 +173,24 @@ def coman_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> List[np.ndarray]:
     smpl_xyzs = [xyz + np.array([0, 0, 0.65]) for xyz in smpl_xyzs]
     return smpl_xyzs
 
+COMAN_EVALUATE_LINKS = [
+    'RShp',
+    'RShr',
+    'RShy',
+    'RElb',
+    'RForearm',
+    'r_wrist',
+    'RSoftHand',
+
+    'LShp',
+    'LShr',
+    'LShy',
+    'LElb',
+    'LForearm',
+    'l_wrist',
+    'LSoftHand'
+]
+
 # Train Parameters
 COMAN_XYZS_DIM      = len(ComanLinkIndex) * 3           # 64 links * 3 xyzs = 192
 COMAN_REPS_DIM      = len(ComanLinkIndex) * 6           # 64 links * 6 reps = 384
