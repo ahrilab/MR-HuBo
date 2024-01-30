@@ -2,10 +2,10 @@
 Render the motion of the robot with pybullet simulator and save it as a gif or mp4 file.
 
 Usage:
-    python src/visualize/pybullet_render.py -v VIEW --fps FPS [-s] -rp ROBOT_POSE_PATH -op OUTPUT_PATH
+    python src/visualize/pybullet_render.py -r ROBOT_TYPE -v VIEW --fps FPS [-s] -rp ROBOT_POSE_PATH -op OUTPUT_PATH
 
 Example:
-    python src/visualize/pybullet_render.py -v front --fps 120 -s -rp ./out/pred_motions/COMAN/rep_only_02_05_stageii.pkl -op ./out/pybullet/rep_only_02_05.mp4
+    python src/visualize/pybullet_render.py -r COMAN -v front --fps 120 -s -rp ./out/pred_motions/COMAN/rep_only_02_05_stageii.pkl -op ./out/pybullet/rep_only_02_05.mp4
 """
 
 import pybullet as pb
@@ -41,7 +41,11 @@ def main(args: PybulletRenderArgs):
         print("median filtering....")
         for ki, k in enumerate(robot_config.joi_keys):
             values = np.array([th[k] for th in motions])
-            values = savgol_filter(values, 50, 2)
+            if args.robot_type == RobotType.COMAN:
+                filter_window = 50
+            elif args.robot_type == RobotType.NAO:
+                filter_window = 100
+            values = savgol_filter(values, filter_window, 2)
             for thi, th in enumerate(motions):
                 th[k] = values[thi]
         print("filtering done")
@@ -56,24 +60,31 @@ def main(args: PybulletRenderArgs):
 
     # 로봇의 URDF 파일을 로드
     if robot_config.robot_type == RobotType.COMAN:
-        robot_id = pb.loadURDF(robot_config.URDF_4_RENDER_PATH, [0, 0, 0.53])
+        robot_id = pb.loadURDF(robot_config.URDF_4_RENDER_PATH)
     else:
-        robot_id = pb.loadURDF(robot_config.URDF_PATH, [0, 0, 0.53])
+        robot_id = pb.loadURDF(robot_config.URDF_PATH)
 
     # Set the mass of the robot to 0, so that it is not affected by gravity (not rolling on the ground & not falling)
     pb.changeDynamics(robot_id, -1, mass=0)
 
     # Set the initial position of the robot on the ground
-    initial_position = [0, 0, 0.53]  # Adjust the values as needed
+    if robot_config.robot_type == RobotType.COMAN:
+        initial_position = [0, 0, 0.53]  # Adjust the values as needed
+        camera_distance = 1.5
+        camera_pitch = -15
+    elif robot_config.robot_type == RobotType.NAO:
+        initial_position = [0, 0, 0]
+        camera_distance = 1
+        camera_pitch = -30
     initial_orientation = pb.getQuaternionFromEuler([0, 0, 0])  # No initial rotation
     pb.resetBasePositionAndOrientation(robot_id, initial_position, initial_orientation)
 
     # pybullet 시뮬레이터 카메라 설정
     pb.resetDebugVisualizerCamera(
-        cameraDistance=1.5,
+        cameraDistance=camera_distance,
         cameraYaw=90 if view == "front" else 0,
-        cameraPitch=-15,
-        cameraTargetPosition=[0, 0, 0.53],
+        cameraPitch=camera_pitch,
+        cameraTargetPosition=initial_position,
     )
 
     # 로봇의 Joint {name: index} 매핑
