@@ -92,3 +92,11 @@ class PlotBaseArgs(argparse.Namespace):
 class EvaluateArgs(argparse.Namespace):
     robot_type: RobotType
     evaluate_type: str
+
+
+class PlotWholeInOneArgs(argparse.Namespace):
+    robot_type: RobotType
+    data_idx: int
+    pose_num: int
+    out_extention: str
+    fps: int
