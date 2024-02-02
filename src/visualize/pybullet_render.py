@@ -2,10 +2,13 @@
 Render the motion of the robot with pybullet simulator and save it as a gif or mp4 file.
 
 Usage:
-    python src/visualize/pybullet_render.py -r ROBOT_TYPE -v VIEW --fps FPS [-s] -rp ROBOT_POSE_PATH -op OUTPUT_PATH
+    python src/visualize/pybullet_render.py -r ROBOT_TYPE -v VIEW --fps FPS [-s] -rp ROBOT_POSE_PATH -op OUTPUT_PATH -e EXTENTION -gt -cf -mi MOTION_IDX
 
 Example:
     python src/visualize/pybullet_render.py -r COMAN -v front --fps 120 -s -rp ./out/pred_motions/COMAN/rep_only_02_05_stageii.pkl -op ./out/pybullet/rep_only_02_05.mp4
+
+    # render for GT
+    python src/visualize/pybullet_render.py -r=NAO -v front --fps 120 -s -gt -cf -mi="13_18" -e mp4
 """
 
 import pybullet as pb
@@ -15,12 +18,14 @@ import pickle
 import imageio
 import argparse
 import numpy as np
+import os
 from typing import List, Dict
 from scipy.signal import savgol_filter
 
 sys.path.append("src/")
 from utils.RobotConfig import RobotConfig
 from utils.types import RobotType, PybulletRenderArgs
+from utils.consts import *
 
 
 def main(args: PybulletRenderArgs):
@@ -35,6 +40,15 @@ def main(args: PybulletRenderArgs):
         motions: List[Dict[str, float]] = pickle.load(
             open("out/pymaf_COMAN_v1.pkl", "rb")
         )
+
+    if args.ground_truth:
+        motions: List[Dict[str, float]] = pickle.load(open(GT_PATH, "rb"))
+        motion_idx = args.motion_idx
+        robot_name_for_gt = args.robot_type.name[0] + args.robot_type.name[1:].lower()
+        if args.collision_free:
+            motions = motions[robot_name_for_gt][motion_idx]["q_cf"]
+        else:
+            motions = motions[robot_name_for_gt][motion_idx]["q"]
 
     # smooth
     if args.smooth:
@@ -113,7 +127,14 @@ def main(args: PybulletRenderArgs):
     if args.output_path is not None:
         output_path = args.output_path
     else:
-        output_path = f"out/pybullet/coman_{view}{'_s' if args.smooth else ''}.gif"
+        output_path = f"out/pybullet/{robot_config.robot_type.name}_{view}{'_s' if args.smooth else ''}.gif"
+        if args.ground_truth:
+            robot_gt_path = f"out/pybullet/{robot_config.robot_type.name}/GT"
+            os.makedirs(robot_gt_path, exist_ok=True)
+            output_path = os.path.join(
+                robot_gt_path,
+                f"{args.motion_idx}{'_cf' if args.collision_free else ''}.{args.extention}",
+            )
 
     extension = output_path.split(".")[-1]
     if extension == "gif":
@@ -139,6 +160,10 @@ if __name__ == "__main__":
     parser.add_argument("--smooth", "-s", action="store_true")
     parser.add_argument("--robot_pose_path", "-rp", type=str, required=False)
     parser.add_argument("--output_path", "-op", type=str, required=False)
+    parser.add_argument("--extention", "-e", type=str, default="gif")
+    parser.add_argument("--ground_truth", "-gt", action="store_true")
+    parser.add_argument("--collision_free", "-cf", action="store_true")
+    parser.add_argument("--motion_idx", "-mi", type=str, default="02_05")
 
     args: PybulletRenderArgs = parser.parse_args()
     main(args)

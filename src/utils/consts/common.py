@@ -33,6 +33,7 @@ robot2smpl_vid_path: Callable[
     [str, int, str], str
 ] = lambda robot_name, index, extention: f"{robot_name}2smpl_{index}.{extention}"
 
+GT_PATH = "./data/gt_motions/mr_gt.pkl"
 
 ### 혹시 몰라서 남김...
 # Joint Index of Reachy

@@ -81,7 +81,11 @@ class PybulletRenderArgs(argparse.Namespace):
     view: str
     robot_pose_path: str
     output_path: str
+    extention: str
     fps: int
+    ground_truth: bool
+    collision_free: bool
+    motion_idx: str
 
 
 class PlotBaseArgs(argparse.Namespace):
