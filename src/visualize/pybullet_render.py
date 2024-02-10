@@ -5,10 +5,13 @@ Usage:
     python src/visualize/pybullet_render.py -r ROBOT_TYPE -v VIEW --fps FPS [-s] -rp ROBOT_POSE_PATH -op OUTPUT_PATH -e EXTENTION -gt -cf -mi MOTION_IDX
 
 Example:
-    python src/visualize/pybullet_render.py -r COMAN -v front --fps 120 -s -rp ./out/pred_motions/COMAN/rep_only_02_05_stageii.pkl -op ./out/pybullet/rep_only_02_05.mp4
+    python src/visualize/pybullet_render.py -r COMAN -v front --fps 120 -s -rp ./out/pred_motions/COMAN/rep_only_13_18_stageii.pkl -op ./out/pybullet/rep_only_13_18.mp4
+    python src/visualize/pybullet_render.py -r COMAN -v front --fps 120 -rp ./out/pred_motions/COMAN/rep_only_13_18_stageii.pkl -op ./out/pybullet/rep_only_13_18.mp4
+    python src/visualize/pybullet_render.py -r COMAN -v front --fps 120 -rp ./data/gt_motions/gt_coman_13_18_new.pkl -op ./out/pybullet/coman_gt_13_18_cf.mp4
 
     # render for GT
-    python src/visualize/pybullet_render.py -r=NAO -v front --fps 120 -s -gt -cf -mi="13_18" -e mp4
+    python src/visualize/pybullet_render.py -r=COMAN -v front --fps 120 -s -gt -cf -mi="13_18" -e mp4
+    python src/visualize/pybullet_render.py -r=COMAN -v front --fps 120 -gt -cf -mi="13_18" -e mp4
 """
 
 import pybullet as pb
@@ -53,7 +56,8 @@ def main(args: PybulletRenderArgs):
     # smooth
     if args.smooth:
         print("median filtering....")
-        for ki, k in enumerate(robot_config.joi_keys):
+        for ki, k in enumerate(motions[0].keys()):
+            # for ki, k in enumerate(robot_config.joi_keys):
             values = np.array([th[k] for th in motions])
             if args.robot_type == RobotType.COMAN:
                 filter_window = 50
