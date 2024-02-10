@@ -106,31 +106,27 @@ REACHY_SMPL_JOINT_IDX = [
 # convert reachy's link xyzs (31) into smpl xyzs (21)
 reachy_xyzs_to_smpl_xyzs: Callable[[List[np.ndarray]], List[np.ndarray]] = (
     lambda xyzs: [
-        np.array([0.0, 0.0, 0.65]),                                        # pelvis
-        np.array([0.0, -0.1, 0.65]),                                       # right hip
-        np.array([0.0, 0.1, 0.65]),                                        # left hip
-        np.array([0.0, -0.1, 0.36]),                                       # right knee
-        np.array([0.0, 0.1, 0.36]),                                        # left knee
-        np.array([0.0, 0.0, 0.9]),                                         # spine 3
-        np.array([0.0, 0.0, 1.05]),                                        # neck
-        xyzs[REACHY_LINK_INDEX.r_shoulder.value],                          # right_shoulder
-        xyzs[REACHY_LINK_INDEX.r_forearm.value],                           # right_elbow
-        xyzs[REACHY_LINK_INDEX.r_wrist2hand.value],                        # right_wrist
-        xyzs[REACHY_LINK_INDEX.r_gripper_thumb.value],                     # right_tumb2
-        xyzs[REACHY_LINK_INDEX.r_gripper_finger.value],                    # right_index1
-        xyzs[REACHY_LINK_INDEX.right_tip.value],                           # right_index3
-        xyzs[REACHY_LINK_INDEX.l_shoulder.value],                          # left_shoulder
-        xyzs[REACHY_LINK_INDEX.l_forearm.value],                           # left_elbow
-        xyzs[REACHY_LINK_INDEX.l_wrist2hand.value],                        # left_wrist
-        xyzs[REACHY_LINK_INDEX.l_gripper_thumb.value],                     # left_tumb2
-        xyzs[REACHY_LINK_INDEX.l_gripper_finger.value],                    # left_index1
-        xyzs[REACHY_LINK_INDEX.left_tip.value],                            # left_index3
-        np.array([xyzs[REACHY_LINK_INDEX.right_camera.value][0] - 0.01,
-                xyzs[REACHY_LINK_INDEX.right_camera.value][1],
-                xyzs[REACHY_LINK_INDEX.right_camera.value][2]]),           # right_eye_smplhf
-        np.array([xyzs[REACHY_LINK_INDEX.left_camera.value][0] - 0.01,
-                xyzs[REACHY_LINK_INDEX.left_camera.value][1],
-                xyzs[REACHY_LINK_INDEX.left_camera.value][2]]),            # left_eye_smplhf
+        np.array([0.0, 0.0, 0.6]),                                                      # pelvis
+        np.array([0.0, -0.04, 0.55]),                                                   # right hip
+        np.array([0.0, 0.04, 0.55]),                                                    # left hip
+        np.array([0.0, -0.08, 0.25]),                                                   # right knee
+        np.array([0.0, 0.08, 0.25]),                                                    # left knee
+        np.array([0.0, 0.0, 0.85]),                                                     # spine 3
+        np.array([0.025, 0.0, 1.05]),                                                   # neck
+        xyzs[REACHY_LINK_INDEX.r_shoulder.value],                                       # right_shoulder
+        xyzs[REACHY_LINK_INDEX.r_forearm.value],                                        # right_elbow
+        xyzs[REACHY_LINK_INDEX.r_wrist2hand.value],                                     # right_wrist
+        xyzs[REACHY_LINK_INDEX.r_gripper_thumb.value],                                  # right_tumb2
+        xyzs[REACHY_LINK_INDEX.r_gripper_finger.value],                                 # right_index1
+        xyzs[REACHY_LINK_INDEX.right_tip.value],                                        # right_index3
+        xyzs[REACHY_LINK_INDEX.l_shoulder.value],                                       # left_shoulder
+        xyzs[REACHY_LINK_INDEX.l_forearm.value],                                        # left_elbow
+        xyzs[REACHY_LINK_INDEX.l_wrist2hand.value],                                     # left_wrist
+        xyzs[REACHY_LINK_INDEX.l_gripper_thumb.value],                                  # left_tumb2
+        xyzs[REACHY_LINK_INDEX.l_gripper_finger.value],                                 # left_index1
+        xyzs[REACHY_LINK_INDEX.left_tip.value],                                         # left_index3
+        xyzs[REACHY_LINK_INDEX.right_camera.value] + np.array([-0.02, 0.01, 0.075]),    # right_eye_smplhf
+        xyzs[REACHY_LINK_INDEX.left_camera.value] + np.array([-0.02, -0.01, 0.075]),    # left_eye_smplhf
     ]
 )
 

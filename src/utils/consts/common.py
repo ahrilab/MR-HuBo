@@ -29,9 +29,9 @@ smpl_params_path     = (lambda data_idx: f"params_{data_idx:04}.npz"
 # Constants for Generating videos
 VIDEO_PATH = "./out/vids"
 TMP_FRAME_PATH = "./out/tmp"
-robot2smpl_vid_path: Callable[
-    [str, int, str], str
-] = lambda robot_name, index, extention: f"{robot_name}2smpl_{index}.{extention}"
+robot2smpl_vid_path: Callable[[str, int, str], str] = (
+    lambda robot_name, index, extention: f"{robot_name}2smpl_{index}.{extention}"
+)
 
 GT_PATH = "./data/gt_motions/mr_gt.pkl"
 

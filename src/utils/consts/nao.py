@@ -102,17 +102,22 @@ NAO_SMPL_JOINT_IDX = [
     # Center Line
     SMPLX_JOINT_INDEX.spine3.value,
     SMPLX_JOINT_INDEX.neck.value,
-    SMPLX_JOINT_INDEX.head.value,
+    SMPLX_JOINT_INDEX.right_eye_smplhf.value,
+    SMPLX_JOINT_INDEX.left_eye_smplhf.value,
 
     # Right Arm
     SMPLX_JOINT_INDEX.right_shoulder.value,
     SMPLX_JOINT_INDEX.right_elbow.value,
     SMPLX_JOINT_INDEX.right_wrist.value,
+    SMPLX_JOINT_INDEX.right_middle1.value,
+    SMPLX_JOINT_INDEX.right_thumb1.value,
 
     # Left Arm
     SMPLX_JOINT_INDEX.left_shoulder.value,
     SMPLX_JOINT_INDEX.left_elbow.value,
     SMPLX_JOINT_INDEX.left_wrist.value,
+    SMPLX_JOINT_INDEX.left_middle1.value,
+    SMPLX_JOINT_INDEX.left_thumb1.value,
 ]
 
 # convert NAO's link xyzs (45) into smpl xyzs (14)
@@ -134,14 +139,20 @@ def nao_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> np.ndarray:
 
         xyzs[NAO_LINK_INDEX.torso.value] + [0, 0, 0.03],                                            # spine 3
         xyzs[NAO_LINK_INDEX.Neck.value],                                                            # neck
-        xyzs[NAO_LINK_INDEX.Head.value] + [0, 0, 0.05],                                             # head
+        xyzs[NAO_LINK_INDEX.Head.value] + [0, -0.015, 0.07],                                        # right_eye
+        xyzs[NAO_LINK_INDEX.Head.value] + [0, 0.015, 0.07],                                         # left_eye
 
         xyzs[NAO_LINK_INDEX.RShoulder.value],                                                       # right_shoulder
         xyzs[NAO_LINK_INDEX.RElbow.value] + (sh2el_scale * r_sh2el),                                # right_elbow
         xyzs[NAO_LINK_INDEX.r_gripper.value] + (sh2el_scale * r_sh2el) + (el2wr_scale * r_el2wr),   # right_wrist
+        xyzs[NAO_LINK_INDEX.RFinger13_link.value] + (sh2el_scale * r_sh2el) + (el2wr_scale * r_el2wr), # right_middle1
+        xyzs[NAO_LINK_INDEX.RThumb2_link.value] + (sh2el_scale * r_sh2el) + (el2wr_scale * r_el2wr),  # right_thumb1
+
         xyzs[NAO_LINK_INDEX.LShoulder.value],                                                       # left_shoulder
         xyzs[NAO_LINK_INDEX.LElbow.value] + (sh2el_scale * l_sh2el),                                # left_elbow
         xyzs[NAO_LINK_INDEX.l_gripper.value] + (sh2el_scale * l_sh2el) + (el2wr_scale * l_el2wr),   # left_wrist
+        xyzs[NAO_LINK_INDEX.LFinger13_link.value] + (sh2el_scale * l_sh2el) + (el2wr_scale * l_el2wr), # left_middle1
+        xyzs[NAO_LINK_INDEX.LThumb2_link.value] + (sh2el_scale * l_sh2el) + (el2wr_scale * l_el2wr),  # left_thumb1
     ]
     smpl_xyzs = np.array(smpl_xyzs) + [0, 0, 0.12]
     smpl_xyzs = smpl_xyzs * 2
