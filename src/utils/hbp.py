@@ -130,7 +130,7 @@ def run_ik_engine(
     data_loss = MSELoss(reduction="sum")
 
     stepwise_weights = [
-        {"data": 10.0, "poZ_body": 0.01, "betas": 0.5},
+        {"data": 100.0, "poZ_body": 0.01, "betas": 0.5},
     ]
 
     optimizer_args = {
