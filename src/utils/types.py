@@ -104,3 +104,7 @@ class PlotWholeInOneArgs(argparse.Namespace):
     pose_num: int
     out_extention: str
     fps: int
+
+
+class ConvertMat2PklArgs(argparse.Namespace):
+    robot_type: RobotType
