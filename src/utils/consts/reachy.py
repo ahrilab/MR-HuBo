@@ -11,10 +11,16 @@ from utils.consts.smpl import SMPLX_JOINT_INDEX
 # Reachy urdf: Definition of 31 joints, 31 links for reachy robot.
 # theta: {roll, pitch, yaw of joints} -> len: 17
 
-REACHY_RAW_PATH  = "./data/reachy/motions/raw"
-REACHY_FIX_PATH  = "./data/reachy/motions/fix"
-REACHY_SMPL_PATH = "./data/reachy/motions/reachy2smpl"
 REACHY_URDF_PATH = "./data/reachy/reachy.urdf"
+
+REACHY_ANGLES_PATH          = "./data/reachy/motions/original/robot/angles"
+REACHY_XYZS_REPS_PATH       = "./data/reachy/motions/original/robot/xyzs+reps"
+REACHY_SMPL_PARAMS_PATH     = "./data/reachy/motions/original/smpl_params"
+
+REACHY_CF_MAT_PATH          = "./data/reachy/motions/cf/mats"
+REACHY_CF_ANGLES_PATH       = "./data/reachy/motions/cf/robot/angles"
+REACHY_CF_XYZS_REPS_PATH    = "./data/reachy/motions/cf/robot/xyzs+reps"
+REACHY_CF_SMPL_PARAMS_PATH  = "./data/reachy/motions/cf/smpl_params"
 
 # link index of reachy
 REACHY_LINK_INDEX = Enum('REACHY_LINK_INDEX', [

@@ -5,12 +5,13 @@ by running Inverse Kinematics engine of VPoser.
 smpl_params = run_ik_engine(xyzs4smpl of reachy)
 
 Usage:
-    python fit2smpl.py -r <robot_type> -i <restart_idx> -viz -ver <verbosity> -vp <video_result_path> -e <video_extension> --fps <fps> -mc -nc <num_cores>
+    python src/process_data/fit2smpl.py -r <robot_type> -i <restart_idx> -viz -ver <verbosity> -vp <video_result_path> -e <video_extension> --fps <fps> -mc -nc <num_cores> -cf
 
 Example:
-    python fit2smpl.py -r NAO -i 0 -viz -ver 0 -vp ./out/sample -e mp4 --fps 1
-    python fit2smpl.py -r NAO
-    python fit2smpl.py -r NAO -i 0 -mc -nc 4
+    python src/process_data/fit2smpl.py -r NAO -i 0 -viz -ver 0 -vp ./out/sample -e mp4 --fps 1
+    python src/process_data/fit2smpl.py -r NAO
+    python src/process_data/fit2smpl.py -r NAO -i 0 -mc -nc 4
+    python src/process_data/fit2smpl.py -r REACHY -i 0 -mc -nc 4 -cf
 """
 
 import argparse
@@ -36,13 +37,19 @@ def main(args: Fit2SMPLArgs, core_idx: int):
     video_dir = args.video_result_dir
 
     # create directory for results
-    os.makedirs(robot_config.ROBOT_TO_SMPL_PATH, exist_ok=True)
+    if args.collision_free:
+        SMPL_PARAMS_PATH = robot_config.CF_SMPL_PARAMS_PATH
+        XYZS_REPS_PATH = robot_config.CF_XYZS_REPS_PATH
+
+    else:
+        SMPL_PARAMS_PATH = robot_config.SMPL_PARAMS_PATH
+        XYZS_REPS_PATH = robot_config.XYZS_REPS_PATH
+
+    os.makedirs(SMPL_PARAMS_PATH, exist_ok=True)
     os.makedirs(video_dir, exist_ok=True)
 
     # data files of robot's xyzs + reps
-    robot_xyzs_reps_files = sorted(
-        glob.glob(osp.join(robot_config.RAW_DATA_PATH, "*.npz"))
-    )
+    robot_xyzs_reps_files = sorted(glob.glob(osp.join(XYZS_REPS_PATH, "*.npz")))
 
     task_list = range(len(robot_xyzs_reps_files))
     task_list = [idx for idx in task_list if idx >= args.restart_idx]
@@ -97,7 +104,7 @@ def main(args: Fit2SMPLArgs, core_idx: int):
 
             # save the results
             np.savez(
-                osp.join(robot_config.ROBOT_TO_SMPL_PATH, smpl_params_path(data_idx)),
+                osp.join(SMPL_PARAMS_PATH, smpl_params_path(data_idx)),
                 **smpl_data,
             )
 
@@ -150,6 +157,10 @@ if __name__ == "__main__":
         "--num-cores", "-nc",
         type=int, default=1,
         help="number of cores for multiprocessing"
+    )
+    parser.add_argument(
+        "--collision-free", "-cf",
+        action="store_true",
     )
     # fmt: on
 

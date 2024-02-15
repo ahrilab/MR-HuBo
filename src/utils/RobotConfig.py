@@ -17,10 +17,14 @@ class RobotConfig:
         # Set the config as the reachy robot
         if robot_type == RobotType.REACHY:
             self.URDF_PATH = REACHY_URDF_PATH
-            self.RAW_DATA_PATH = REACHY_RAW_PATH
-            self.FIX_DATA_PATH = REACHY_FIX_PATH
-            self.TARGET_DATA_PATH = REACHY_FIX_PATH
-            self.ROBOT_TO_SMPL_PATH = REACHY_SMPL_PATH
+            self.ANGLES_PATH = REACHY_ANGLES_PATH
+            self.XYZS_REPS_PATH = REACHY_XYZS_REPS_PATH
+            self.SMPL_PARAMS_PATH = REACHY_SMPL_PARAMS_PATH
+            self.CF_MATS_PATH = REACHY_CF_MAT_PATH
+            self.CF_ANGLES_PATH = REACHY_CF_ANGLES_PATH
+            self.CF_XYZS_REPS_PATH = REACHY_CF_XYZS_REPS_PATH
+            self.CF_SMPL_PARAMS_PATH = REACHY_CF_SMPL_PARAMS_PATH
+
             self.joi_range = REACHY_JOI_RANGE
             self.joi_keys = REACHY_JOI_KEYS
             self.smpl_joint_idx = REACHY_SMPL_JOINT_IDX
@@ -34,9 +38,14 @@ class RobotConfig:
         elif robot_type == RobotType.COMAN:
             self.URDF_PATH = COMAN_URDF_PATH
             self.URDF_4_RENDER_PATH = COMAN_URDF_4_RENDER_PATH
-            self.RAW_DATA_PATH = COMAN_RAW_PATH
-            self.TARGET_DATA_PATH = COMAN_RAW_PATH
-            self.ROBOT_TO_SMPL_PATH = COMAN_SMPL_PATH
+            self.ANGLES_PATH = COMAN_ANGLES_PATH
+            self.XYZS_REPS_PATH = COMAN_XYZS_REPS_PATH
+            self.SMPL_PARAMS_PATH = COMAN_SMPL_PARAMS_PATH
+            self.CF_MATS_PATH = COMAN_CF_MAT_PATH
+            self.CF_ANGLES_PATH = COMAN_CF_ANGLES_PATH
+            self.CF_XYZS_REPS_PATH = COMAN_CF_XYZS_REPS_PATH
+            self.CF_SMPL_PARAMS_PATH = COMAN_CF_SMPL_PARAMS_PATH
+
             self.joi_range = COMAN_JOI_RANGE
             self.joi_keys = COMAN_JOI_KEYS
             self.smpl_joint_idx = COMAN_SMPL_JOINT_IDX
@@ -49,9 +58,14 @@ class RobotConfig:
 
         elif robot_type == RobotType.NAO:
             self.URDF_PATH = NAO_URDF_PATH
-            self.RAW_DATA_PATH = NAO_RAW_PATH
-            self.TARGET_DATA_PATH = NAO_RAW_PATH
-            self.ROBOT_TO_SMPL_PATH = NAO_SMPL_PATH
+            self.ANGLES_PATH = NAO_ANGLES_PATH
+            self.XYZS_REPS_PATH = NAO_XYZS_REPS_PATH
+            self.SMPL_PARAMS_PATH = NAO_SMPL_PARAMS_PATH
+            self.CF_MATS_PATH = NAO_CF_MAT_PATH
+            self.CF_ANGLES_PATH = NAO_CF_ANGLES_PATH
+            self.CF_XYZS_REPS_PATH = NAO_CF_XYZS_REPS_PATH
+            self.CF_SMPL_PARAMS_PATH = NAO_CF_SMPL_PARAMS_PATH
+
             self.joi_range = NAO_JOI_RANGE
             self.joi_keys = NAO_JOI_KEYS
             self.smpl_joint_idx = NAO_SMPL_JOINT_IDX

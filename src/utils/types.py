@@ -39,6 +39,7 @@ class Fit2SMPLArgs(argparse.Namespace):
     restart_idx: int
     multi_cpu: bool
     num_cores: int
+    collision_free: bool
 
 
 class AdjustNeckArgs(argparse.Namespace):
@@ -66,6 +67,7 @@ class MakeRobotVideoArgs(argparse.Namespace):
 
 class TrainArgs(argparse.Namespace):
     robot_type: RobotType
+    collision_free: bool
     wandb: bool
 
 

@@ -28,6 +28,7 @@ def draw(probs):
 
 def split_train_test(
     input_path: str,
+    reps_path: str,
     target_path: str,
     num_data: int,
     split_ratio: int = 10,
@@ -37,7 +38,8 @@ def split_train_test(
     Args:
     ----------
     input_path (str): path to load SMPL parameters
-    target_path (str): path to load robot joint angles & xyzs+reps
+    reps_path (str): path to load robot xyzs and reps
+    target_path (str): path to load robot joint angles
     num_data (int): number of total data
     split_ratio (int): ratio of train/test split
     sample_vposer (bool): whether to sample from VPoser latent space
@@ -107,7 +109,7 @@ def split_train_test(
             angle_chunk.append(np.array(values))
         angle_chunk = np.asarray(angle_chunk)
 
-        robot_xyzrep = np.load(osp.join(target_path, "xyzs+reps_{:04}.npz".format(idx)))
+        robot_xyzrep = np.load(osp.join(reps_path, "xyzs+reps_{:04}.npz".format(idx)))
         robot_xyzs = robot_xyzrep["xyzs"]
         robot_reps = robot_xyzrep["reps"]
 

@@ -50,13 +50,23 @@ def train(args: TrainArgs):
     model_save_path = f"out/models/{robot_config.robot_type.name}"
     os.makedirs(model_save_path, exist_ok=True)
 
+    if args.collision_free:
+        SMPL_PARAMS_PATH = robot_config.CF_SMPL_PARAMS_PATH
+        XYZS_REPS_PATH = robot_config.CF_XYZS_REPS_PATH
+        ANGLES_PATH = robot_config.CF_ANGLES_PATH
+    else:
+        SMPL_PARAMS_PATH = robot_config.SMPL_PARAMS_PATH
+        XYZS_REPS_PATH = robot_config.XYZS_REPS_PATH
+        ANGLES_PATH = robot_config.ANGLES_PATH
+
     # fmt: off
-    input_path = robot_config.ROBOT_TO_SMPL_PATH    # input: SMPL parameters
-    target_path = robot_config.TARGET_DATA_PATH     # target: robot joint angles
+    input_path  = SMPL_PARAMS_PATH  # input: SMPL parameters
+    reps_path   = XYZS_REPS_PATH    # target: robot xyzs and reps
+    target_path = ANGLES_PATH       # target: robot joint angles
     # fmt: on
 
     robot_xyzs, robot_reps, robot_angles, smpl_reps, smpl_rots = split_train_test(
-        input_path, target_path, num_data, split_ratio, False
+        input_path, reps_path, target_path, num_data, split_ratio, False
     )
 
     train_dataset = H2RMotionData(
@@ -202,6 +212,9 @@ if __name__ == "__main__":
         "-r",
         type=RobotType,
         default=RobotType.REACHY,
+    )
+    parser.add_argument(
+        "--collision-free", "-cf", action="store_true", help="use collision-free data"
     )
     parser.add_argument(
         "--wandb",
