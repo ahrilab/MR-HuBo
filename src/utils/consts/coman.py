@@ -214,3 +214,5 @@ COMAN_XYZS_DIM      = len(ComanLinkIndex) * 3           # 64 links * 3 xyzs = 19
 COMAN_REPS_DIM      = len(ComanLinkIndex) * 6           # 64 links * 6 reps = 384
 COMAN_ANGLES_DIM    = len(COMAN_JOI)                    # 14 joints
 COMAN_SMPL_REPS_DIM = len(COMAN_SMPL_JOINT_IDX) * 6     # 21 joints * 6 reps = 126
+
+COMAN_CF_ANGLES_DIM = 10

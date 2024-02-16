@@ -68,6 +68,7 @@ class MakeRobotVideoArgs(argparse.Namespace):
 class TrainArgs(argparse.Namespace):
     robot_type: RobotType
     collision_free: bool
+    extreme_filter: bool
     wandb: bool
 
 

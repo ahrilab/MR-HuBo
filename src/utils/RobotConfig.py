@@ -33,6 +33,7 @@ class RobotConfig:
             self.reps_dim = REACHY_REPS_DIM
             self.angles_dim = REACHY_ANGLES_DIM
             self.smpl_reps_dim = REACHY_SMPL_REPS_DIM
+            self.cf_angles_dim = REACHY_CF_ANGLES_DIM
             self.evaluate_links = REACHY_EVALUATE_LINKS
 
         elif robot_type == RobotType.COMAN:
@@ -54,6 +55,7 @@ class RobotConfig:
             self.reps_dim = COMAN_REPS_DIM
             self.angles_dim = COMAN_ANGLES_DIM
             self.smpl_reps_dim = COMAN_SMPL_REPS_DIM
+            self.cf_angles_dim = COMAN_CF_ANGLES_DIM
             self.evaluate_links = COMAN_EVALUATE_LINKS
 
         elif robot_type == RobotType.NAO:
@@ -75,6 +77,7 @@ class RobotConfig:
             self.reps_dim = NAO_REPS_DIM
             self.angles_dim = NAO_ANGLES_DIM
             self.smpl_reps_dim = NAO_SMPL_REPS_DIM
+            self.cf_angles_dim = NAO_CF_ANGLES_DIM
             self.evaluate_links = NAO_EVALUATE_LINKS
 
         # Please add here if you want to add a new robot type

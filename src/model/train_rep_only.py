@@ -2,10 +2,10 @@
 Train the model to predict robot joint angles from SMPL parameters.
 
 Usage:
-    python src/model/train_rep_only.py -r [robot_type] [-w]
+    python src/model/train_rep_only.py -r [robot_type] [-w] [-cf] [-ef]
 
 Example:
-    python src/model/train_rep_only.py -r REACHY -w
+    python src/model/train_rep_only.py -r REACHY -w -cf -ef
 """
 
 import argparse
@@ -17,6 +17,7 @@ import wandb
 import time
 import os
 from torch.utils.data import DataLoader
+from torch.distributions.bernoulli import Bernoulli
 from tqdm import tqdm
 
 sys.path.append("./src")
@@ -37,17 +38,31 @@ def train(args: TrainArgs):
     lr = LEARNING_RATE
     device = DEVICE
 
+    # prepare dataset
+    robot_config = RobotConfig(args.robot_type)
+
+    if args.collision_free:
+        ROBOT_ANGLES_DIM = robot_config.cf_angles_dim
+    else:
+        ROBOT_ANGLES_DIM = robot_config.angles_dim
+
     if args.wandb:
         wandb.init(project="mr_hubo")
         current_time = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
         run_name = f"human2{args.robot_type.name}_rep_only_{current_time}"
         wandb.run.name = run_name
 
-    # prepare dataset
-    robot_config = RobotConfig(args.robot_type)
-
     # create directory to save models
-    model_save_path = f"out/models/{robot_config.robot_type.name}"
+    if args.collision_free:
+        if args.extreme_filter:
+            model_save_path = f"out/models/{robot_config.robot_type.name}/cf/ex/"
+        else:
+            model_save_path = f"out/models/{robot_config.robot_type.name}/cf/no_ex/"
+    else:
+        if args.extreme_filter:
+            model_save_path = f"out/models/{robot_config.robot_type.name}/no_cf/ex/"
+        else:
+            model_save_path = f"out/models/{robot_config.robot_type.name}/no_cf/no_ex/"
     os.makedirs(model_save_path, exist_ok=True)
 
     if args.collision_free:
@@ -65,8 +80,17 @@ def train(args: TrainArgs):
     target_path = ANGLES_PATH       # target: robot joint angles
     # fmt: on
 
-    robot_xyzs, robot_reps, robot_angles, smpl_reps, smpl_rots = split_train_test(
-        input_path, reps_path, target_path, num_data, split_ratio, False
+    robot_xyzs, robot_reps, robot_angles, smpl_reps, smpl_rots, smpl_prob = (
+        split_train_test(
+            input_path=input_path,
+            reps_path=reps_path,
+            target_path=target_path,
+            num_data=num_data,
+            split_ratio=split_ratio,
+            sample_vposer=False,
+            collision_free=args.collision_free,
+            extreme_filter=args.extreme_filter,
+        )
     )
 
     train_dataset = H2RMotionData(
@@ -75,6 +99,8 @@ def train(args: TrainArgs):
         robot_angles["train"],
         smpl_reps["train"],
         smpl_rots["train"],
+        smpl_prob["train"],
+        args.extreme_filter,
     )
     test_dataset = H2RMotionData(
         robot_xyzs["test"],
@@ -82,6 +108,8 @@ def train(args: TrainArgs):
         robot_angles["test"],
         smpl_reps["test"],
         smpl_rots["test"],
+        smpl_prob["test"],
+        args.extreme_filter,
     )
 
     train_dataloader = DataLoader(train_dataset, batch_size, shuffle=True)
@@ -95,7 +123,7 @@ def train(args: TrainArgs):
     ).to(device)
     model_post = MLP(
         dim_input=robot_config.reps_dim,
-        dim_output=robot_config.angles_dim,
+        dim_output=ROBOT_ANGLES_DIM,
         dim_hidden=dim_hidden,
     ).to(device)
     optimizer_pre = optim.Adam(model_pre.parameters(), lr, weight_decay=1e-6)
@@ -112,20 +140,40 @@ def train(args: TrainArgs):
         train_post_loss = 0.0
         model_pre.train()
         model_post.train()
+
         for sample in train_dataloader:
             # forward pass
-            smpl_rep = sample["smpl_rep"].float().to(device)
-            pred_rep = model_pre(smpl_rep)
+            if args.extreme_filter:
+                prob = sample["smpl_prob"]
+                bernoulli_dist = Bernoulli(prob)
 
-            gt_rep = sample["robot_rep"].float().to(device)
-            gt_angle = sample["robot_angle"].float().to(device)
+                # Sample from each Bernoulli distribution
+                chosen_samples = bernoulli_dist.sample()
 
+                # we need to find the number alpha
+                alpha = 1200
+                sample_index = (chosen_samples == 1).nonzero()[
+                    :alpha, 0
+                ]  # we use 100 to set the max number in batch
+
+                ### We still need to do this for each sample[" "]
+                # Extract the corresponding values in random_samples
+                smpl_rep = sample["smpl_rep"][sample_index].float().to(device)
+                gt_rep = sample["robot_rep"][sample_index].float().to(device)
+                gt_angle = sample["robot_angle"][sample_index].float().to(device)
+
+            else:
+                smpl_rep = sample["smpl_rep"].float().to(device)
+                gt_rep = sample["robot_rep"].float().to(device)
+                gt_angle = sample["robot_angle"].float().to(device)
+
+            pred_rep: torch.Tensor = model_pre(smpl_rep)
             teacher_angle = model_post(gt_rep)
             student_angle = model_post(pred_rep.detach())
 
             # fmt: off
-            pre_loss = criterion(pred_rep, gt_rep)
-            post_loss = (
+            pre_loss: torch.Tensor = criterion(pred_rep, gt_rep)
+            post_loss: torch.Tensor = (
                 criterion(teacher_angle, gt_angle) + 
                 criterion(student_angle, gt_angle)
             )
@@ -214,7 +262,16 @@ if __name__ == "__main__":
         default=RobotType.REACHY,
     )
     parser.add_argument(
-        "--collision-free", "-cf", action="store_true", help="use collision-free data"
+        "--collision_free",
+        "-cf",
+        action="store_true",
+        help="use collision-free data",
+    )
+    parser.add_argument(
+        "--extreme-filter",
+        "-ef",
+        action="store_true",
+        help="train model with extreme filter",
     )
     parser.add_argument(
         "--wandb",

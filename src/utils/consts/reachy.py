@@ -162,3 +162,5 @@ REACHY_XYZS_DIM         = len(REACHY_LINK_INDEX) * 3        # 31 links * 3 xyzs 
 REACHY_REPS_DIM         = len(REACHY_LINK_INDEX) * 6        # 31 links * 6 reps = 186
 REACHY_ANGLES_DIM       = len(REACHY_JOI)                   # 17 joints
 REACHY_SMPL_REPS_DIM    = len(REACHY_SMPL_JOINT_IDX) * 6    # 21 joints * 6 reps = 126
+
+REACHY_CF_ANGLES_DIM    = 10

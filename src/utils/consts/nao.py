@@ -217,8 +217,10 @@ NAO_EVALUATE_LINKS = [
 ]
 
 # Train Parameters
-NAO_XYZS_DIM = len(NAO_LINK_INDEX) * 3          # 45 links * 3 xyzs = 135
-NAO_REPS_DIM = len(NAO_LINK_INDEX) * 6          # 45 links * 6 reps = 270
-NAO_ANGLES_DIM = len(NAO_JOI)                   # 8 joints
-NAO_SMPL_REPS_DIM = len(NAO_SMPL_JOINT_IDX) * 6 # 14 joints * 6 reps = 84
+NAO_XYZS_DIM        = len(NAO_LINK_INDEX) * 3       # 45 links * 3 xyzs = 135
+NAO_REPS_DIM        = len(NAO_LINK_INDEX) * 6       # 45 links * 6 reps = 270
+NAO_ANGLES_DIM      = len(NAO_JOI)                  # 8 joints
+NAO_SMPL_REPS_DIM   = len(NAO_SMPL_JOINT_IDX) * 6   # 14 joints * 6 reps = 84
+
+NAO_CF_ANGLES_DIM   = 10
 # fmt: on
