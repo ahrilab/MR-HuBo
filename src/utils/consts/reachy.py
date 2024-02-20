@@ -79,9 +79,22 @@ REACHY_JOI = {
     "neck_yaw":         {"range": [-1.4, 1.4]},
 }
 
+
 # RANGE: {k: joint, v: range} (e.g. {"r_shoulder_pitch": [-2.618, 1.57], ... })
 REACHY_JOI_RANGE = dict((k, v["range"]) for k, v in REACHY_JOI.items())
 REACHY_JOI_KEYS = REACHY_JOI.keys()
+REACHY_CF_JOI_KEYS = [
+    "r_shoulder_pitch",
+    "r_shoulder_roll",
+    "r_arm_yaw",
+    "r_elbow_pitch",
+    "r_forearm_yaw",
+    "l_shoulder_pitch",
+    "l_shoulder_roll",
+    "l_arm_yaw",
+    "l_elbow_pitch",
+    "l_forearm_yaw",
+]
 
 # SMPL-X Index for Reachy
 # Total 21 joints
@@ -163,4 +176,4 @@ REACHY_REPS_DIM         = len(REACHY_LINK_INDEX) * 6        # 31 links * 6 reps 
 REACHY_ANGLES_DIM       = len(REACHY_JOI)                   # 17 joints
 REACHY_SMPL_REPS_DIM    = len(REACHY_SMPL_JOINT_IDX) * 6    # 21 joints * 6 reps = 126
 
-REACHY_CF_ANGLES_DIM    = 10
+REACHY_CF_ANGLES_DIM    = len(REACHY_CF_JOI_KEYS)           # 10 joints

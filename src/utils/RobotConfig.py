@@ -27,6 +27,7 @@ class RobotConfig:
 
             self.joi_range = REACHY_JOI_RANGE
             self.joi_keys = REACHY_JOI_KEYS
+            self.cf_joi_keys = REACHY_CF_JOI_KEYS
             self.smpl_joint_idx = REACHY_SMPL_JOINT_IDX
             self.convert_xyzs = reachy_xyzs_to_smpl_xyzs
             self.xyzs_dim = REACHY_XYZS_DIM
@@ -49,6 +50,7 @@ class RobotConfig:
 
             self.joi_range = COMAN_JOI_RANGE
             self.joi_keys = COMAN_JOI_KEYS
+            self.cf_joi_keys = COMAN_CF_JOI_KEYS
             self.smpl_joint_idx = COMAN_SMPL_JOINT_IDX
             self.convert_xyzs = coman_xyzs_to_smpl_xyzs
             self.xyzs_dim = COMAN_XYZS_DIM

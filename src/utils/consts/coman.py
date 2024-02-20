@@ -109,6 +109,7 @@ COMAN_JOI = {
 # RANGE: {k: joint, v: range} (e.g. {"RShSag": [-3.4034, 1.6581], ... })
 COMAN_JOI_RANGE = dict((k, v["range"]) for k, v in COMAN_JOI.items())
 COMAN_JOI_KEYS = COMAN_JOI.keys()
+COMAN_CF_JOI_KEYS = ['RShSag', 'RShLat', 'RShYaw', 'RElbj', 'LShSag', 'LShLat', 'LShYaw', 'LElbj', 'LForearmPlate', 'RForearmPlate']
 
 
 # SMPL-X Index for COMAN
@@ -215,4 +216,4 @@ COMAN_REPS_DIM      = len(ComanLinkIndex) * 6           # 64 links * 6 reps = 38
 COMAN_ANGLES_DIM    = len(COMAN_JOI)                    # 14 joints
 COMAN_SMPL_REPS_DIM = len(COMAN_SMPL_JOINT_IDX) * 6     # 21 joints * 6 reps = 126
 
-COMAN_CF_ANGLES_DIM = 10
+COMAN_CF_ANGLES_DIM = len(COMAN_CF_JOI_KEYS)            # 10 joints

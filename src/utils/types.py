@@ -12,6 +12,15 @@ class RobotType(Enum):
     NAO = "NAO"
 
 
+class EvaluateMode(Enum):
+    """
+    Enum Type of Evaluation
+    """
+
+    JOINT = "joint"
+    LINK = "link"
+
+
 # Argument Types
 class SampleArgs(argparse.Namespace):
     """
@@ -96,11 +105,6 @@ class PlotBaseArgs(argparse.Namespace):
     random_pose: bool
 
 
-class EvaluateArgs(argparse.Namespace):
-    robot_type: RobotType
-    evaluate_type: str
-
-
 class PlotWholeInOneArgs(argparse.Namespace):
     robot_type: RobotType
     data_idx: int
@@ -111,3 +115,17 @@ class PlotWholeInOneArgs(argparse.Namespace):
 
 class ConvertMat2PklArgs(argparse.Namespace):
     robot_type: RobotType
+
+
+class PickBestModelArgs(argparse.Namespace):
+    robot_type: RobotType
+    collision_free: bool
+    extreme_filter: bool
+    evaluate_mode: EvaluateMode
+
+
+class EvaluateOnTestMotionsArgs(argparse.Namespace):
+    robot_type: RobotType
+    collision_free: bool
+    extreme_filter: bool
+    evaluate_mode: EvaluateMode
