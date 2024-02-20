@@ -111,6 +111,7 @@ class PlotWholeInOneArgs(argparse.Namespace):
     pose_num: int
     out_extention: str
     fps: int
+    collision_free: bool
 
 
 class ConvertMat2PklArgs(argparse.Namespace):

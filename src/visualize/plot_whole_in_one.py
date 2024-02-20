@@ -15,6 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import torch
+import os.path as osp
 from matplotlib.animation import FuncAnimation
 from human_body_prior.body_model.body_model import BodyModel
 from body_visualizer.tools.vis_tools import render_smpl_params
@@ -31,12 +32,17 @@ def main(args: PlotWholeInOneArgs):
 
     # load data
     # fmt: off
-    smpl_data_path = f"{robot_config.ROBOT_TO_SMPL_PATH}/params_{args.data_idx:04}.npz"
-    robot_data_path = f"{robot_config.TARGET_DATA_PATH}/xyzs+reps_{args.data_idx:04}.npz"
+    if args.collision_free:
+        SMPL_PARAMS_PATH = osp.join(robot_config.CF_SMPL_PARAMS_PATH, f"params_{args.data_idx:04}.npz")
+        ROBOT_XYZS_REPS_PATH = osp.join(robot_config.CF_XYZS_REPS_PATH, f"cf_xyzs+reps_{args.data_idx:04}.npz")
+    else:
+        SMPL_PARAMS_PATH = osp.join(robot_config.SMPL_PARAMS_PATH, f"params_{args.data_idx:04}.npz")
+        ROBOT_XYZS_REPS_PATH = osp.join(robot_config.XYZS_REPS_PATH, f"xyzs+reps_{args.data_idx:04}.npz")
+
     # fmt: on
 
     # variables for smpl render
-    smpl_params = np.load(smpl_data_path)
+    smpl_params = np.load(SMPL_PARAMS_PATH)
     body_model = BodyModel(bm_fname=SMPL_PATH, num_betas=NUM_BETAS)
     smpl_dict: dict = np.load(SMPL_PATH)  # smpl body model
 
@@ -60,8 +66,8 @@ def main(args: PlotWholeInOneArgs):
     side_body_imgs = render_smpl_params(body_model, body_parms, [-80, 45, 0])
 
     # load robot xyzs
-    xyzs4smpl = np.load(robot_data_path)["xyzs4smpl"][: args.pose_num]
-    xyzs4robot = np.load(robot_data_path)["xyzs"][: args.pose_num]
+    xyzs4smpl = np.load(ROBOT_XYZS_REPS_PATH)["xyzs4smpl"][: args.pose_num]
+    xyzs4robot = np.load(ROBOT_XYZS_REPS_PATH)["xyzs"][: args.pose_num]
 
     # Create a figure and 3D axis
     fig = plt.figure(figsize=(10, 15))
@@ -161,7 +167,7 @@ def main(args: PlotWholeInOneArgs):
     ani = FuncAnimation(fig, update, frames=num_frames, interval=interval, blit=False)
 
     ani.save(
-        f"out/plot_spot/{robot_config.robot_type.name}.{out_extention}",
+        f"out/plot_spot/{robot_config.robot_type.name}{'_cf' if args.collision_free else ''}.{out_extention}",
         writer="imagemagick",
         fps=args.fps,
     )
@@ -175,6 +181,7 @@ if __name__ == "__main__":
     parser.add_argument("--pose_num", "-p", type=int, default=20)
     parser.add_argument("--out-extention", "-e", type=str, default="gif")
     parser.add_argument("--fps", type=float, default=1)
+    parser.add_argument("--collision-free", "-cf", action="store_true")
 
     args: PlotWholeInOneArgs = parser.parse_args()
 
