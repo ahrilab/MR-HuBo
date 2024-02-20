@@ -22,12 +22,12 @@ from multiprocessing import Pool
 
 sys.path.append("./src")
 from utils.consts import *
-from utils.types import RobotType, SampleArgs
+from utils.types import RobotType, FKWithAnglesArgs
 from utils.RobotConfig import RobotConfig
 from utils.forward_kinematics import forward_kinematics
 
 
-def main(args: SampleArgs, core_idx: int):
+def main(args: FKWithAnglesArgs, core_idx: int):
     # load the robot configurations which is matched with the robot type
     robot_config = RobotConfig(args.robot_type)
     chain = kp.build_chain_from_urdf(open(robot_config.URDF_PATH).read())
@@ -36,6 +36,7 @@ def main(args: SampleArgs, core_idx: int):
     cf_angles_files = sorted(
         [f for f in os.listdir(robot_config.CF_ANGLES_PATH) if f.endswith(".pkl")]
     )
+    cf_angles_files = cf_angles_files[args.start_idx :]
 
     # for multiprocessing
     task_list = range(len(cf_angles_files))
@@ -50,7 +51,7 @@ def main(args: SampleArgs, core_idx: int):
 
         # Load the .pkl file
         cf_angles_path = osp.join(robot_config.CF_ANGLES_PATH, cf_angles_file)
-        angles_list = pickle.load(open(cf_angles_path, "rb"))
+        angles_list: List[dict] = pickle.load(open(cf_angles_path, "rb"))
 
         xyzs_list = []
         reps_list = []
@@ -82,14 +83,22 @@ if __name__ == "__main__":
         "--robot-type",
         "-r",
         type=RobotType,
-        required=True,
+        default=RobotType.REACHY,
         help=f"Select the robot type: {RobotType._member_names_}",
+    )
+    parser.add_argument(
+        "--start-idx",
+        "-s",
+        type=int,
+        default=0,
+        help="start index for sampling",
     )
     parser.add_argument(
         "--multi-cpu",
         "-mc",
         action="store_true",
         help="use multiple cpus for sampling",
+        default=False,
     )
     parser.add_argument(
         "--num-cores",
@@ -99,7 +108,7 @@ if __name__ == "__main__":
         help="number of cores for multiprocessing",
     )
 
-    args: SampleArgs = parser.parse_args()
+    args: FKWithAnglesArgs = parser.parse_args()
 
     if args.multi_cpu:
         pool = Pool(args.num_cores)

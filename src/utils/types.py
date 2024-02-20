@@ -59,6 +59,17 @@ class AdjustNeckArgs(argparse.Namespace):
     robot_type: RobotType
 
 
+class FKWithAnglesArgs(argparse.Namespace):
+    """
+    Arguments for Forward Kinematics with Angles Python Codes
+    """
+
+    robot_type: RobotType
+    multi_cpu: bool
+    num_cores: int
+    start_idx: int
+
+
 class MakeRobotVideoArgs(argparse.Namespace):
     """
     Arguments for Making Robot Video Python Codes
