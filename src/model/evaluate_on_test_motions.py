@@ -15,7 +15,9 @@ Examples:
 import argparse
 import sys
 import pickle
+import os
 import os.path as osp
+from tqdm import tqdm
 
 sys.path.append("src")
 from utils.types import RobotType, EvaluateOnTestMotionsArgs, EvaluateMode
@@ -31,8 +33,29 @@ def main(args: EvaluateOnTestMotionsArgs):
     gt_motions = pickle.load(open(GT_PATH, "rb"))
     robot_name_for_gt = args.robot_type.name[0] + args.robot_type.name[1:].lower()
 
+    if args.collision_free:
+        if args.extreme_filter:
+            robot_pred_motion_dir = osp.join(
+                PRED_MOTION_PATH, f"{args.robot_type.name}/cf/ef"
+            )
+        else:
+            robot_pred_motion_dir = osp.join(
+                PRED_MOTION_PATH, f"{args.robot_type.name}/cf/no_ef"
+            )
+    else:
+        if args.extreme_filter:
+            robot_pred_motion_dir = osp.join(
+                PRED_MOTION_PATH, f"{args.robot_type.name}/no_cf/ef"
+            )
+        else:
+            robot_pred_motion_dir = osp.join(
+                PRED_MOTION_PATH, f"{args.robot_type.name}/no_cf/no_ef"
+            )
+
+    os.makedirs(robot_pred_motion_dir, exist_ok=True)
+
     total_motion_errors = []
-    for test_motion_idx in TEST_GT_MOTION_IDXS:
+    for test_motion_idx in tqdm(TEST_GT_MOTION_IDXS):
         gt_motion = gt_motions[robot_name_for_gt][test_motion_idx]["q"]
         amass_data_path = osp.join(AMASS_DATA_PATH, f"{test_motion_idx}_stageii.npz")
         pred_motion = infer_human2robot(
@@ -41,6 +64,12 @@ def main(args: EvaluateOnTestMotionsArgs):
             extreme_filter=args.extreme_filter,
             human_pose_path=amass_data_path,
         )
+
+        # save the predicted motion
+        if args.save_pred_motion:
+            pred_motion_path = osp.join(robot_pred_motion_dir, f"{test_motion_idx}.pkl")
+            with open(pred_motion_path, "wb") as f:
+                pickle.dump(pred_motion, f)
 
         error = evaluate(
             robot_config=robot_config,
@@ -54,11 +83,22 @@ def main(args: EvaluateOnTestMotionsArgs):
     total_motion_errors = np.array(total_motion_errors)
     mean_error = np.mean(total_motion_errors)
 
-    print(
-        f"Robot: {args.robot_type.name} CF: [{args.collision_free}] EF: [{args.extreme_filter}]"
+    print(robot_pred_motion_dir)
+
+    # write the result to a file
+    result_path = osp.join(
+        robot_pred_motion_dir, f"result_{args.evaluate_mode.name}.txt"
     )
-    print(f"Evaluate_mode: {args.evaluate_mode.name}")
-    print(f"Mean_error: {mean_error}")
+    with open(result_path, "w") as f:
+        f.write(
+            f"Robot: {args.robot_type.name} CF: [{args.collision_free}] EF: [{args.extreme_filter}]\n"
+        )
+        f.write(f"Evaluate_mode: {args.evaluate_mode.name}\n")
+        f.write(f"Mean_error: {mean_error}\n")
+        f.write("===================================================\n")
+        f.write("All errors:\n")
+        for test_idx, error in zip(TEST_GT_MOTION_IDXS, total_motion_errors):
+            f.write(f"{test_idx}: {error}\n")
 
 
 if __name__ == "__main__":
@@ -85,6 +125,11 @@ if __name__ == "__main__":
         choices=list(EvaluateMode),
         default=EvaluateMode.LINK,
     )
+    parser.add_argument(
+        "--save-pred-motion",
+        "-s",
+        action="store_true",
+    )
 
-    args = parser.parse_args()
+    args: EvaluateOnTestMotionsArgs = parser.parse_args()
     main(args)

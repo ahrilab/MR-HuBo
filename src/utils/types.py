@@ -141,3 +141,4 @@ class EvaluateOnTestMotionsArgs(argparse.Namespace):
     collision_free: bool
     extreme_filter: bool
     evaluate_mode: EvaluateMode
+    save_pred_motion: bool

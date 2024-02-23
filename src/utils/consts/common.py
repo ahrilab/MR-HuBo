@@ -58,3 +58,6 @@ VALID_GT_MOTION_IDXS = [
 TEST_GT_MOTION_IDXS = [idx for idx in GT_MOTION_IDXS if idx not in VALID_GT_MOTION_IDXS]
 
 AMASS_DATA_PATH = "./data/gt_motions/amass_data"
+
+# Constants for Evaluation
+PRED_MOTION_PATH = "./out/pred_motions"
