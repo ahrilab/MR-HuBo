@@ -4,11 +4,11 @@
 3. Save the generated link positions and orientations into .npz file
 
 Usage:
-    python src/process_data/fk_with_angles.py -r <robot_type> -mc -nc <num_cores>
+    python src/process_data/fk_with_angles.py -r <robot_type> -mc -nc <num_cores> -s <start_idx>
 
 Example:
     python src/process_data/fk_with_angles.py -r REACHY
-    python src/process_data/fk_with_angles.py -r NAO -mc -nc 20
+    python src/process_data/fk_with_angles.py -r NAO -mc -nc 20 -s 200
 """
 
 import kinpy as kp
