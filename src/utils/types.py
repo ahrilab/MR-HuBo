@@ -141,6 +141,7 @@ class PickBestModelArgs(argparse.Namespace):
     collision_free: bool
     extreme_filter: bool
     evaluate_mode: EvaluateMode
+    device: str
 
 
 class EvaluateOnTestMotionsArgs(argparse.Namespace):
@@ -149,3 +150,4 @@ class EvaluateOnTestMotionsArgs(argparse.Namespace):
     extreme_filter: bool
     evaluate_mode: EvaluateMode
     save_pred_motion: bool
+    device: str

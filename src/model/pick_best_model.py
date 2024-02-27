@@ -1,6 +1,13 @@
 """
 This module is used to pick the best model from the trained models.
 The Best model is the one that has the lowest errors on the validation motion set of GT.
+
+Usage:
+    python src/model/pick_best_model.py -r <robot_type> -cf -ef -em <evaluate_mode>
+
+Example:
+    python src/model/pick_best_model.py -r REACHY -cf -ef -em link
+    python src/model/pick_best_model.py -r COMAN -ef -em joint
 """
 
 import pickle
@@ -24,18 +31,20 @@ def pick_best_model(args: PickBestModelArgs):
     robot_name_for_gt = args.robot_type.name[0] + args.robot_type.name[1:].lower()
     gt_motions = pickle.load(open(GT_PATH, "rb"))
 
+    weight_num = 20
     all_motions_errors = []  # (2, 20)
     for val_motion_idx in VALID_GT_MOTION_IDXS:
         gt_motion = gt_motions[robot_name_for_gt][val_motion_idx]["q_cf"]
         amass_data_path = osp.join(AMASS_DATA_PATH, f"{val_motion_idx}_stageii.npz")
         motion_errors = []  # (20,)
 
-        for weight_idx in range(20):
+        for weight_idx in range(weight_num):
             pred_motion = infer_human2robot(
                 robot_config=robot_config,
                 collision_free=args.collision_free,
                 extreme_filter=args.extreme_filter,
                 human_pose_path=amass_data_path,
+                device=args.device,
                 weight_idx=weight_idx,
             )
 
@@ -66,7 +75,7 @@ def pick_best_model(args: PickBestModelArgs):
             weight_dir = f"out/models/{robot_config.robot_type.name}/no_cf/no_ex"
 
     # Plot the errors (motion 1, motion 2, mean)
-    x = range(20)
+    x = range(weight_num)
     plt.plot(x, all_motions_errors[0], label="motion 1")
     plt.plot(x, all_motions_errors[1], label="motion 2")
     plt.plot(x, mean_errors, label="mean")
@@ -116,6 +125,12 @@ if __name__ == "__main__":
         type=EvaluateMode,
         choices=list(EvaluateMode),
         default=EvaluateMode.LINK,
+    )
+    parser.add_argument(
+        "--device",
+        "-d",
+        type=str,
+        default="cuda",
     )
     args: PickBestModelArgs = parser.parse_args()
 

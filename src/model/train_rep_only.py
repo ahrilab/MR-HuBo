@@ -21,7 +21,7 @@ from torch.distributions.bernoulli import Bernoulli
 from tqdm import tqdm
 
 sys.path.append("./src")
-from utils.data import split_train_test, H2RMotionData
+from utils.data import load_and_split_train_test, H2RMotionData
 from model.net import MLP
 from utils.RobotConfig import RobotConfig
 from utils.types import RobotType, TrainArgs
@@ -49,7 +49,16 @@ def train(args: TrainArgs):
     if args.wandb:
         wandb.init(project="mr_hubo")
         current_time = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
-        run_name = f"human2{args.robot_type.name}_rep_only_{current_time}"
+        if args.collision_free:
+            if args.extreme_filter:
+                run_name = f"human2{args.robot_type.name}_cf_ef_{current_time}"
+            else:
+                run_name = f"human2{args.robot_type.name}_cf_noef_{current_time}"
+        else:
+            if args.extreme_filter:
+                run_name = f"human2{args.robot_type.name}_nocf_ef_{current_time}"
+            else:
+                run_name = f"human2{args.robot_type.name}_nocf_noef_{current_time}"
         wandb.run.name = run_name
 
     # create directory to save models
@@ -80,14 +89,13 @@ def train(args: TrainArgs):
     target_path = ANGLES_PATH       # target: robot joint angles
     # fmt: on
 
-    robot_xyzs, robot_reps, robot_angles, smpl_reps, smpl_rots, smpl_prob = (
-        split_train_test(
+    robot_xyzs, robot_reps, robot_angles, smpl_reps, smpl_prob = (
+        load_and_split_train_test(
             input_path=input_path,
             reps_path=reps_path,
             target_path=target_path,
             num_data=num_data,
             split_ratio=split_ratio,
-            sample_vposer=False,
             collision_free=args.collision_free,
             extreme_filter=args.extreme_filter,
         )
@@ -98,7 +106,6 @@ def train(args: TrainArgs):
         robot_reps["train"],
         robot_angles["train"],
         smpl_reps["train"],
-        smpl_rots["train"],
         smpl_prob["train"],
         args.extreme_filter,
     )
@@ -107,7 +114,6 @@ def train(args: TrainArgs):
         robot_reps["test"],
         robot_angles["test"],
         smpl_reps["test"],
-        smpl_rots["test"],
         smpl_prob["test"],
         args.extreme_filter,
     )

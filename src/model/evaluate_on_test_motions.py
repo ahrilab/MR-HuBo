@@ -1,6 +1,6 @@
 """
 Usage:
-    python src/model/evaluate_on_test_motions.py -r [RobotType] -cf -ef -em [EvaluateMode]
+    python src/model/evaluate_on_test_motions.py -r [RobotType] -cf -ef -em [EvaluateMode] -s
 
 Examples:
     python src/model/evaluate_on_test_motions.py -r REACHY -cf -ef -em link
@@ -55,6 +55,9 @@ def main(args: EvaluateOnTestMotionsArgs):
     os.makedirs(robot_pred_motion_dir, exist_ok=True)
 
     total_motion_errors = []
+    if args.save_pred_motion:
+        total_pred_motions = {}
+
     for test_motion_idx in tqdm(TEST_GT_MOTION_IDXS):
         gt_motion = gt_motions[robot_name_for_gt][test_motion_idx]["q"]
         amass_data_path = osp.join(AMASS_DATA_PATH, f"{test_motion_idx}_stageii.npz")
@@ -63,6 +66,7 @@ def main(args: EvaluateOnTestMotionsArgs):
             collision_free=args.collision_free,
             extreme_filter=args.extreme_filter,
             human_pose_path=amass_data_path,
+            device=args.device,
         )
 
         # save the predicted motion
@@ -70,6 +74,7 @@ def main(args: EvaluateOnTestMotionsArgs):
             pred_motion_path = osp.join(robot_pred_motion_dir, f"{test_motion_idx}.pkl")
             with open(pred_motion_path, "wb") as f:
                 pickle.dump(pred_motion, f)
+            total_pred_motions[test_motion_idx] = pred_motion
 
         error = evaluate(
             robot_config=robot_config,
@@ -83,12 +88,19 @@ def main(args: EvaluateOnTestMotionsArgs):
     total_motion_errors = np.array(total_motion_errors)
     mean_error = np.mean(total_motion_errors)
 
-    print(robot_pred_motion_dir)
+    if args.save_pred_motion:
+        pred_motion_path = osp.join(
+            robot_pred_motion_dir,
+            f"pred_motions{'_cf' if args.collision_free else ''}{'_ef' if args.extreme_filter else ''}.pkl",
+        )
+        with open(pred_motion_path, "wb") as f:
+            pickle.dump(total_pred_motions, f)
 
     # write the result to a file
     result_path = osp.join(
         robot_pred_motion_dir, f"result_{args.evaluate_mode.name}.txt"
     )
+    print(result_path)
     with open(result_path, "w") as f:
         f.write(
             f"Robot: {args.robot_type.name} CF: [{args.collision_free}] EF: [{args.extreme_filter}]\n"
@@ -129,6 +141,12 @@ if __name__ == "__main__":
         "--save-pred-motion",
         "-s",
         action="store_true",
+    )
+    parser.add_argument(
+        "--device",
+        "-d",
+        type=str,
+        default="cuda",
     )
 
     args: EvaluateOnTestMotionsArgs = parser.parse_args()
