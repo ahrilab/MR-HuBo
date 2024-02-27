@@ -108,7 +108,14 @@ class PybulletRenderArgs(argparse.Namespace):
     fps: int
     ground_truth: bool
     collision_free: bool
+    extreme_filter: bool
     motion_idx: str
+
+
+class PybulletRenderOnePoseArgs(argparse.Namespace):
+    robot_type: RobotType
+    data_index: int
+    pose_index: int
 
 
 class PlotBaseArgs(argparse.Namespace):

@@ -1,6 +1,6 @@
 """
 Usage:
-    python src/visualize/plot_whole_in_one.py -r <robot_type> -i <data_idx (seed num)> -p <number of poses> -e <out_extention>
+    python src/visualize/plot_whole_in_one.py -r <robot_type> -i <data_idx (seed num)> -p <number of poses> -cf -e <out_extention>
 
 Example:
     # Plot 0-20 pose of REACHY's seed number 0 data
@@ -8,6 +8,9 @@ Example:
 
     # Plot 0-50 pose of NAO's seed number 3 data
     python src/visualize/plot_whole_in_one.py -r NAO -i 3 -p 50 -e mp4 --fps 1
+
+    # Plot 0-20 pose of COMAN's seed number 0 data with collision free
+    python src/visualize/plot_whole_in_one.py -r COMAN -i 0 -p 20 -cf -e gif --fps 0.5
 """
 
 import argparse
