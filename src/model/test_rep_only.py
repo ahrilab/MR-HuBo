@@ -16,7 +16,7 @@ import os.path as osp
 
 sys.path.append("./src")
 from utils.RobotConfig import RobotConfig
-from utils.types import RobotType, TestArgs
+from utils.types import RobotType, TestArgs, EvaluateMode
 from utils.consts import *
 from utils.data import load_smpl_to_6D_reps
 from model.net import MLP
@@ -28,6 +28,7 @@ def infer_human2robot(
     extreme_filter: bool,
     human_pose_path: str,
     device: str,
+    evaluate_mode: EvaluateMode = EvaluateMode.LINK,
     weight_idx: int = -1,
 ):
     """
@@ -74,10 +75,12 @@ def infer_human2robot(
 
     if weight_idx == -1:
         pre_model_path = osp.join(
-            weight_dir, f"human2{robot_config.robot_type.name}_rep_only_pre_best.pth"
+            weight_dir,
+            f"human2{robot_config.robot_type.name}_rep_only_pre_best_{evaluate_mode.value}.pth",
         )
         post_model_path = osp.join(
-            weight_dir, f"human2{robot_config.robot_type.name}_rep_only_post_best.pth"
+            weight_dir,
+            f"human2{robot_config.robot_type.name}_rep_only_post_best_{evaluate_mode.value}.pth",
         )
     else:
         pre_model_path = osp.join(

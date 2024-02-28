@@ -49,8 +49,8 @@ def evaluate(
                 gt_value = gt_motion[pose_idx][key]
 
                 joint_loss = min(
-                    (pred_value - gt_value) ** 2,
-                    (2 * math.pi - abs(pred_value - gt_value)) ** 2,
+                    (pred_value - gt_value) % (2 * math.pi),
+                    (2 * math.pi) - ((pred_value - gt_value) % (2 * math.pi)),
                 )
                 pose_loss += joint_loss
 

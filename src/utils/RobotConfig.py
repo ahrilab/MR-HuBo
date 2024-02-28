@@ -72,6 +72,7 @@ class RobotConfig:
 
             self.joi_range = NAO_JOI_RANGE
             self.joi_keys = NAO_JOI_KEYS
+            self.cf_joi_keys = NAO_CF_JOI_KEYS
             self.smpl_joint_idx = NAO_SMPL_JOINT_IDX
             self.convert_xyzs = nao_xyzs_to_smpl_xyzs
             self.exclude_links = NAO_EXCLUDE_LINKS

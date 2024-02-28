@@ -67,6 +67,7 @@ def main(args: EvaluateOnTestMotionsArgs):
             extreme_filter=args.extreme_filter,
             human_pose_path=amass_data_path,
             device=args.device,
+            evaluate_mode=args.evaluate_mode,
         )
 
         # save the predicted motion

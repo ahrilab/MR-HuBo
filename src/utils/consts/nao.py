@@ -92,6 +92,18 @@ NAO_JOI = {
 # RANGE: {k: joint, v: range} (e.g. {"HeadYaw": [-2.08567, 2.08567], ... })
 NAO_JOI_RANGE    = dict((k, v["range"]) for k, v in NAO_JOI.items())
 NAO_JOI_KEYS     = NAO_JOI.keys()
+NAO_CF_JOI_KEYS  = [
+    'LShoulderPitch',
+    'LShoulderRoll',
+    'LElbowYaw',
+    'LElbowRoll',
+    'LWristYaw',
+    'RShoulderPitch',
+    'RShoulderRoll',
+    'RElbowYaw',
+    'RElbowRoll',
+    'RWristYaw',
+]
 
 # SMPL-X Index for NAO
 # Total 14 joints

@@ -74,7 +74,7 @@ def main(args: PybulletRenderArgs):
             if args.robot_type == RobotType.COMAN:
                 filter_window = 50
             elif args.robot_type == RobotType.NAO:
-                filter_window = 100
+                filter_window = 50
             values = savgol_filter(values, filter_window, 2)
             for thi, th in enumerate(motions):
                 th[k] = values[thi]
