@@ -7,9 +7,11 @@ MOTION_PER_SEED = 2000
 # Constants for training
 HIDDEN_DIM = 512
 BATCH_SIZE = 2048
+EF_BATCH_SIZE = 10000
 LEARNING_RATE = 1e-4
 DEVICE = "cuda"
 NUM_EPOCHS = 1000
+EF_EPOCHS = 5000
 
 # fmt: off
 # Path rules for data

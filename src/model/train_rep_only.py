@@ -34,9 +34,15 @@ def train(args: TrainArgs):
     split_ratio = 50
 
     dim_hidden = HIDDEN_DIM
-    batch_size = BATCH_SIZE
     lr = LEARNING_RATE
     device = DEVICE
+
+    if args.extreme_filter:
+        num_epochs = EF_EPOCHS
+        batch_size = EF_BATCH_SIZE
+    else:
+        num_epochs = NUM_EPOCHS
+        batch_size = BATCH_SIZE
 
     # prepare dataset
     robot_config = RobotConfig(args.robot_type)
@@ -141,7 +147,7 @@ def train(args: TrainArgs):
     criterion = nn.MSELoss()
 
     print("Start training...")
-    for epoch in tqdm(range(NUM_EPOCHS)):
+    for epoch in tqdm(range(num_epochs)):
         train_pre_loss = 0.0
         train_post_loss = 0.0
         model_pre.train()
@@ -156,11 +162,8 @@ def train(args: TrainArgs):
                 # Sample from each Bernoulli distribution
                 chosen_samples = bernoulli_dist.sample()
 
-                # we need to find the number alpha
-                alpha = 1200
-                sample_index = (chosen_samples == 1).nonzero()[
-                    :alpha, 0
-                ]  # we use 100 to set the max number in batch
+                # we use same batch size for each epoch whether we use extreme filter or not
+                sample_index = (chosen_samples == 1).nonzero()[:BATCH_SIZE, 0]
 
                 ### We still need to do this for each sample[" "]
                 # Extract the corresponding values in random_samples
