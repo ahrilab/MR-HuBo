@@ -49,6 +49,7 @@ class Fit2SMPLArgs(argparse.Namespace):
     multi_cpu: bool
     num_cores: int
     collision_free: bool
+    device: str
 
 
 class AdjustNeckArgs(argparse.Namespace):
@@ -91,6 +92,7 @@ class TrainArgs(argparse.Namespace):
     extreme_filter: bool
     arm_only: bool
     wandb: bool
+    device: str
 
 
 class TestArgs(argparse.Namespace):

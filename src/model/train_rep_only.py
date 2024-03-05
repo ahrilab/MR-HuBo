@@ -2,10 +2,11 @@
 Train the model to predict robot joint angles from SMPL parameters.
 
 Usage:
-    python src/model/train_rep_only.py -r [robot_type] [-w] [-cf] [-ef]
+    python src/model/train_rep_only.py -r [robot_type] [-w] [-cf] [-ef] [-d <device>]
 
 Example:
     python src/model/train_rep_only.py -r REACHY -w -cf -ef
+    python src/model/train_rep_only.py -r NAO -ef -d cuda:2
 """
 
 import argparse
@@ -37,7 +38,7 @@ def train(args: TrainArgs):
 
     dim_hidden = HIDDEN_DIM
     lr = LEARNING_RATE
-    device = DEVICE
+    device = args.device
 
     if args.extreme_filter:
         num_epochs = EF_EPOCHS
@@ -315,6 +316,13 @@ if __name__ == "__main__":
         "-a",
         action="store_true",
         help="train model with SMPL's arm joint only",
+    )
+    parser.add_argument(
+        "--device",
+        "-d",
+        type=str,
+        default=DEVICE,
+        help="Device to run the model",
     )
     args: TrainArgs = parser.parse_args()
 
