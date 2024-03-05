@@ -5,19 +5,19 @@ by running Inverse Kinematics engine of VPoser.
 smpl_params = run_ik_engine(xyzs4smpl of reachy)
 
 Usage:
-    python fit2smpl.py -r <robot_type> -i <restart_idx> -viz -ver <verbosity> -vp <video_result_path> -e <video_extension> --fps <fps> -mc -nc <num_cores>
+    python src/process_data/fit2smpl.py -r <robot_type> -i <restart_idx> -viz -ver <verbosity> -vp <video_result_path> -e <video_extension> --fps <fps> -mc -nc <num_cores> -cf -d <device>
 
 Example:
-    python fit2smpl.py -r NAO -i 0 -viz -ver 0 -vp ./out/sample -e mp4 --fps 1
-    python fit2smpl.py -r NAO
-    python fit2smpl.py -r NAO -i 0 -mc -nc 4
+    python src/process_data/fit2smpl.py -r NAO -i 0 -viz -ver 0 -vp ./out/sample -e mp4 --fps 1
+    python src/process_data/fit2smpl.py -r NAO
+    python src/process_data/fit2smpl.py -r NAO -i 0 -mc -nc 4
+    python src/process_data/fit2smpl.py -r REACHY -i 0 -mc -nc 4 -cf -d cuda:2
 """
 
 import argparse
 import numpy as np
 import os.path as osp
 import os
-import glob
 import sys
 from tqdm import tqdm
 from multiprocessing import Pool
@@ -32,16 +32,23 @@ from utils.RobotConfig import RobotConfig
 def main(args: Fit2SMPLArgs, core_idx: int):
     robot_config = RobotConfig(args.robot_type)
     batch_size = VPOSER_BATCH_SIZE
-    device = DEVICE
     video_dir = args.video_result_dir
 
     # create directory for results
-    os.makedirs(robot_config.ROBOT_TO_SMPL_PATH, exist_ok=True)
+    if args.collision_free:
+        SMPL_PARAMS_PATH = robot_config.CF_SMPL_PARAMS_PATH
+        XYZS_REPS_PATH = robot_config.CF_XYZS_REPS_PATH
+
+    else:
+        SMPL_PARAMS_PATH = robot_config.SMPL_PARAMS_PATH
+        XYZS_REPS_PATH = robot_config.XYZS_REPS_PATH
+
+    os.makedirs(SMPL_PARAMS_PATH, exist_ok=True)
     os.makedirs(video_dir, exist_ok=True)
 
     # data files of robot's xyzs + reps
     robot_xyzs_reps_files = sorted(
-        glob.glob(osp.join(robot_config.RAW_DATA_PATH, "*.npz"))
+        [f for f in os.listdir(XYZS_REPS_PATH) if f.endswith(".npz")]
     )
 
     task_list = range(len(robot_xyzs_reps_files))
@@ -50,13 +57,13 @@ def main(args: Fit2SMPLArgs, core_idx: int):
 
     robot_xyzs_reps_files = [robot_xyzs_reps_files[idx] for idx in task_list]
 
-    for f in tqdm(robot_xyzs_reps_files):
-        # DATA_PATH/xyzs+reps_0000.npz => 0000
+    for xyzs_reps_file in tqdm(robot_xyzs_reps_files):
+        # cf_xyzs+reps_0000.npz => 0000
         # data keys in a file: 'xyzs', 'reps', 'xyzs4smpl'
-        data_idx = f.split("/")[-1].split("_")[-1][:4]
+        data_idx = xyzs_reps_file.split(".")[0].split("_")[-1]
 
         if int(data_idx) >= args.restart_idx:
-            robot_xyzs_reps_data = np.load(f)
+            robot_xyzs_reps_data = np.load(osp.join(XYZS_REPS_PATH, xyzs_reps_file))
 
             # xyzs4smpl shape: (Num_iters, 21, 3)
             xyzs4smpl = np.zeros_like(robot_xyzs_reps_data["xyzs4smpl"])
@@ -75,7 +82,7 @@ def main(args: Fit2SMPLArgs, core_idx: int):
                 smpl_path=SMPL_PATH,
                 vposer_path=VPOSER_PATH,
                 num_betas=NUM_BETAS,
-                device=device,
+                device=args.device,
                 verbosity=args.verbosity,
                 smpl_joint_idx=robot_config.smpl_joint_idx,
             )
@@ -97,7 +104,7 @@ def main(args: Fit2SMPLArgs, core_idx: int):
 
             # save the results
             np.savez(
-                osp.join(robot_config.ROBOT_TO_SMPL_PATH, smpl_params_path(data_idx)),
+                osp.join(SMPL_PARAMS_PATH, smpl_params_path(data_idx)),
                 **smpl_data,
             )
 
@@ -150,6 +157,14 @@ if __name__ == "__main__":
         "--num-cores", "-nc",
         type=int, default=1,
         help="number of cores for multiprocessing"
+    )
+    parser.add_argument(
+        "--collision-free", "-cf",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--device", "-d",
+        type=str, default=DEVICE,
     )
     # fmt: on
 

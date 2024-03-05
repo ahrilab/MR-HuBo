@@ -7,9 +7,13 @@ MOTION_PER_SEED = 2000
 # Constants for training
 HIDDEN_DIM = 512
 BATCH_SIZE = 2048
+EF_BATCH_SIZE = 10000
 LEARNING_RATE = 1e-4
 DEVICE = "cuda"
-NUM_EPOCHS = 1000
+NUM_EPOCHS = 100
+EF_EPOCHS = 500
+
+MODEL_SAVE_EPOCH = 5
 
 # fmt: off
 # Path rules for data
@@ -29,42 +33,35 @@ smpl_params_path     = (lambda data_idx: f"params_{data_idx:04}.npz"
 # Constants for Generating videos
 VIDEO_PATH = "./out/vids"
 TMP_FRAME_PATH = "./out/tmp"
-robot2smpl_vid_path: Callable[
-    [str, int, str], str
-] = lambda robot_name, index, extention: f"{robot_name}2smpl_{index}.{extention}"
+robot2smpl_vid_path: Callable[[str, int, str], str] = (
+    lambda robot_name, index, extention: f"{robot_name}2smpl_{index}.{extention}"
+)
 
+# Constants for Ground Truth Motions
+GT_PATH = "./data/gt_motions/mr_gt.pkl"
 
-### 혹시 몰라서 남김...
-# Joint Index of Reachy
-# fmt: off
-# REACHY_PEDSTAL_IDX          = 0
-# REACHY_R_ANTENNA_IDX        = 1
-# REACHY_L_ANTENNA_IDX        = 2
-# REACHY_R_SHOULDER_PITCH_IDX = 3
-# REACHY_R_SHOULDER_ROLL_IDX  = 4
-# REACHY_R_ARM_YAW_IDX        = 5
-# REACHY_R_ELBOW_PITCH_IDX    = 6
-# REACHY_R_FOREARM_YAW_IDX    = 7
-# REACHY_R_WRIST_PITCH_IDX    = 8
-# REACHY_R_WRIST_ROLL_IDX     = 9
-# REACHY_R_GRIPPER_IDX        = 10
-# REACHY_R_TIP                = 11
-# REACHY_L_SHOULDER_PITCH_IDX = 12
-# REACHY_L_SHOULDER_ROLL_IDX  = 13
-# REACHY_L_ARM_YAW_IDX        = 14
-# REACHY_L_ELBOW_PITCH_IDX    = 15
-# REACHY_L_FOREARM_YAW_IDX    = 16
-# REACHY_L_WRIST_PITCH_IDX    = 17
-# REACHY_L_WRIST_ROLL_IDX     = 18
-# REACHY_L_GRIPPER_IDX        = 19
-# REACHY_L_TIP                = 20
-# REACHY_NECK_ROLL_IDX        = 21
-# REACHY_NECK_PITCH_IDX       = 22
-# REACHY_NECK_YAW_IDX         = 23
-# REACHY_NECK_FIXED_IDX       = 24
-# REACHY_NECK_TOP_IDX         = 25
-# REACHY_NECK_MIDDLE_IDX      = 26
-# REACHY_NECK_BOTTOM_IDX      = 27
-# REACHY_LEFT_CAM_FIXED_IDX   = 28
-# REACHY_RIGHT_CAM_FIXED_IDX  = 29
-# fmt: on
+GT_MOTION_IDXS = [
+    "02_05",  # punch strike
+    "13_08",  # unscrew bottlecap, drink soda, screw on bottlecap
+    "13_15",  # laugh
+    "13_18",  # boxing
+    "13_21",  # wash windows
+    "13_28",  # direct traffic, wave, point
+    "15_08",  # hand signals - horizontally revolve forearms
+    "26_02",  # basketball signals
+    "54_16",  # superhero
+    "55_16",  # panda (human subject)
+    "56_02",  # vignettes - fists up, wipe window, yawn, stretch, angrily grab, smash against wall
+]
+
+VALID_GT_MOTION_IDXS = [
+    "13_28",  # direct traffic, wave, point
+    "54_16",  # superhero
+]
+
+TEST_GT_MOTION_IDXS = [idx for idx in GT_MOTION_IDXS if idx not in VALID_GT_MOTION_IDXS]
+
+AMASS_DATA_PATH = "./data/gt_motions/amass_data"
+
+# Constants for Evaluation
+PRED_MOTION_PATH = "./out/pred_motions"

@@ -11,10 +11,16 @@ from utils.consts.smpl import SMPLX_JOINT_INDEX
 # Reachy urdf: Definition of 31 joints, 31 links for reachy robot.
 # theta: {roll, pitch, yaw of joints} -> len: 17
 
-REACHY_RAW_PATH  = "./data/reachy/motions/raw"
-REACHY_FIX_PATH  = "./data/reachy/motions/fix"
-REACHY_SMPL_PATH = "./data/reachy/motions/reachy2smpl"
 REACHY_URDF_PATH = "./data/reachy/reachy.urdf"
+
+REACHY_ANGLES_PATH          = "./data/reachy/motions/original/robot/angles"
+REACHY_XYZS_REPS_PATH       = "./data/reachy/motions/original/robot/xyzs+reps"
+REACHY_SMPL_PARAMS_PATH     = "./data/reachy/motions/original/smpl_params"
+
+REACHY_CF_MAT_PATH          = "./data/reachy/motions/cf/mats"
+REACHY_CF_ANGLES_PATH       = "./data/reachy/motions/cf/robot/angles"
+REACHY_CF_XYZS_REPS_PATH    = "./data/reachy/motions/cf/robot/xyzs+reps"
+REACHY_CF_SMPL_PARAMS_PATH  = "./data/reachy/motions/cf/smpl_params"
 
 # link index of reachy
 REACHY_LINK_INDEX = Enum('REACHY_LINK_INDEX', [
@@ -73,9 +79,22 @@ REACHY_JOI = {
     "neck_yaw":         {"range": [-1.4, 1.4]},
 }
 
+
 # RANGE: {k: joint, v: range} (e.g. {"r_shoulder_pitch": [-2.618, 1.57], ... })
 REACHY_JOI_RANGE = dict((k, v["range"]) for k, v in REACHY_JOI.items())
 REACHY_JOI_KEYS = REACHY_JOI.keys()
+REACHY_CF_JOI_KEYS = [
+    "r_shoulder_pitch",
+    "r_shoulder_roll",
+    "r_arm_yaw",
+    "r_elbow_pitch",
+    "r_forearm_yaw",
+    "l_shoulder_pitch",
+    "l_shoulder_roll",
+    "l_arm_yaw",
+    "l_elbow_pitch",
+    "l_forearm_yaw",
+]
 
 # SMPL-X Index for Reachy
 # Total 21 joints
@@ -106,36 +125,55 @@ REACHY_SMPL_JOINT_IDX = [
 # convert reachy's link xyzs (31) into smpl xyzs (21)
 reachy_xyzs_to_smpl_xyzs: Callable[[List[np.ndarray]], List[np.ndarray]] = (
     lambda xyzs: [
-        np.array([0.0, 0.0, 0.65]),                                        # pelvis
-        np.array([0.0, -0.1, 0.65]),                                       # right hip
-        np.array([0.0, 0.1, 0.65]),                                        # left hip
-        np.array([0.0, -0.1, 0.36]),                                       # right knee
-        np.array([0.0, 0.1, 0.36]),                                        # left knee
-        np.array([0.0, 0.0, 0.9]),                                         # spine 3
-        np.array([0.0, 0.0, 1.05]),                                        # neck
-        xyzs[REACHY_LINK_INDEX.r_shoulder.value],                          # right_shoulder
-        xyzs[REACHY_LINK_INDEX.r_forearm.value],                           # right_elbow
-        xyzs[REACHY_LINK_INDEX.r_wrist2hand.value],                        # right_wrist
-        xyzs[REACHY_LINK_INDEX.r_gripper_thumb.value],                     # right_tumb2
-        xyzs[REACHY_LINK_INDEX.r_gripper_finger.value],                    # right_index1
-        xyzs[REACHY_LINK_INDEX.right_tip.value],                           # right_index3
-        xyzs[REACHY_LINK_INDEX.l_shoulder.value],                          # left_shoulder
-        xyzs[REACHY_LINK_INDEX.l_forearm.value],                           # left_elbow
-        xyzs[REACHY_LINK_INDEX.l_wrist2hand.value],                        # left_wrist
-        xyzs[REACHY_LINK_INDEX.l_gripper_thumb.value],                     # left_tumb2
-        xyzs[REACHY_LINK_INDEX.l_gripper_finger.value],                    # left_index1
-        xyzs[REACHY_LINK_INDEX.left_tip.value],                            # left_index3
-        np.array([xyzs[REACHY_LINK_INDEX.right_camera.value][0] - 0.01,
-                xyzs[REACHY_LINK_INDEX.right_camera.value][1],
-                xyzs[REACHY_LINK_INDEX.right_camera.value][2]]),           # right_eye_smplhf
-        np.array([xyzs[REACHY_LINK_INDEX.left_camera.value][0] - 0.01,
-                xyzs[REACHY_LINK_INDEX.left_camera.value][1],
-                xyzs[REACHY_LINK_INDEX.left_camera.value][2]]),            # left_eye_smplhf
+        np.array([0.0, 0.0, 0.6]),                                                      # pelvis
+        np.array([0.0, -0.04, 0.55]),                                                   # right hip
+        np.array([0.0, 0.04, 0.55]),                                                    # left hip
+        np.array([0.0, -0.08, 0.25]),                                                   # right knee
+        np.array([0.0, 0.08, 0.25]),                                                    # left knee
+        np.array([0.0, 0.0, 0.85]),                                                     # spine 3
+        np.array([0.025, 0.0, 1.05]),                                                   # neck
+        xyzs[REACHY_LINK_INDEX.r_shoulder.value],                                       # right_shoulder
+        xyzs[REACHY_LINK_INDEX.r_forearm.value],                                        # right_elbow
+        xyzs[REACHY_LINK_INDEX.r_wrist2hand.value],                                     # right_wrist
+        xyzs[REACHY_LINK_INDEX.r_gripper_thumb.value],                                  # right_tumb2
+        xyzs[REACHY_LINK_INDEX.r_gripper_finger.value],                                 # right_index1
+        xyzs[REACHY_LINK_INDEX.right_tip.value],                                        # right_index3
+        xyzs[REACHY_LINK_INDEX.l_shoulder.value],                                       # left_shoulder
+        xyzs[REACHY_LINK_INDEX.l_forearm.value],                                        # left_elbow
+        xyzs[REACHY_LINK_INDEX.l_wrist2hand.value],                                     # left_wrist
+        xyzs[REACHY_LINK_INDEX.l_gripper_thumb.value],                                  # left_tumb2
+        xyzs[REACHY_LINK_INDEX.l_gripper_finger.value],                                 # left_index1
+        xyzs[REACHY_LINK_INDEX.left_tip.value],                                         # left_index3
+        xyzs[REACHY_LINK_INDEX.right_camera.value] + np.array([-0.02, 0.01, 0.075]),    # right_eye_smplhf
+        xyzs[REACHY_LINK_INDEX.left_camera.value] + np.array([-0.02, -0.01, 0.075]),    # left_eye_smplhf
     ]
 )
+
+REACHY_EVALUATE_LINKS = [
+    "head",
+    "top_neck_arm",
+    "left_camera",
+    "right_camera",
+
+    "r_shoulder",
+    "r_forearm",
+    "r_wrist2hand",
+    "r_gripper_thumb",
+    "r_gripper_finger",
+    "right_tip",
+
+    "l_shoulder",
+    "l_forearm",
+    "l_wrist2hand",
+    "l_gripper_thumb",
+    "l_gripper_finger",
+    "left_tip",
+]
 
 # Train Parameters
 REACHY_XYZS_DIM         = len(REACHY_LINK_INDEX) * 3        # 31 links * 3 xyzs = 93
 REACHY_REPS_DIM         = len(REACHY_LINK_INDEX) * 6        # 31 links * 6 reps = 186
 REACHY_ANGLES_DIM       = len(REACHY_JOI)                   # 17 joints
 REACHY_SMPL_REPS_DIM    = len(REACHY_SMPL_JOINT_IDX) * 6    # 21 joints * 6 reps = 126
+
+REACHY_CF_ANGLES_DIM    = len(REACHY_CF_JOI_KEYS)           # 10 joints

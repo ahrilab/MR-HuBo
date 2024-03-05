@@ -35,13 +35,13 @@ def main(args: PybulletRenderArgs):
     if robot_config.robot_type == RobotType.COMAN:
         robot_id = pb.loadURDF(robot_config.URDF_4_RENDER_PATH, [0, 0, 0.53])
     else:
-        robot_id = pb.loadURDF(robot_config.URDF_PATH, [0, 0, 0.53])
+        robot_id = pb.loadURDF(robot_config.URDF_PATH, [0, 0, 0])
 
     # Set the mass of the robot to 0, so that it is not affected by gravity (not rolling on the ground & not falling)
     pb.changeDynamics(robot_id, -1, mass=0)
 
     # Set the initial position of the robot on the ground
-    initial_position = [0, 0, 0.53]  # Adjust the values as needed
+    initial_position = [0, 0, 0]  # Adjust the values as needed
     initial_orientation = pb.getQuaternionFromEuler([0, 0, 0])  # No initial rotation
     pb.resetBasePositionAndOrientation(robot_id, initial_position, initial_orientation)
 
@@ -50,7 +50,7 @@ def main(args: PybulletRenderArgs):
         cameraDistance=1.5,
         cameraYaw=90 if view == "front" else 0,
         cameraPitch=-15,
-        cameraTargetPosition=[0, 0, 0.53],
+        cameraTargetPosition=[0, 0, 0],
     )
 
     # pybullet 시뮬레이터 실행

@@ -176,3 +176,8 @@ SMPLX_JOINT_INDEX = Enum('SMPLX_JOINT_INDEX', [
     "left_contour_2",
     "left_contour_1",   # 143
 ], start=0)
+
+SMPL_JOINT_NUMS = 21
+SMPL_JOINT_REPS_DIM = SMPL_JOINT_NUMS * 6           # 21 joints * 6 reps = 126
+SMPL_ARM_JOINT_NUMS = 6
+SMPL_ARM_JOINT_REPS_DIM = SMPL_ARM_JOINT_NUMS * 6   # 6 joints * 6 reps = 36

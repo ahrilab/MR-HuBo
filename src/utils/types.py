@@ -12,6 +12,15 @@ class RobotType(Enum):
     NAO = "NAO"
 
 
+class EvaluateMode(Enum):
+    """
+    Enum Type of Evaluation
+    """
+
+    JOINT = "joint"
+    LINK = "link"
+
+
 # Argument Types
 class SampleArgs(argparse.Namespace):
     """
@@ -39,6 +48,8 @@ class Fit2SMPLArgs(argparse.Namespace):
     restart_idx: int
     multi_cpu: bool
     num_cores: int
+    collision_free: bool
+    device: str
 
 
 class AdjustNeckArgs(argparse.Namespace):
@@ -47,6 +58,17 @@ class AdjustNeckArgs(argparse.Namespace):
     """
 
     robot_type: RobotType
+
+
+class FKWithAnglesArgs(argparse.Namespace):
+    """
+    Arguments for Forward Kinematics with Angles Python Codes
+    """
+
+    robot_type: RobotType
+    multi_cpu: bool
+    num_cores: int
+    start_idx: int
 
 
 class MakeRobotVideoArgs(argparse.Namespace):
@@ -66,7 +88,11 @@ class MakeRobotVideoArgs(argparse.Namespace):
 
 class TrainArgs(argparse.Namespace):
     robot_type: RobotType
+    collision_free: bool
+    extreme_filter: bool
+    arm_only: bool
     wandb: bool
+    device: str
 
 
 class TestArgs(argparse.Namespace):
@@ -81,7 +107,19 @@ class PybulletRenderArgs(argparse.Namespace):
     view: str
     robot_pose_path: str
     output_path: str
+    extention: str
     fps: int
+    ground_truth: bool
+    collision_free: bool
+    extreme_filter: bool
+    motion_idx: str
+    arm_only: bool
+
+
+class PybulletRenderOnePoseArgs(argparse.Namespace):
+    robot_type: RobotType
+    data_index: int
+    pose_index: int
 
 
 class PlotBaseArgs(argparse.Namespace):
@@ -89,6 +127,33 @@ class PlotBaseArgs(argparse.Namespace):
     random_pose: bool
 
 
-class EvaluateArgs(argparse.Namespace):
+class PlotWholeInOneArgs(argparse.Namespace):
     robot_type: RobotType
-    evaluate_type: str
+    data_idx: int
+    pose_num: int
+    out_extention: str
+    fps: int
+    collision_free: bool
+
+
+class ConvertMat2PklArgs(argparse.Namespace):
+    robot_type: RobotType
+
+
+class PickBestModelArgs(argparse.Namespace):
+    robot_type: RobotType
+    collision_free: bool
+    extreme_filter: bool
+    evaluate_mode: EvaluateMode
+    device: str
+    arm_only: bool
+
+
+class EvaluateOnTestMotionsArgs(argparse.Namespace):
+    robot_type: RobotType
+    collision_free: bool
+    extreme_filter: bool
+    evaluate_mode: EvaluateMode
+    save_pred_motion: bool
+    device: str
+    arm_only: bool

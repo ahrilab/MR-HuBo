@@ -9,9 +9,16 @@ from utils.consts.smpl import SMPLX_JOINT_INDEX
 ##############################
 
 # fmt: off
-NAO_RAW_PATH  = "./data/nao/motions/raw"
-NAO_SMPL_PATH = "./data/nao/motions/nao2smpl"
 NAO_URDF_PATH = "./data/nao/nao.urdf"
+
+NAO_ANGLES_PATH          = "./data/nao/motions/original/robot/angles"
+NAO_XYZS_REPS_PATH       = "./data/nao/motions/original/robot/xyzs+reps"
+NAO_SMPL_PARAMS_PATH     = "./data/nao/motions/original/smpl_params"
+
+NAO_CF_MAT_PATH          = "./data/nao/motions/cf/mats"
+NAO_CF_ANGLES_PATH       = "./data/nao/motions/cf/robot/angles"
+NAO_CF_XYZS_REPS_PATH    = "./data/nao/motions/cf/robot/xyzs+reps"
+NAO_CF_SMPL_PARAMS_PATH  = "./data/nao/motions/cf/smpl_params"
 
 # The Joint names of NAO
 # ref: http://doc.aldebaran.com/1-14/family/robots/links_robot.html
@@ -85,6 +92,18 @@ NAO_JOI = {
 # RANGE: {k: joint, v: range} (e.g. {"HeadYaw": [-2.08567, 2.08567], ... })
 NAO_JOI_RANGE    = dict((k, v["range"]) for k, v in NAO_JOI.items())
 NAO_JOI_KEYS     = NAO_JOI.keys()
+NAO_CF_JOI_KEYS  = [
+    'LShoulderPitch',
+    'LShoulderRoll',
+    'LElbowYaw',
+    'LElbowRoll',
+    'LWristYaw',
+    'RShoulderPitch',
+    'RShoulderRoll',
+    'RElbowYaw',
+    'RElbowRoll',
+    'RWristYaw',
+]
 
 # SMPL-X Index for NAO
 # Total 14 joints
@@ -102,20 +121,25 @@ NAO_SMPL_JOINT_IDX = [
     # Center Line
     SMPLX_JOINT_INDEX.spine3.value,
     SMPLX_JOINT_INDEX.neck.value,
-    SMPLX_JOINT_INDEX.head.value,
+    SMPLX_JOINT_INDEX.right_eye_smplhf.value,
+    SMPLX_JOINT_INDEX.left_eye_smplhf.value,
 
     # Right Arm
     SMPLX_JOINT_INDEX.right_shoulder.value,
     SMPLX_JOINT_INDEX.right_elbow.value,
     SMPLX_JOINT_INDEX.right_wrist.value,
+    SMPLX_JOINT_INDEX.right_middle1.value,
+    SMPLX_JOINT_INDEX.right_thumb1.value,
 
     # Left Arm
     SMPLX_JOINT_INDEX.left_shoulder.value,
     SMPLX_JOINT_INDEX.left_elbow.value,
     SMPLX_JOINT_INDEX.left_wrist.value,
+    SMPLX_JOINT_INDEX.left_middle1.value,
+    SMPLX_JOINT_INDEX.left_thumb1.value,
 ]
 
-# convert NAO's link xyzs (?) into smpl xyzs (21)
+# convert NAO's link xyzs (45) into smpl xyzs (14)
 def nao_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> np.ndarray:
 
     r_sh2el = xyzs[NAO_LINK_INDEX.RElbow.value] - xyzs[NAO_LINK_INDEX.RShoulder.value]
@@ -134,14 +158,20 @@ def nao_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> np.ndarray:
 
         xyzs[NAO_LINK_INDEX.torso.value] + [0, 0, 0.03],                                            # spine 3
         xyzs[NAO_LINK_INDEX.Neck.value],                                                            # neck
-        xyzs[NAO_LINK_INDEX.Head.value] + [0, 0, 0.05],                                             # head
+        xyzs[NAO_LINK_INDEX.Head.value] + [0, -0.015, 0.07],                                        # right_eye
+        xyzs[NAO_LINK_INDEX.Head.value] + [0, 0.015, 0.07],                                         # left_eye
 
         xyzs[NAO_LINK_INDEX.RShoulder.value],                                                       # right_shoulder
         xyzs[NAO_LINK_INDEX.RElbow.value] + (sh2el_scale * r_sh2el),                                # right_elbow
         xyzs[NAO_LINK_INDEX.r_gripper.value] + (sh2el_scale * r_sh2el) + (el2wr_scale * r_el2wr),   # right_wrist
+        xyzs[NAO_LINK_INDEX.RFinger13_link.value] + (sh2el_scale * r_sh2el) + (el2wr_scale * r_el2wr), # right_middle1
+        xyzs[NAO_LINK_INDEX.RThumb2_link.value] + (sh2el_scale * r_sh2el) + (el2wr_scale * r_el2wr),  # right_thumb1
+
         xyzs[NAO_LINK_INDEX.LShoulder.value],                                                       # left_shoulder
         xyzs[NAO_LINK_INDEX.LElbow.value] + (sh2el_scale * l_sh2el),                                # left_elbow
         xyzs[NAO_LINK_INDEX.l_gripper.value] + (sh2el_scale * l_sh2el) + (el2wr_scale * l_el2wr),   # left_wrist
+        xyzs[NAO_LINK_INDEX.LFinger13_link.value] + (sh2el_scale * l_sh2el) + (el2wr_scale * l_el2wr), # left_middle1
+        xyzs[NAO_LINK_INDEX.LThumb2_link.value] + (sh2el_scale * l_sh2el) + (el2wr_scale * l_el2wr),  # left_thumb1
     ]
     smpl_xyzs = np.array(smpl_xyzs) + [0, 0, 0.12]
     smpl_xyzs = smpl_xyzs * 2
@@ -186,9 +216,23 @@ NAO_FINGER_LINKS = [
 ]
 NAO_EXCLUDE_LINKS += NAO_FINGER_LINKS
 
+NAO_EVALUATE_LINKS = [
+    'LShoulder',
+    'LElbow',
+    'l_wrist',
+    'l_gripper',
+
+    'RShoulder',
+    'RElbow',
+    'r_wrist',
+    'r_gripper',
+]
+
 # Train Parameters
-NAO_XYZS_DIM = len(NAO_LINK_INDEX) * 3          # ? links * 3 xyzs = ?
-NAO_REPS_DIM = len(NAO_LINK_INDEX) * 6          # ? links * 6 reps = ?
-NAO_ANGLES_DIM = len(NAO_JOI)                   # 8 joints
-NAO_SMPL_REPS_DIM = len(NAO_SMPL_JOINT_IDX) * 6 # 14 joints * 6 reps = 84
+NAO_XYZS_DIM        = len(NAO_LINK_INDEX) * 3       # 45 links * 3 xyzs = 135
+NAO_REPS_DIM        = len(NAO_LINK_INDEX) * 6       # 45 links * 6 reps = 270
+NAO_ANGLES_DIM      = len(NAO_JOI)                  # 8 joints
+NAO_SMPL_REPS_DIM   = len(NAO_SMPL_JOINT_IDX) * 6   # 14 joints * 6 reps = 84
+
+NAO_CF_ANGLES_DIM   = 10
 # fmt: on

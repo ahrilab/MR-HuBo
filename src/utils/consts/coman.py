@@ -9,10 +9,17 @@ from utils.consts.smpl import SMPLX_JOINT_INDEX
 ################################
 
 # fmt: off
-COMAN_RAW_PATH              = "./data/coman/motions/raw"
-COMAN_SMPL_PATH             = "./data/coman/motions/coman2smpl"
 COMAN_URDF_PATH             = "./data/coman/coman.urdf"
 COMAN_URDF_4_RENDER_PATH    = "./data/coman/coman_nohands.urdf"
+
+COMAN_ANGLES_PATH           = "./data/coman/motions/original/robot/angles"
+COMAN_XYZS_REPS_PATH        = "./data/coman/motions/original/robot/xyzs+reps"
+COMAN_SMPL_PARAMS_PATH      = "./data/coman/motions/original/smpl_params"
+
+COMAN_CF_MAT_PATH           = "./data/coman/motions/cf/mats"
+COMAN_CF_ANGLES_PATH        = "./data/coman/motions/cf/robot/angles"
+COMAN_CF_XYZS_REPS_PATH     = "./data/coman/motions/cf/robot/xyzs+reps"
+COMAN_CF_SMPL_PARAMS_PATH   = "./data/coman/motions/cf/smpl_params"
 
 # link index of coman
 class ComanLinkIndex(Enum):
@@ -102,10 +109,11 @@ COMAN_JOI = {
 # RANGE: {k: joint, v: range} (e.g. {"RShSag": [-3.4034, 1.6581], ... })
 COMAN_JOI_RANGE = dict((k, v["range"]) for k, v in COMAN_JOI.items())
 COMAN_JOI_KEYS = COMAN_JOI.keys()
+COMAN_CF_JOI_KEYS = ['RShSag', 'RShLat', 'RShYaw', 'RElbj', 'LShSag', 'LShLat', 'LShYaw', 'LElbj', 'LForearmPlate', 'RForearmPlate']
 
 
 # SMPL-X Index for COMAN
-# Total 23 joints
+# Total 21 joints
 COMAN_SMPL_JOINT_IDX = [
 
     # base
@@ -136,45 +144,76 @@ COMAN_SMPL_JOINT_IDX = [
     SMPLX_JOINT_INDEX.left_pinky1.value,
 ]
 
-# convert COMAN's link xyzs (64) into smpl xyzs (25)
+# convert COMAN's link xyzs (64) into smpl xyzs (21)
 def coman_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> List[np.ndarray]:
+    r_sh2el = xyzs[ComanLinkIndex.R_ELB_IDX.value] - xyzs[ComanLinkIndex.R_SH_R_IDX.value]
+    r_el2wr = xyzs[ComanLinkIndex.R_WRIST_IDX.value] - xyzs[ComanLinkIndex.R_ELB_IDX.value]
+    l_sh2el = xyzs[ComanLinkIndex.L_ELB_IDX.value] - xyzs[ComanLinkIndex.L_SH_R_IDX.value]
+    l_el2wr = xyzs[ComanLinkIndex.L_WRIST_IDX.value] - xyzs[ComanLinkIndex.L_ELB_IDX.value]
+    sh2el_scale = 0.25
+    el2wr_scale = 0.15
+
     smpl_xyzs = [
         xyzs[ComanLinkIndex.WASIT_IDX.value],                                                   # pelvis
         xyzs[ComanLinkIndex.R_HIP_MOT_IDX.value] + [0, -0.08, 0],                               # right hip
         xyzs[ComanLinkIndex.L_HIP_MOT_IDX.value] + [0, 0.08, 0],                                # left hip
         xyzs[ComanLinkIndex.R_LOW_LEG_IDX.value] + [0, -0.03, -0.05],                           # right knee
         xyzs[ComanLinkIndex.L_LOW_LEG_IDX.value] + [0, 0.03, -0.05],                            # left knee
+
         xyzs[ComanLinkIndex.TORSO_IDX.value] + [0, 0, -0.025],                                  # spine 3
         xyzs[ComanLinkIndex.TORSO_IDX.value] + [0, 0, 0.125],                                   # neck
         xyzs[ComanLinkIndex.GAZE_IDX.value] + [0, -0.03, 0.15],                                 # right_eye
         xyzs[ComanLinkIndex.GAZE_IDX.value] + [0, 0.03, 0.15],                                  # left_eye
+
         xyzs[ComanLinkIndex.R_SH_R_IDX.value] + [0, 0, 0.075],                                  # right_shoulder
-        (xyzs[ComanLinkIndex.R_ELB_IDX.value] + [0, 0, 0.075]) * 1.25,                          # right_elbow
-        (xyzs[ComanLinkIndex.R_WRIST_IDX.value] + [0, 0, 0.075]) * 1.25,                        # right_wrist
-        # (xyzs[ComanLinkIndex.R_SOFT_HAND_IDX.value] + [0, 0, 0.075]) * 1.25,                  # right_index
+        (xyzs[ComanLinkIndex.R_ELB_IDX.value] + [0, 0, 0.075]) + (sh2el_scale * r_sh2el),       # right_elbow
+        (xyzs[ComanLinkIndex.R_WRIST_IDX.value] + [0, 0, 0.075]) + (sh2el_scale * r_sh2el + el2wr_scale * r_el2wr), # right_wrist
+
         ((xyzs[ComanLinkIndex.R_HAND_UPPER_RIGHT_LINK_IDX.value] +                              # right_middle3
-        xyzs[ComanLinkIndex.R_HAND_LOWER_RIGHT_LINK_IDX.value]) / 2 + [0, 0, 0.075]) * 1.25,
+        xyzs[ComanLinkIndex.R_HAND_LOWER_RIGHT_LINK_IDX.value]) / 2 + [0, 0, 0.075]) + (sh2el_scale * r_sh2el + el2wr_scale * r_el2wr),
         ((3 * xyzs[ComanLinkIndex.R_HAND_UPPER_LEFT_LINK_IDX.value] +                           # right_thumb3
-        xyzs[ComanLinkIndex.R_HAND_UPPER_RIGHT_LINK_IDX.value]) / 4 + [0, 0, 0.075]) * 1.25,
+        xyzs[ComanLinkIndex.R_HAND_UPPER_RIGHT_LINK_IDX.value]) / 4 + [0, 0, 0.075]) + (sh2el_scale * r_sh2el + el2wr_scale * r_el2wr),
         ((xyzs[ComanLinkIndex.R_HAND_LOWER_RIGHT_LINK_IDX.value] +                              # right_pinky
-        xyzs[ComanLinkIndex.R_HAND_LOWER_LEFT_LINK_IDX.value]) / 2 + [0, 0, 0.075]) * 1.25,
+        xyzs[ComanLinkIndex.R_HAND_LOWER_LEFT_LINK_IDX.value]) / 2 + [0, 0, 0.075]) + (sh2el_scale * r_sh2el + el2wr_scale * r_el2wr),
+
         xyzs[ComanLinkIndex.L_SH_R_IDX.value] + [0, 0, 0.075],                                  # left_shoulder
-        (xyzs[ComanLinkIndex.L_ELB_IDX.value] + [0, 0, 0.075]) * 1.25,                          # left_elbow
-        (xyzs[ComanLinkIndex.L_WRIST_IDX.value] + [0, 0, 0.075]) * 1.25,                        # left_wrist
-        # (xyzs[ComanLinkIndex.L_SOFT_HAND_IDX.value] + [0, 0, 0.075]) * 1.25,                  # left_index
+        (xyzs[ComanLinkIndex.L_ELB_IDX.value] + [0, 0, 0.075]) + (sh2el_scale * l_sh2el),                          # left_elbow
+        (xyzs[ComanLinkIndex.L_WRIST_IDX.value] + [0, 0, 0.075]) + (sh2el_scale * l_sh2el + el2wr_scale * l_el2wr),                        # left_wrist
+
         ((xyzs[ComanLinkIndex.L_HAND_UPPER_RIGHT_LINK_IDX.value] +                              # left_middle3
-        xyzs[ComanLinkIndex.L_HAND_LOWER_RIGHT_LINK_IDX.value]) / 2 + [0, 0, 0.075]) * 1.25,
+        xyzs[ComanLinkIndex.L_HAND_LOWER_RIGHT_LINK_IDX.value]) / 2 + [0, 0, 0.075]) + (sh2el_scale * l_sh2el + el2wr_scale * l_el2wr),
         ((3 * xyzs[ComanLinkIndex.L_HAND_UPPER_LEFT_LINK_IDX.value] +                           # left_thumb3
-        xyzs[ComanLinkIndex.L_HAND_UPPER_RIGHT_LINK_IDX.value]) / 4 + [0, 0, 0.075]) * 1.25,
+        xyzs[ComanLinkIndex.L_HAND_UPPER_RIGHT_LINK_IDX.value]) / 4 + [0, 0, 0.075]) + (sh2el_scale * l_sh2el + el2wr_scale * l_el2wr),
         ((xyzs[ComanLinkIndex.L_HAND_LOWER_RIGHT_LINK_IDX.value] +                              # left_pinky
-        xyzs[ComanLinkIndex.L_HAND_LOWER_LEFT_LINK_IDX.value]) / 2 + [0, 0, 0.075]) * 1.25,
+        xyzs[ComanLinkIndex.L_HAND_LOWER_LEFT_LINK_IDX.value]) / 2 + [0, 0, 0.075]) + (sh2el_scale * l_sh2el + el2wr_scale * l_el2wr),
     ]
 
-    smpl_xyzs = [xyz + np.array([0, 0, 0.65]) for xyz in smpl_xyzs]
+    smpl_xyzs = np.array(smpl_xyzs) + [0, 0, 0.65]
+    smpl_xyzs = smpl_xyzs * 1.1
     return smpl_xyzs
+
+COMAN_EVALUATE_LINKS = [
+    'RShp',
+    'RShr',
+    'RShy',
+    'RElb',
+    'RForearm',
+    'r_wrist',
+    'RSoftHand',
+
+    'LShp',
+    'LShr',
+    'LShy',
+    'LElb',
+    'LForearm',
+    'l_wrist',
+    'LSoftHand'
+]
 
 # Train Parameters
 COMAN_XYZS_DIM      = len(ComanLinkIndex) * 3           # 64 links * 3 xyzs = 192
 COMAN_REPS_DIM      = len(ComanLinkIndex) * 6           # 64 links * 6 reps = 384
 COMAN_ANGLES_DIM    = len(COMAN_JOI)                    # 14 joints
-COMAN_SMPL_REPS_DIM = len(COMAN_SMPL_JOINT_IDX) * 6     # 23 joints * 6 reps = 138
+COMAN_SMPL_REPS_DIM = len(COMAN_SMPL_JOINT_IDX) * 6     # 21 joints * 6 reps = 126
+
+COMAN_CF_ANGLES_DIM = len(COMAN_CF_JOI_KEYS)            # 10 joints

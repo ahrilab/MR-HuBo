@@ -17,8 +17,6 @@ cd retargeting4reachy
 pip install -r requirements.txt
 ```
 
-
-
 - Download data for SMPL
   
   You can download data for rendering SMPL-X & VPoser Model via [this link](https://smpl-x.is.tue.mpg.de/download.php).\
@@ -28,6 +26,15 @@ pip install -r requirements.txt
 
   You can download ground truth motions of robots via [this link](https://drive.google.com/file/d/102uf0paypd8zQCJhIqqBLtXoFDrjxh04/view?usp=sharing).\
   You should move this 'mr_gt.pkl' file into 'data/gt_motions/' path.
+
+## Directory Structure
+- data: Store the data of Robot's urdf, meshes, and motions data, VPoser & SMPL model, GT motions data.
+- imgs: Images for README.md
+- log: Log files for background python process (data generation, model training etc.). (git ignored)
+- out: Outputs of code such as model weights, predicted motions, rendered videos, etc. (git ignored)
+- src: codes for processing data, model defining, training, and inference, visualization, and utilities.
+- tools: shell script for running code. (need to update)
+
 
 ## How to use codes.
 > (We should reorganize this README file)

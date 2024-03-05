@@ -29,10 +29,10 @@ import sys
 from multiprocessing import Pool
 
 sys.path.append("./src")
-from utils.transform import quat2rep
 from utils.consts import *
 from utils.types import RobotType, SampleArgs
 from utils.RobotConfig import RobotConfig
+from utils.forward_kinematics import forward_kinematics
 
 
 def main(args: SampleArgs, core_idx: int):
@@ -40,7 +40,8 @@ def main(args: SampleArgs, core_idx: int):
     robot_config = RobotConfig(args.robot_type)
 
     # create a directory for saving the robot data
-    os.makedirs(robot_config.RAW_DATA_PATH, exist_ok=True)
+    os.makedirs(robot_config.ANGLES_PATH, exist_ok=True)
+    os.makedirs(robot_config.XYZS_REPS_PATH, exist_ok=True)
 
     # fmt: off
     num_seeds = args.num_seeds                  # how many random seed to be used for sampling
@@ -59,10 +60,10 @@ def main(args: SampleArgs, core_idx: int):
         # but different for different seeds.
         np.random.seed(seed)
 
-        total_xyzs = []
-        total_reps = []
-        total_angles = []
-        total_xyzs4smpl = []
+        xyzs_list = []
+        reps_list = []
+        angles_list = []
+        xyzs4smpl_list = []
 
         for i in range(motions_per_seed):
             # fmt: off
@@ -77,59 +78,35 @@ def main(args: SampleArgs, core_idx: int):
             }
             # fmt: on
 
-            # fk_result: forward kinematics result of chain (Robot)
-            #            keys of each element: pos (xyz position), rot (rotation vector: quaternion representation)
-            fk_result = chain.forward_kinematics(angles)
-
-            xyzs = list()
-            reps = list()
-
-            for k, v in fk_result.items():
-                # fmt: off
-                # v.pos should change to 1 2 0 (when create curr_xyz)
-                curr_xyz  = v.pos               # xyz position. shape: (3,)
-                curr_quat = v.rot               # Quaternion Representation. shape: (4,)
-                curr_rep  = quat2rep(curr_quat) # Transform Quaternion into 6D Rotation Representation
-                # fmt: on
-
-                xyzs.append(curr_xyz)
-                reps.append(curr_rep)
-                # xyzs & reps are lists of [# of robot links] elements,
-                # each element is a 3D or 6D numpy array.
-
-            # fmt: off
-            xyzs = np.vstack(xyzs)                                   # xyzs.shape: (# of robot links, 3)
-            reps = np.asarray(reps)                                  # reps.shape: (# of robot links, 6)
-            xyzs4smpl = np.asarray(robot_config.convert_xyzs(xyzs))  # shape: (# of pos4smpl, 3)
-            # fmt: on
+            xyzs, reps, xyzs4smpl = forward_kinematics(robot_config, chain, angles)
 
             # Append the iteration items into the total list
-            total_angles.append(angles)
-            total_xyzs.append(xyzs)
-            total_reps.append(reps)
-            total_xyzs4smpl.append(xyzs4smpl)
+            angles_list.append(angles)
+            xyzs_list.append(xyzs)
+            reps_list.append(reps)
+            xyzs4smpl_list.append(xyzs4smpl)
 
         # fmt: off
-        total_xyzs = np.asarray(total_xyzs)            # shape: (num_iter, # of robot links, 3)
-        total_reps = np.asarray(total_reps)            # shape: (num_iter, # of robot links, 6)
-        total_xyzs4smpl = np.asarray(total_xyzs4smpl)  # shape: (num_iter, 21, 3)
+        xyzs_list = np.asarray(xyzs_list)            # shape: (num_iter, # of robot links, 3)
+        reps_list = np.asarray(reps_list)            # shape: (num_iter, # of robot links, 6)
+        xyzs4smpl_list = np.asarray(xyzs4smpl_list)  # shape: (num_iter, 21, 3)
         # fmt: on
 
         # save robot's xyz + rep data file
         # file name: DATA_PATH/xyzs+reps_0000.npz
         # data keys in a file: xyzs, reps, xyzs4smpl
         np.savez(
-            osp.join(robot_config.RAW_DATA_PATH, robot_xyzs_reps_path(seed)),
-            xyzs=total_xyzs,
-            reps=total_reps,
-            xyzs4smpl=total_xyzs4smpl,
+            osp.join(robot_config.XYZS_REPS_PATH, robot_xyzs_reps_path(seed)),
+            xyzs=xyzs_list,
+            reps=reps_list,
+            xyzs4smpl=xyzs4smpl_list,
         )
 
         # save robot's angle data file
         # file name: DATA_PATH/angles_0000.pkl
         pickle.dump(
-            total_angles,
-            open(osp.join(robot_config.RAW_DATA_PATH, robot_angles_path(seed)), "wb"),
+            angles_list,
+            open(osp.join(robot_config.ANGLES_PATH, robot_angles_path(seed)), "wb"),
         )
 
 
