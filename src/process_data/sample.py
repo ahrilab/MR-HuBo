@@ -29,7 +29,6 @@ import sys
 from multiprocessing import Pool
 
 sys.path.append("./src")
-from utils.transform import quat2rep
 from utils.consts import *
 from utils.types import RobotType, SampleArgs
 from utils.RobotConfig import RobotConfig

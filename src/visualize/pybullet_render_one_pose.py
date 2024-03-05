@@ -14,7 +14,6 @@ import sys
 import pickle
 import imageio
 import argparse
-import numpy as np
 import os
 import os.path as osp
 from typing import List, Dict
@@ -70,28 +69,6 @@ def main(args: PybulletRenderOnePoseArgs):
         cameraPitch=camera_pitch,
         cameraTargetPosition=initial_position,
     )
-
-    # # Create a projection matrix with the desired aspect ratio
-    # screen_width = 640
-    # screen_height = 640
-    # aspect_ratio = float(screen_width / screen_height)
-    # projection_matrix = pb.computeProjectionMatrixFOV(
-    #     fov=60, aspect=aspect_ratio, nearVal=0.1, farVal=100
-    # )
-
-    # # Get the view matrix
-    # view_matrix = pb.computeViewMatrixFromYawPitchRoll(
-    #     cameraTargetPosition=initial_position,
-    #     distance=camera_distance,
-    #     yaw=camera_yaw,
-    #     pitch=camera_pitch,
-    #     roll=0,
-    #     upAxisIndex=2,
-    # )
-
-    # # Set the projection matrix and view matrix
-    # pb.getDebugVisualizerCamera()[1] = view_matrix
-    # pb.getDebugVisualizerCamera()[2] = projection_matrix
 
     # 로봇의 Joint {name: index} 매핑
     num_joints = pb.getNumJoints(robot_id)  # 로봇의 관절 개수 얻기

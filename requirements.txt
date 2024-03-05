@@ -22,6 +22,7 @@ PyOpenGL_accelerate
 matplotlib==3.2.2
 joblib
 pybullet
+wandb
 
 git+https://github.com/cotton-ahn/human_body_prior
 git+https://github.com/cotton-ahn/body_visualizer
