@@ -6,6 +6,9 @@ Usage:
     python src/visualize/pybullet_render.py -r ROBOT_TYPE -v VIEW --fps FPS [-s] -mi MOTION_IDX [-gt] [-cf] [-ef]
 
 Example:
+    python src/visualize/pybullet_render.py -r COMAN -v front --fps 120 -s -mi 13_18 -a -ef -e mp4
+    python src/visualize/pybullet_render.py -r COMAN -v front --fps 120 -s -mi 13_18 -a -e mp4
+
     python src/visualize/pybullet_render.py -r COMAN -v front --fps 120 -s -mi 13_18 -cf -ef -e gif
     python src/visualize/pybullet_render.py -r COMAN -v front --fps 120 -s -mi 13_18 -e mp4
 
@@ -13,7 +16,7 @@ Example:
     python src/visualize/pybullet_render.py -r COMAN -v front --fps 120 -rp ./data/gt_motions/gt_coman_13_18_new.pkl -op ./out/pybullet/coman_gt_13_18_cf.mp4
 
     # render for GT
-    python src/visualize/pybullet_render.py -r=COMAN -v front --fps 120 -s -gt -cf -mi="13_18" -e mp4
+    python src/visualize/pybullet_render.py -r=COMAN -v front --fps 120 -s -gt -mi="13_18" -e mp4
     python src/visualize/pybullet_render.py -r=COMAN -v front --fps 120 -gt -cf -mi="13_18" -e mp4
 """
 
@@ -34,28 +37,16 @@ from utils.types import RobotType, PybulletRenderArgs
 from utils.consts import *
 
 
+# TODO: Render 함수를 따로 만들어서 사용하고, main 함수에서는 argument parsing 및 path 설정만 하도록 Refactor
+
+
 def main(args: PybulletRenderArgs):
     # robot의 정보를 가져옴
     robot_config = RobotConfig(args.robot_type)
     view = args.view
 
-    # load joint data
-    if args.robot_pose_path is not None:
-        motions: List[Dict[str, float]] = pickle.load(open(args.robot_pose_path, "rb"))
-    else:
-        if args.collision_free:
-            if args.extreme_filter:
-                motion_path = f"out/pred_motions/{args.robot_type.name}/cf/ef/{args.motion_idx}.pkl"
-            else:
-                motion_path = f"out/pred_motions/{args.robot_type.name}/cf/no_ef/{args.motion_idx}.pkl"
-        else:
-            if args.extreme_filter:
-                motion_path = f"out/pred_motions/{args.robot_type.name}/no_cf/ef/{args.motion_idx}.pkl"
-            else:
-                motion_path = f"out/pred_motions/{args.robot_type.name}/no_cf/no_ef/{args.motion_idx}.pkl"
-
-        motions: List[Dict[str, float]] = pickle.load(open(motion_path, "rb"))
-
+    # load motion data (joint) and set output path
+    # if ground truth, load ground truth motion data
     if args.ground_truth:
         motions: List[Dict[str, float]] = pickle.load(open(GT_PATH, "rb"))
         motion_idx = args.motion_idx
@@ -64,6 +55,42 @@ def main(args: PybulletRenderArgs):
             motions = motions[robot_name_for_gt][motion_idx]["q_cf"]
         else:
             motions = motions[robot_name_for_gt][motion_idx]["q"]
+        output_path = f"out/pybullet/{robot_config.robot_type.name}/GT/{args.motion_idx}{'_cf' if args.collision_free else ''}.{args.extention}"
+
+    # if not ground truth, load predicted motion data
+    else:
+        # if robot_pose_path is given, load the motion data from the path
+        if args.robot_pose_path:
+            motions: List[Dict[str, float]] = pickle.load(
+                open(args.robot_pose_path, "rb")
+            )
+        # if robot_pose_path is not given, load the motion data from the rule based path
+        else:
+            if args.arm_only:
+                if args.extreme_filter:
+                    motion_path = f"out/pred_motions/{args.robot_type.name}/arm_only/ef/{args.motion_idx}.pkl"
+                    output_path = f"out/pybullet/{args.robot_type.name}/arm_only/ef/{args.motion_idx}.{args.extention}"
+                else:
+                    motion_path = f"out/pred_motions/{args.robot_type.name}/arm_only/no_ef/{args.motion_idx}.pkl"
+                    output_path = f"out/pybullet/{args.robot_type.name}/arm_only/no_ef/{args.motion_idx}.{args.extention}"
+
+            else:
+                if args.collision_free:
+                    if args.extreme_filter:
+                        motion_path = f"out/pred_motions/{args.robot_type.name}/cf/ef/{args.motion_idx}.pkl"
+                        output_path = f"out/pybullet/{args.robot_type.name}/cf/ef/{args.motion_idx}.{args.extention}"
+                    else:
+                        motion_path = f"out/pred_motions/{args.robot_type.name}/cf/no_ef/{args.motion_idx}.pkl"
+                        output_path = f"out/pybullet/{args.robot_type.name}/cf/no_ef/{args.motion_idx}.{args.extention}"
+                else:
+                    if args.extreme_filter:
+                        motion_path = f"out/pred_motions/{args.robot_type.name}/no_cf/ef/{args.motion_idx}.pkl"
+                        output_path = f"out/pybullet/{args.robot_type.name}/no_cf/ef/{args.motion_idx}.{args.extention}"
+                    else:
+                        motion_path = f"out/pred_motions/{args.robot_type.name}/no_cf/no_ef/{args.motion_idx}.pkl"
+                        output_path = f"out/pybullet/{args.robot_type.name}/no_cf/no_ef/{args.motion_idx}.{args.extention}"
+
+            motions: List[Dict[str, float]] = pickle.load(open(motion_path, "rb"))
 
     # smooth
     if args.smooth:
@@ -140,27 +167,9 @@ def main(args: PybulletRenderArgs):
 
         frames.append(img[2])
 
+    # Save the frames as a gif or mp4 file
     if args.output_path is not None:
         output_path = args.output_path
-    else:
-        if args.collision_free:
-            if args.extreme_filter:
-                output_path = f"out/pybullet/{robot_config.robot_type.name}/cf/ef/{args.motion_idx}.{args.extention}"
-            else:
-                output_path = f"out/pybullet/{robot_config.robot_type.name}/cf/no_ef/{args.motion_idx}.{args.extention}"
-        else:
-            if args.extreme_filter:
-                output_path = f"out/pybullet/{robot_config.robot_type.name}/no_cf/ef/{args.motion_idx}.{args.extention}"
-            else:
-                output_path = f"out/pybullet/{robot_config.robot_type.name}/no_cf/no_ef/{args.motion_idx}.{args.extention}"
-
-        if args.ground_truth:
-            robot_gt_path = f"out/pybullet/{robot_config.robot_type.name}/GT"
-            os.makedirs(robot_gt_path, exist_ok=True)
-            output_path = os.path.join(
-                robot_gt_path,
-                f"{args.motion_idx}{'_cf' if args.collision_free else ''}.{args.extention}",
-            )
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
@@ -193,6 +202,7 @@ if __name__ == "__main__":
     parser.add_argument("--collision-free", "-cf", action="store_true")
     parser.add_argument("--motion-idx", "-mi", type=str, default="02_05")
     parser.add_argument("--extreme-filter", "-ef", action="store_true")
+    parser.add_argument("--arm-only", "-a", action="store_true")
 
     args: PybulletRenderArgs = parser.parse_args()
     main(args)

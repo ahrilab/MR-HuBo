@@ -52,6 +52,16 @@ def main(args: EvaluateOnTestMotionsArgs):
                 PRED_MOTION_PATH, f"{args.robot_type.name}/no_cf/no_ef"
             )
 
+    if args.arm_only:
+        if args.extreme_filter:
+            robot_pred_motion_dir = osp.join(
+                PRED_MOTION_PATH, f"{args.robot_type.name}/arm_only/ef"
+            )
+        else:
+            robot_pred_motion_dir = osp.join(
+                PRED_MOTION_PATH, f"{args.robot_type.name}/arm_only/no_ef"
+            )
+
     os.makedirs(robot_pred_motion_dir, exist_ok=True)
 
     total_motion_errors = []
@@ -68,6 +78,7 @@ def main(args: EvaluateOnTestMotionsArgs):
             human_pose_path=amass_data_path,
             device=args.device,
             evaluate_mode=args.evaluate_mode,
+            arm_only=args.arm_only,
         )
 
         # save the predicted motion
@@ -104,7 +115,7 @@ def main(args: EvaluateOnTestMotionsArgs):
     print(result_path)
     with open(result_path, "w") as f:
         f.write(
-            f"Robot: {args.robot_type.name} CF: [{args.collision_free}] EF: [{args.extreme_filter}]\n"
+            f"Robot: {args.robot_type.name} CF: [{args.collision_free}] EF: [{args.extreme_filter}] Arm_only: [{args.arm_only}]\n"
         )
         f.write(f"Evaluate_mode: {args.evaluate_mode.name}\n")
         f.write(f"Mean_error: {mean_error}\n")
@@ -148,6 +159,11 @@ if __name__ == "__main__":
         "-d",
         type=str,
         default="cuda",
+    )
+    parser.add_argument(
+        "--arm-only",
+        "-a",
+        action="store_true",
     )
 
     args: EvaluateOnTestMotionsArgs = parser.parse_args()

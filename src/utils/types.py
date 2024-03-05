@@ -89,6 +89,7 @@ class TrainArgs(argparse.Namespace):
     robot_type: RobotType
     collision_free: bool
     extreme_filter: bool
+    arm_only: bool
     wandb: bool
 
 
@@ -110,6 +111,7 @@ class PybulletRenderArgs(argparse.Namespace):
     collision_free: bool
     extreme_filter: bool
     motion_idx: str
+    arm_only: bool
 
 
 class PybulletRenderOnePoseArgs(argparse.Namespace):
@@ -142,6 +144,7 @@ class PickBestModelArgs(argparse.Namespace):
     extreme_filter: bool
     evaluate_mode: EvaluateMode
     device: str
+    arm_only: bool
 
 
 class EvaluateOnTestMotionsArgs(argparse.Namespace):
@@ -151,3 +154,4 @@ class EvaluateOnTestMotionsArgs(argparse.Namespace):
     evaluate_mode: EvaluateMode
     save_pred_motion: bool
     device: str
+    arm_only: bool

@@ -31,10 +31,13 @@ def pick_best_model(args: PickBestModelArgs):
     robot_name_for_gt = args.robot_type.name[0] + args.robot_type.name[1:].lower()
     gt_motions = pickle.load(open(GT_PATH, "rb"))
 
-    weight_num = 20
+    if args.extreme_filter:
+        weight_num = EF_EPOCHS // MODEL_SAVE_EPOCH
+    else:
+        weight_num = NUM_EPOCHS // MODEL_SAVE_EPOCH
     all_motions_errors = []  # (2, 20)
     for val_motion_idx in VALID_GT_MOTION_IDXS:
-        gt_motion = gt_motions[robot_name_for_gt][val_motion_idx]["q_cf"]
+        gt_motion = gt_motions[robot_name_for_gt][val_motion_idx]["q"]
         amass_data_path = osp.join(AMASS_DATA_PATH, f"{val_motion_idx}_stageii.npz")
         motion_errors = []  # (20,)
 
@@ -45,6 +48,7 @@ def pick_best_model(args: PickBestModelArgs):
                 extreme_filter=args.extreme_filter,
                 human_pose_path=amass_data_path,
                 device=args.device,
+                arm_only=args.arm_only,
                 weight_idx=weight_idx,
             )
 
@@ -74,6 +78,13 @@ def pick_best_model(args: PickBestModelArgs):
         else:
             weight_dir = f"out/models/{robot_config.robot_type.name}/no_cf/no_ex"
 
+    if args.arm_only:
+        if args.extreme_filter:
+            weight_dir = f"out/models/{robot_config.robot_type.name}/arm_only/ex"
+        else:
+            weight_dir = f"out/models/{robot_config.robot_type.name}/arm_only/no_ex"
+
+    # fmt: off
     # Plot the errors (motion 1, motion 2, mean)
     x = range(weight_num)
     plt.plot(x, all_motions_errors[0], label="motion 1")
@@ -81,15 +92,22 @@ def pick_best_model(args: PickBestModelArgs):
     plt.plot(x, mean_errors, label="mean")
     plt.legend()
     # save the plot
-    plt.savefig(osp.join(weight_dir, f"val_errors_{args.evaluate_mode.value}.png"))
+    fig_name = osp.join(weight_dir, f"{args.robot_type.name}_val_errors_{args.evaluate_mode.value}.png")
+    plt.savefig(fig_name)
+    print(f"Saved the plot: {fig_name}")
 
-    # fmt: off
     best_model_idx = np.argmin(mean_errors)
-    best_pre_model_weight_path  = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_pre_{best_model_idx}.pth")
-    best_post_model_weight_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_post_{best_model_idx}.pth")
+    if args.arm_only:
+        best_pre_model_weight_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_arm_only_pre_{best_model_idx}.pth")
+        best_post_model_weight_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_arm_only_post_{best_model_idx}.pth")
+        pre_model_save_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_arm_only_pre_best_{args.evaluate_mode.value}.pth")
+        post_model_save_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_arm_only_post_best_{args.evaluate_mode.value}.pth")
+    else:
+        best_pre_model_weight_path  = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_pre_{best_model_idx}.pth")
+        best_post_model_weight_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_post_{best_model_idx}.pth")
+        pre_model_save_path  = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_pre_best_{args.evaluate_mode.value}.pth")
+        post_model_save_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_post_best_{args.evaluate_mode.value}.pth")
 
-    pre_model_save_path  = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_pre_best_{args.evaluate_mode.value}.pth")
-    post_model_save_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_post_best_{args.evaluate_mode.value}.pth")
     copyfile(best_pre_model_weight_path,  pre_model_save_path)
     copyfile(best_post_model_weight_path, post_model_save_path)
     # fmt: on
@@ -131,6 +149,11 @@ if __name__ == "__main__":
         "-d",
         type=str,
         default="cuda",
+    )
+    parser.add_argument(
+        "--arm-only",
+        "-a",
+        action="store_true",
     )
     args: PickBestModelArgs = parser.parse_args()
 

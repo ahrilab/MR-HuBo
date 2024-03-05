@@ -29,6 +29,8 @@ from utils.consts import *
 
 
 def train(args: TrainArgs):
+    robot_config = RobotConfig(args.robot_type)
+
     # hyperparameters
     num_data = NUM_SEEDS
     split_ratio = 50
@@ -44,13 +46,18 @@ def train(args: TrainArgs):
         num_epochs = NUM_EPOCHS
         batch_size = BATCH_SIZE
 
-    # prepare dataset
-    robot_config = RobotConfig(args.robot_type)
+    # input & output dimensions
+    # input: SMPL joint 6D representations (H)
+    # output: robot joint angles (q)
+    if args.arm_only:
+        input_dim = SMPL_ARM_JOINT_REPS_DIM
+    else:
+        input_dim = SMPL_JOINT_REPS_DIM
 
     if args.collision_free:
-        ROBOT_ANGLES_DIM = robot_config.cf_angles_dim
+        output_dim = robot_config.cf_angles_dim
     else:
-        ROBOT_ANGLES_DIM = robot_config.angles_dim
+        output_dim = robot_config.angles_dim
 
     if args.wandb:
         wandb.init(project="mr_hubo")
@@ -78,8 +85,18 @@ def train(args: TrainArgs):
             model_save_path = f"out/models/{robot_config.robot_type.name}/no_cf/ex/"
         else:
             model_save_path = f"out/models/{robot_config.robot_type.name}/no_cf/no_ex/"
+
+    # fmt: off
+    if args.arm_only:
+        if args.extreme_filter:
+            model_save_path = f"out/models/{robot_config.robot_type.name}/arm_only/ex/"
+        else:
+            model_save_path = f"out/models/{robot_config.robot_type.name}/arm_only/no_ex/"
+    # fmt: on
+
     os.makedirs(model_save_path, exist_ok=True)
 
+    # load data
     if args.collision_free:
         SMPL_PARAMS_PATH = robot_config.CF_SMPL_PARAMS_PATH
         XYZS_REPS_PATH = robot_config.CF_XYZS_REPS_PATH
@@ -90,9 +107,9 @@ def train(args: TrainArgs):
         ANGLES_PATH = robot_config.ANGLES_PATH
 
     # fmt: off
-    input_path  = SMPL_PARAMS_PATH  # input: SMPL parameters
-    reps_path   = XYZS_REPS_PATH    # target: robot xyzs and reps
-    target_path = ANGLES_PATH       # target: robot joint angles
+    input_path  = SMPL_PARAMS_PATH  # input: SMPL parameters        (H)
+    reps_path   = XYZS_REPS_PATH    # target: robot xyzs and reps   (R)
+    target_path = ANGLES_PATH       # target: robot joint angles    (q)
     # fmt: on
 
     robot_xyzs, robot_reps, robot_angles, smpl_reps, smpl_prob = (
@@ -104,6 +121,7 @@ def train(args: TrainArgs):
             split_ratio=split_ratio,
             collision_free=args.collision_free,
             extreme_filter=args.extreme_filter,
+            arm_only=args.arm_only,
         )
     )
 
@@ -129,23 +147,23 @@ def train(args: TrainArgs):
 
     # define model, optimizer, and loss function
     model_pre = MLP(
-        dim_input=SMPL_JOINT_REPS_DIM,
+        dim_input=input_dim,
         dim_output=robot_config.reps_dim,
         dim_hidden=dim_hidden,
     ).to(device)
     model_post = MLP(
         dim_input=robot_config.reps_dim,
-        dim_output=ROBOT_ANGLES_DIM,
+        dim_output=output_dim,
         dim_hidden=dim_hidden,
     ).to(device)
     optimizer_pre = optim.Adam(model_pre.parameters(), lr, weight_decay=1e-6)
     optimizer_post = optim.Adam(model_post.parameters(), lr, weight_decay=1e-6)
 
-    # train the model
     best_pre_loss = 1e10
     best_post_loss = 1e10
     criterion = nn.MSELoss()
 
+    # train the model
     print("Start training...")
     for epoch in tqdm(range(num_epochs)):
         train_pre_loss = 0.0
@@ -243,23 +261,27 @@ def train(args: TrainArgs):
             )
 
         # Save the best model for every 50 epochs
-        if epoch % 50 == 0:
+        if epoch % MODEL_SAVE_EPOCH == 0:
             best_pre_loss = 1e10
             best_post_loss = 1e10
 
+        if args.arm_only:
+            pre_weight_name = f"human2{robot_config.robot_type.name}_arm_only_pre_{epoch // MODEL_SAVE_EPOCH}.pth"
+            post_weight_name = f"human2{robot_config.robot_type.name}_arm_only_post_{epoch // MODEL_SAVE_EPOCH}.pth"
+        else:
+            pre_weight_name = f"human2{robot_config.robot_type.name}_pre_{epoch // MODEL_SAVE_EPOCH}.pth"
+            post_weight_name = f"human2{robot_config.robot_type.name}_post_{epoch // MODEL_SAVE_EPOCH}.pth"
+
+        pre_weight_path = os.path.join(model_save_path, pre_weight_name)
+        post_weight_path = os.path.join(model_save_path, post_weight_name)
+
         best_pre_loss = min(best_pre_loss, test_pre_loss)
         if best_pre_loss == test_pre_loss:
-            torch.save(
-                model_pre.state_dict(),
-                f"{model_save_path}/human2{robot_config.robot_type.name}_rep_only_pre_{epoch//50}.pth",
-            )
+            torch.save(model_pre.state_dict(), pre_weight_path)
 
         best_post_loss = min(best_post_loss, test_post_loss)
         if best_post_loss == test_post_loss:
-            torch.save(
-                model_post.state_dict(),
-                f"{model_save_path}/human2{robot_config.robot_type.name}_rep_only_post_{epoch//50}.pth",
-            )
+            torch.save(model_post.state_dict(), post_weight_path)
 
 
 if __name__ == "__main__":
@@ -287,6 +309,12 @@ if __name__ == "__main__":
         "-w",
         action="store_true",
         help="Use wandb to log training process",
+    )
+    parser.add_argument(
+        "--arm_only",
+        "-a",
+        action="store_true",
+        help="train model with SMPL's arm joint only",
     )
     args: TrainArgs = parser.parse_args()
 
