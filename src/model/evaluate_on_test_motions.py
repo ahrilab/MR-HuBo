@@ -24,7 +24,7 @@ from utils.types import RobotType, EvaluateOnTestMotionsArgs, EvaluateMode
 from utils.RobotConfig import RobotConfig
 from utils.consts import *
 from model.test_rep_only import infer_human2robot
-from model.evaluate import evaluate
+from utils.evaluate import evaluate
 
 
 def main(args: EvaluateOnTestMotionsArgs):

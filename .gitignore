@@ -2,7 +2,9 @@
 __pycache__/
 
 # output directory
-out/
+!out/
+out/*
+!out/README.md
 
 # log directory
 log/
@@ -19,6 +21,8 @@ data/vposer_v2_05/
 
 # ignore gt motions, because they're too big
 data/gt_motions/mr_gt.pkl
+
+data/temp/
 
 # ignore amass motions, only provide the list of motions we use
 # data/gt_motions/amass_data/*.npz
