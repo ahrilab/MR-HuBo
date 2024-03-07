@@ -3,11 +3,12 @@ This module is used to pick the best model from the trained models.
 The Best model is the one that has the lowest errors on the validation motion set of GT.
 
 Usage:
-    python src/model/pick_best_model.py -r <robot_type> -cf -ef -em <evaluate_mode>
+    python src/model/pick_best_model.py -r <robot_type> -cf -ef -a -em <evaluate_mode> -d <device>
 
 Example:
     python src/model/pick_best_model.py -r REACHY -cf -ef -em link
     python src/model/pick_best_model.py -r COMAN -ef -em joint
+    python src/model/pick_best_model.py -r REACHY -a -ef -em link
 """
 
 import pickle

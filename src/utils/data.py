@@ -112,11 +112,6 @@ def load_and_split_train_test(
         num_poses = len(smpl_rep)
 
         if extreme_filter:
-            min_v = 0
-            max_v = 0.005
-            p_low = 1  # Higher probability for lower values
-            p_high = 0  # Lower probability for higher values
-
             z: torch.Tensor = vp.encode(torch.from_numpy(smpl_pose[:]).to(DEVICE))
             z_mean = z.mean
 
@@ -130,16 +125,18 @@ def load_and_split_train_test(
                 original_pose = smpl_pose[i]                        # Tensor shaped (63,)
                 reconstructed_pose = reconstructed_smpl[i].cpu()    # Tensor shaped (63,)
 
-                rec_error = mse(original_pose, reconstructed_pose)  # float value
+                rec_error = mse(original_pose, reconstructed_pose)  # float value (non-negative value)
                 rec_errors.append(rec_error)                        # List of float values
                 # fmt: on
 
             rec_errors = np.array(rec_errors)
             rec_errors = torch.from_numpy(rec_errors)
 
-            probs = 1 - (
-                (rec_errors - min_v) / (max_v - min_v) * (p_low - p_high) + p_high
-            )
+            # Threshold value for the reconstruction error.
+            # If the reconstruction error is greater than this value, it is considered as an extreme value.
+            threshold = 0.005
+
+            probs = 1 - (rec_errors / threshold)
             probs[probs < 0] = 0
 
             smpl_probs = probs.numpy()

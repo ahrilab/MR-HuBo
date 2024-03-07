@@ -34,7 +34,6 @@ def train(args: TrainArgs):
 
     # hyperparameters
     num_data = NUM_SEEDS
-    split_ratio = 50
 
     dim_hidden = HIDDEN_DIM
     lr = LEARNING_RATE
@@ -119,7 +118,7 @@ def train(args: TrainArgs):
             reps_path=reps_path,
             target_path=target_path,
             num_data=num_data,
-            split_ratio=split_ratio,
+            split_ratio=DATA_SPLIT_RATIO,
             collision_free=args.collision_free,
             extreme_filter=args.extreme_filter,
             arm_only=args.arm_only,
@@ -297,24 +296,28 @@ if __name__ == "__main__":
         "--collision_free",
         "-cf",
         action="store_true",
+        default=False,
         help="use collision-free data",
     )
     parser.add_argument(
         "--extreme-filter",
         "-ef",
         action="store_true",
+        default=True,
         help="train model with extreme filter",
     )
     parser.add_argument(
         "--wandb",
         "-w",
         action="store_true",
+        default=False,
         help="Use wandb to log training process",
     )
     parser.add_argument(
         "--arm_only",
         "-a",
         action="store_true",
+        default=True,
         help="train model with SMPL's arm joint only",
     )
     parser.add_argument(
