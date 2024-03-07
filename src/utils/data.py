@@ -134,10 +134,14 @@ def load_and_split_train_test(
 
             # Threshold value for the reconstruction error.
             # If the reconstruction error is greater than this value, it is considered as an extreme value.
-            threshold = 0.005
+            # threshold = 0.005
 
-            probs = 1 - (rec_errors / threshold)
-            probs[probs < 0] = 0
+            # probs = 1 - (rec_errors / threshold)
+            # probs[probs < 0] = 0
+            # probs[probs > 0] = 1
+
+            p = lambda e: torch.sigmoid((0.003 - e) * 1000) + 0.04
+            probs = p(rec_errors)
 
             smpl_probs = probs.numpy()
 
