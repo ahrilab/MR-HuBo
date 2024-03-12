@@ -17,12 +17,10 @@ from model.net import MLP
 
 def infer_human2robot(
     robot_config: RobotConfig,
-    collision_free: bool,
     extreme_filter: bool,
     human_pose_path: str,
     device: str,
     evaluate_mode: EvaluateMode = EvaluateMode.LINK,
-    arm_only: bool = False,
     weight_idx: int = -1,
 ):
     """
@@ -30,12 +28,10 @@ def infer_human2robot(
 
     Args:
         robot_config: RobotConfig
-        collision_free: bool
         extreme_filter: bool
         human_pose_path: str
         device: str
         evaluate_mode: EvaluateMode
-        arm_only: bool
         weight_idx: int
 
     Returns:
@@ -45,15 +41,8 @@ def infer_human2robot(
     # input & output dimensions
     # input: SMPL joint 6D representations (H)
     # output: robot joint angles (q)
-    if arm_only:
-        input_dim = SMPL_ARM_JOINT_REPS_DIM
-    else:
-        input_dim = SMPL_JOINT_REPS_DIM
-
-    if collision_free:
-        output_dim = robot_config.cf_angles_dim
-    else:
-        output_dim = robot_config.angles_dim
+    input_dim = SMPL_ARM_JOINT_REPS_DIM
+    output_dim = robot_config.angles_dim
 
     # Load Model
     model_pre = MLP(
@@ -69,76 +58,42 @@ def infer_human2robot(
 
     # Load weights
     # Firstly, set the weight directory
-    if collision_free:
-        if extreme_filter:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/cf/ex"
-        else:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/cf/no_ex"
+    if extreme_filter:
+        weight_dir = f"out/models/{robot_config.robot_type.name}/same_epoch/ex/"
     else:
-        if extreme_filter:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/no_cf/ex"
-        else:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/no_cf/no_ex"
-    if arm_only:
-        if extreme_filter:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/arm_only/ex/"
-        else:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/arm_only/no_ex/"
+        weight_dir = f"out/models/{robot_config.robot_type.name}/same_epoch/no_ex/"
 
     # Then, set the weight path
     # if weight_idx is not given, use the best weight
     if weight_idx == -1:
-        if arm_only:
-            pre_model_path = osp.join(
-                weight_dir,
-                f"human2{robot_config.robot_type.name}_arm_only_pre_best_{evaluate_mode.value}.pth",
-            )
-            post_model_path = osp.join(
-                weight_dir,
-                f"human2{robot_config.robot_type.name}_arm_only_post_best_{evaluate_mode.value}.pth",
-            )
-        else:
-            pre_model_path = osp.join(
-                weight_dir,
-                f"human2{robot_config.robot_type.name}_rep_only_pre_best_{evaluate_mode.value}.pth",
-            )
-            post_model_path = osp.join(
-                weight_dir,
-                f"human2{robot_config.robot_type.name}_rep_only_post_best_{evaluate_mode.value}.pth",
-            )
+        pre_model_path = osp.join(
+            weight_dir,
+            f"human2{robot_config.robot_type.name}_pre_best_{evaluate_mode.value}.pth",
+        )
+        post_model_path = osp.join(
+            weight_dir,
+            f"human2{robot_config.robot_type.name}_post_best_{evaluate_mode.value}.pth",
+        )
 
     # if weight_idx is given, use the weight with the given index
     else:
-        if arm_only:
-            pre_model_path = osp.join(
-                weight_dir,
-                f"human2{robot_config.robot_type.name}_arm_only_pre_{weight_idx}.pth",
-            )
-            post_model_path = osp.join(
-                weight_dir,
-                f"human2{robot_config.robot_type.name}_arm_only_post_{weight_idx}.pth",
-            )
-        else:
-            pre_model_path = osp.join(
-                weight_dir,
-                f"human2{robot_config.robot_type.name}_rep_only_pre_{weight_idx}.pth",
-            )
-            post_model_path = osp.join(
-                weight_dir,
-                f"human2{robot_config.robot_type.name}_rep_only_post_{weight_idx}.pth",
-            )
+        pre_model_path = osp.join(
+            weight_dir,
+            f"human2{robot_config.robot_type.name}_pre_{weight_idx}.pth",
+        )
+        post_model_path = osp.join(
+            weight_dir,
+            f"human2{robot_config.robot_type.name}_post_{weight_idx}.pth",
+        )
 
     model_pre.load_state_dict(torch.load(pre_model_path, map_location=device))
     model_post.load_state_dict(torch.load(post_model_path, map_location=device))
     model_pre.eval()
     model_post.eval()
 
-    smpl_rep, _ = load_smpl_to_6D_reps(human_pose_path, arm_only=arm_only)
+    smpl_rep, _ = load_smpl_to_6D_reps(human_pose_path)
 
-    if collision_free:
-        JOINT_KEYS = robot_config.cf_joi_keys
-    else:
-        JOINT_KEYS = robot_config.joi_keys
+    JOINT_KEYS = robot_config.joi_keys
 
     with torch.no_grad():
         pre_pred = model_pre(smpl_rep.to(device).float())

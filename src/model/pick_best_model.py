@@ -15,8 +15,9 @@ import pickle
 import sys
 import argparse
 import os.path as osp
-from shutil import copyfile
 import matplotlib.pyplot as plt
+from shutil import copyfile
+from tqdm import tqdm
 
 sys.path.append("./src")
 from utils.consts import *
@@ -42,14 +43,12 @@ def pick_best_model(args: PickBestModelArgs):
         amass_data_path = osp.join(AMASS_DATA_PATH, f"{val_motion_idx}_stageii.npz")
         motion_errors = []  # (20,)
 
-        for weight_idx in range(weight_num):
+        for weight_idx in tqdm(range(weight_num)):
             pred_motion = infer_human2robot(
                 robot_config=robot_config,
-                collision_free=args.collision_free,
                 extreme_filter=args.extreme_filter,
                 human_pose_path=amass_data_path,
                 device=args.device,
-                arm_only=args.arm_only,
                 weight_idx=weight_idx,
             )
 
@@ -59,7 +58,6 @@ def pick_best_model(args: PickBestModelArgs):
                 pred_motion=pred_motion,
                 gt_motion=gt_motion,
             )
-            print(f"{weight_idx}: {error}")
             motion_errors.append(error)
 
         all_motions_errors.append(motion_errors)
@@ -68,22 +66,10 @@ def pick_best_model(args: PickBestModelArgs):
     mean_errors = np.mean(all_motions_errors, axis=0)  # (20,)
 
     # Pick the best model
-    if args.collision_free:
-        if args.extreme_filter:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/cf/ex"
-        else:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/cf/no_ex"
+    if args.extreme_filter:
+        weight_dir = f"out/models/{robot_config.robot_type.name}/same_epoch/ex"
     else:
-        if args.extreme_filter:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/no_cf/ex"
-        else:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/no_cf/no_ex"
-
-    if args.arm_only:
-        if args.extreme_filter:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/arm_only/ex"
-        else:
-            weight_dir = f"out/models/{robot_config.robot_type.name}/arm_only/no_ex"
+        weight_dir = f"out/models/{robot_config.robot_type.name}/same_epoch/no_ex"
 
     # fmt: off
     # Plot the errors (motion 1, motion 2, mean)
@@ -97,17 +83,14 @@ def pick_best_model(args: PickBestModelArgs):
     plt.savefig(fig_name)
     print(f"Saved the plot: {fig_name}")
 
+    # Save the best model
     best_model_idx = np.argmin(mean_errors)
-    if args.arm_only:
-        best_pre_model_weight_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_arm_only_pre_{best_model_idx}.pth")
-        best_post_model_weight_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_arm_only_post_{best_model_idx}.pth")
-        pre_model_save_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_arm_only_pre_best_{args.evaluate_mode.value}.pth")
-        post_model_save_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_arm_only_post_best_{args.evaluate_mode.value}.pth")
-    else:
-        best_pre_model_weight_path  = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_pre_{best_model_idx}.pth")
-        best_post_model_weight_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_post_{best_model_idx}.pth")
-        pre_model_save_path  = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_pre_best_{args.evaluate_mode.value}.pth")
-        post_model_save_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_rep_only_post_best_{args.evaluate_mode.value}.pth")
+    with open(osp.join(weight_dir, f"best_model_idx_{args.evaluate_mode.value}.txt"), "w") as f:
+        f.write(f"Best model index: {best_model_idx}\n")
+    best_pre_model_weight_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_pre_{best_model_idx}.pth")
+    best_post_model_weight_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_post_{best_model_idx}.pth")
+    pre_model_save_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_pre_best_{args.evaluate_mode.value}.pth")
+    post_model_save_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_post_best_{args.evaluate_mode.value}.pth")
 
     copyfile(best_pre_model_weight_path,  pre_model_save_path)
     copyfile(best_post_model_weight_path, post_model_save_path)
@@ -125,18 +108,10 @@ if __name__ == "__main__":
         help="Type of robot to use",
     )
     parser.add_argument(
-        "--collision-free",
-        "-cf",
-        action="store_true",
-        help="Use collision free model",
-        default=False,
-    )
-    parser.add_argument(
         "--extreme-filter",
         "-ef",
         action="store_true",
         help="Use extreme filter model",
-        default=False,
     )
     parser.add_argument(
         "--evaluate-mode",
@@ -150,11 +125,6 @@ if __name__ == "__main__":
         "-d",
         type=str,
         default="cuda",
-    )
-    parser.add_argument(
-        "--arm-only",
-        "-a",
-        action="store_true",
     )
     args: PickBestModelArgs = parser.parse_args()
 

@@ -27,27 +27,24 @@ def draw(probs):
         return i
 
 
-def load_smpl_to_6D_reps(human_pose_path: str, arm_only: bool = False):
+def load_smpl_to_6D_reps(human_pose_path: str):
     """
     load SMPL parameters from a file and convert it to SMPL joint 6D representations.
     """
     # fmt: off
     if human_pose_path.endswith(".pkl"):
-        original_pose: np.ndarray = joblib.load(open(human_pose_path, "rb"))["pose_body"]
+        human_pose: np.ndarray = joblib.load(open(human_pose_path, "rb"))["pose_body"]
     elif human_pose_path.endswith(".npz"):
-        original_pose: np.ndarray = np.load(human_pose_path)["pose_body"]
+        human_pose: np.ndarray = np.load(human_pose_path)["pose_body"]
     # fmt: on
 
     # We only get the last 18 values, which is the axis-angle of the arm joints.
-    if arm_only:
-        human_pose = original_pose[:, -18:]
-    else:
-        human_pose = original_pose
+    human_arm_pose = human_pose[:, -18:]
 
-    num_poses = len(human_pose)
+    num_poses = len(human_arm_pose)
 
     # human pose as the axis-angle format
-    smpl_axis_angle = human_pose.reshape(num_poses, -1, 3)
+    smpl_axis_angle = human_arm_pose.reshape(num_poses, -1, 3)
     num_joints = smpl_axis_angle.shape[1]
     smpl_axis_angle = smpl_axis_angle.reshape(num_poses * num_joints, 3)
 
@@ -58,7 +55,7 @@ def load_smpl_to_6D_reps(human_pose_path: str, arm_only: bool = False):
     smpl_rep = matrix_to_rotation_6d(smpl_rot)
     smpl_rep = smpl_rep.reshape(num_poses, num_joints, 6).reshape(num_poses, -1)
 
-    return smpl_rep, original_pose
+    return smpl_rep, human_pose
 
 
 def load_and_split_train_test(
@@ -67,9 +64,7 @@ def load_and_split_train_test(
     target_path: str,
     num_data: int,
     split_ratio: int = 10,
-    collision_free: bool = False,
     extreme_filter: bool = False,
-    arm_only: bool = False,
 ):
     """
     Load SMPL parameters, robot xyzs, reps, and joint angles, and split them into train and test.
@@ -81,7 +76,6 @@ def load_and_split_train_test(
     target_path (str): path to load robot joint angles
     num_data (int): number of total data
     split_ratio (int): ratio of train/test split
-    collision_free (bool): whether to apply self-collision handling to the data
     extreme_filter (bool): whether to apply extreme filter to the data
     """
     if extreme_filter:
@@ -107,7 +101,7 @@ def load_and_split_train_test(
 
         # Human data processing
         smpl_rep, smpl_pose = load_smpl_to_6D_reps(
-            osp.join(input_path, f"params_{idx:04}.npz"), arm_only
+            osp.join(input_path, f"params_{idx:04}.npz")
         )
         num_poses = len(smpl_rep)
 
@@ -146,12 +140,8 @@ def load_and_split_train_test(
             smpl_probs = probs.numpy()
 
         # Robot data processing
-        if collision_free:
-            angles_file_name = f"cf_angles_{idx:04}.pkl"
-            xyzs_reps_file_name = f"cf_xyzs+reps_{idx:04}.npz"
-        else:
-            angles_file_name = f"angles_{idx:04}.pkl"
-            xyzs_reps_file_name = f"xyzs+reps_{idx:04}.npz"
+        angles_file_name = f"angles_{idx:04}.pkl"
+        xyzs_reps_file_name = f"xyzs+reps_{idx:04}.npz"
 
         robot_angle = pickle.load(open(osp.join(target_path, angles_file_name), "rb"))
         angle_chunk = []
