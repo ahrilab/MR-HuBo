@@ -217,12 +217,12 @@ NAO_FINGER_LINKS = [
 NAO_EXCLUDE_LINKS += NAO_FINGER_LINKS
 
 NAO_EVALUATE_LINKS = [
-    'LShoulder',
+    # 'LShoulder',
     'LElbow',
     'l_wrist',
     'l_gripper',
 
-    'RShoulder',
+    # 'RShoulder',
     'RElbow',
     'r_wrist',
     'r_gripper',
