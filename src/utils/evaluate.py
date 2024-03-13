@@ -82,7 +82,7 @@ def evaluate(
 
         motion_error /= len(pred_motion)
 
-    elif evaluate_mode == EvaluateMode.COSSIM:
+    elif evaluate_mode == EvaluateMode.COS:
         chain = kp.build_chain_from_urdf(open(robot_config.URDF_PATH).read())
 
         for pose_idx in range(len(pred_motion)):
@@ -94,9 +94,6 @@ def evaluate(
             pred_fk_result = chain.forward_kinematics(pred_joints)
             gt_fk_result = chain.forward_kinematics(gt_joints)
 
-            # integrated vector which is made by concatenating all the joint vectors
-            integrated_pred_vector = np.array([])
-            integrated_gt_vector = np.array([])
             for joint_vector in robot_config.joint_vectors:
 
                 # We can calculate vector from the joint position (end pos - start pos)
@@ -110,21 +107,14 @@ def evaluate(
                 )
 
                 # normalize the vectors
-                pred_vector /= np.linalg.norm(pred_vector)
-                gt_vector /= np.linalg.norm(gt_vector)
+                norm_pred_vector = pred_vector / np.linalg.norm(pred_vector)
+                norm_gt_vector = gt_vector / np.linalg.norm(gt_vector)
 
-                # concatenate the vectors
-                # fmt: off
-                integrated_pred_vector = np.concatenate([integrated_pred_vector, pred_vector])
-                integrated_gt_vector = np.concatenate([integrated_gt_vector, gt_vector])
-                # fmt: on
+                cos_sim = np.dot(norm_pred_vector, norm_gt_vector)
+                cos_dist = 1 - cos_sim
+                pose_loss += cos_dist
 
-            # Get the cosine similarity
-            integrated_pred_vector /= np.linalg.norm(integrated_pred_vector)
-            integrated_gt_vector /= np.linalg.norm(integrated_gt_vector)
-            cos_sim = np.dot(integrated_pred_vector, integrated_gt_vector)
-            pose_loss = 1 - cos_sim
-
+            pose_loss /= len(robot_config.joint_vectors)
             motion_error += pose_loss
 
         motion_error /= len(pred_motion)
