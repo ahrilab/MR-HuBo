@@ -210,6 +210,15 @@ COMAN_EVALUATE_LINKS = [
     'LSoftHand'
 ]
 
+COMAN_JOINT_VECTORS = [
+    {"from": "RShp",      "to": "RElb"},
+    {"from": "RElb",      "to": "r_wrist"},
+    {"from": "r_wrist",   "to": "RSoftHand"},
+    {"from": "LShp",      "to": "LElb"},
+    {"from": "LElb",      "to": "l_wrist"},
+    {"from": "l_wrist",   "to": "LSoftHand"},
+]
+
 # Train Parameters
 COMAN_XYZS_DIM      = len(ComanLinkIndex) * 3           # 64 links * 3 xyzs = 192
 COMAN_REPS_DIM      = len(ComanLinkIndex) * 6           # 64 links * 6 reps = 384

@@ -170,6 +170,17 @@ REACHY_EVALUATE_LINKS = [
     "left_tip",
 ]
 
+REACHY_JOINT_VECTORS = [
+    {"from": "r_shoulder",      "to": "r_forearm"},
+    {"from": "r_forearm",       "to": "r_wrist2hand"},
+    {"from": "r_wrist2hand",    "to": "r_gripper_thumb"},
+    {"from": "r_wrist2hand",    "to": "right_tip"},
+    {"from": "l_shoulder",      "to": "l_forearm"},
+    {"from": "l_forearm",       "to": "l_wrist2hand"},
+    {"from": "l_wrist2hand",    "to": "l_gripper_thumb"},
+    {"from": "l_wrist2hand",    "to": "left_tip"},
+]
+
 # Train Parameters
 REACHY_XYZS_DIM         = len(REACHY_LINK_INDEX) * 3        # 31 links * 3 xyzs = 93
 REACHY_REPS_DIM         = len(REACHY_LINK_INDEX) * 6        # 31 links * 6 reps = 186

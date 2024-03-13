@@ -228,6 +228,15 @@ NAO_EVALUATE_LINKS = [
     'r_gripper',
 ]
 
+NAO_JOINT_VECTORS = [
+    {"from": "LShoulder",   "to": "LElbow"},
+    {"from": "LElbow",      "to": "l_wrist"},
+    {"from": "l_wrist",     "to": "l_gripper"},
+    {"from": "RShoulder",   "to": "RElbow"},
+    {"from": "RElbow",      "to": "r_wrist"},
+    {"from": "r_wrist",     "to": "r_gripper"},
+]
+
 # Train Parameters
 NAO_XYZS_DIM        = len(NAO_LINK_INDEX) * 3       # 45 links * 3 xyzs = 135
 NAO_REPS_DIM        = len(NAO_LINK_INDEX) * 6       # 45 links * 6 reps = 270
