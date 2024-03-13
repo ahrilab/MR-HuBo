@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <robot name="reachy">
-    <mujoco>
+    <!-- <mujoco>
         <compiler meshdir="./reachy_meshes/" balanceinertia="true"/>
-    </mujoco>
+    </mujoco> -->
 <!-- Torso Link -->
 
 <link name="pedestal"/>
@@ -13,7 +13,7 @@
         <mass value="0.527"/>
         <inertia ixx="2.89598e-3" ixy="-1.16791e-6" ixz="-8.28749e-6" iyy="4.491e-3" iyz="2.343e-4" izz="3.995e-3"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/torso.obj"/>
@@ -35,7 +35,7 @@
         <mass value="0.237"/>
         <inertia ixx="1.676e-3" ixy="3.068e-6" ixz="1.2449e-4" iyy="1.368e-3" iyz="3.360e-5" izz="8.425e-4"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/head.obj"/>
@@ -55,7 +55,7 @@
         <mass value="0.004"/>
         <inertia ixx="1.794e-7" ixy="-1.240e-5" ixz="1.91701e-8" iyy="1.5e-7" iyz="3.169e-6" izz="1.933e-7"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/antenna.obj"/>
@@ -75,7 +75,7 @@
         <mass value="0.004"/>
         <inertia ixx="1.794e-7" ixy="-1.240e-5" ixz="1.91701e-8" iyy="1.5e-7" iyz="3.169e-6" izz="1.933e-7"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/antenna.obj"/>
@@ -97,7 +97,7 @@
         <mass value="0.053"/>
         <inertia ixx="3.308e-4" ixy="9.972e-8" ixz="-2.037e-9" iyy="4.650e-5" iyz="2.113e-6" izz="3.545e-5"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.04 0.0" rpy="1.57 1.57 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/shoulder.obj"/>
@@ -117,7 +117,7 @@
         <mass value="0.158"/>
         <inertia ixx="6.887e+4" ixy="5.393e+0" ixz="-9.155e+2" iyy="7.895e+4" iyz="4.512e-1" izz="4.235e+4"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/shoulder_x.obj"/>
@@ -137,7 +137,7 @@
         <mass value="0.430"/>
         <inertia ixx="3.264e-3" ixy="-4.027e-8" ixz="1.395e-4" iyy="3.345e-3" iyz="1.885e-6" izz="2.616e-4"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 -0.0526" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/upper_arm.obj"/>
@@ -157,7 +157,7 @@
         <mass value="0.162"/>
         <inertia ixx="2.532e-4" ixy="-2.999e-8" ixz="1.448e-5" iyy="2.538e-4" iyz="-4.323e-8" izz="1.234e-4"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/forearm.obj"/>
@@ -177,7 +177,7 @@
         <mass value="0.197"/>
         <inertia ixx="6.157e-4" ixy="5.706e-8" ixz="-1.045e-5" iyy="6.280e-4" iyz="4.862e-7" izz="1.050e-4"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 -0.100" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/wrist.obj"/>
@@ -197,7 +197,7 @@
         <mass value="0.01"/>
         <inertia ixx="6.750e-6" ixy="3.732e-11" ixz="-1.581e-11" iyy="6.060e-6" iyz="-1.746e-12" izz="5.774e-6"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/wrist2hand.obj"/>
@@ -217,7 +217,7 @@
         <mass value="0.173"/>
         <inertia ixx="1.083e-4" ixy="-3.476e-5" ixz="1.331e-6" iyy="1.421e-4" iyz="6.730e-7" izz="2.112e-4"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 1.57 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/r_gripper_thumb.obj"/>
@@ -237,7 +237,7 @@
         <mass value="0.035"/>
         <inertia ixx="9.166e-5" ixy="-6.559e-6" ixz="-3.952e-8" iyy="1.062e-5" iyz="5.276e-9" izz="8.704e-5"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 1.57 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/r_gripper_finger.obj"/>
@@ -262,7 +262,7 @@
         <mass value="0.053"/>
         <inertia ixx="3.308e-4" ixy="9.972e-8" ixz="-2.037e-9" iyy="4.650e-5" iyz="2.113e-6" izz="3.545e-5"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 -0.04 0.0" rpy="-1.57 1.57 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/shoulder.obj"/>
@@ -282,7 +282,7 @@
         <mass value="0.158"/>
         <inertia ixx="6.887e+4" ixy="5.393e+0" ixz="-9.155e+2" iyy="7.895e+4" iyz="4.512e-1" izz="4.235e+4"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/shoulder_x.obj"/>
@@ -302,7 +302,7 @@
         <mass value="0.430"/>
         <inertia ixx="3.264e-3" ixy="-4.027e-8" ixz="1.395e-4" iyy="3.345e-3" iyz="1.885e-6" izz="2.616e-4"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 -0.0526" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/upper_arm.obj"/>
@@ -322,7 +322,7 @@
         <mass value="0.162"/>
         <inertia ixx="2.532e-4" ixy="-2.999e-8" ixz="1.448e-5" iyy="2.538e-4" iyz="-4.323e-8" izz="1.234e-4"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/forearm.obj"/>
@@ -342,7 +342,7 @@
         <mass value="0.197"/>
         <inertia ixx="6.157e-4" ixy="5.706e-8" ixz="-1.045e-5" iyy="6.280e-4" iyz="4.862e-7" izz="1.050e-4"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 -0.1" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/wrist.obj"/>
@@ -362,7 +362,7 @@
         <mass value="0.01"/>
         <inertia ixx="6.750e-6" ixy="3.732e-11" ixz="-1.581e-11" iyy="6.060e-6" iyz="-1.746e-12" izz="5.774e-6"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/wrist2hand.obj"/>
@@ -382,7 +382,7 @@
         <mass value="0.173"/>
         <inertia ixx="1.088e+5" ixy="3.479e+4" ixz="1.357e+3" iyy="1.422e+5" iyz="-7.930e+2" izz="2.116e+5"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 1.57 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/l_gripper_thumb.obj"/>
@@ -402,7 +402,7 @@
         <mass value="0.035"/>
         <inertia ixx="9.165e-5" ixy="6.559e-6" ixz="3.609e-10" iyy="1.062e-5" iyz="4.666e-9" izz="8.705e-5"/>
     </inertial>
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 1.57 0.0"/>
         <geometry>
             <mesh filename="./reachy_meshes/l_gripper_finger.obj"/>
@@ -646,7 +646,7 @@
 </joint>
 
 <link name="top_neck_arm">
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.5236"/>
         <geometry>
             <mesh filename="./reachy_meshes/orbita_arm.obj"/>
@@ -667,7 +667,7 @@
 </joint>
 
 <link name="middle_neck_arm">
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 2.618"/>
         <geometry>
             <mesh filename="./reachy_meshes/orbita_arm.obj"/>
@@ -688,7 +688,7 @@
 </joint>
 
 <link name="bottom_neck_arm">
-    <visual name="">
+    <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 -1.57"/>
         <geometry>
             <mesh filename="./reachy_meshes/orbita_arm.obj"/>

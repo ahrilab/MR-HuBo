@@ -1834,5 +1834,5 @@ and to define the end effectors of the robot -->
     </visual>
   </gazebo>
 
-  <origin rpy="0 0 0" xyz="0.0 0.0 0.521"/>
+  <!-- <origin rpy="0 0 0" xyz="0.0 0.0 0.521"/> -->
 </robot>
