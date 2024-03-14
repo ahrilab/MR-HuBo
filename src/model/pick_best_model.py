@@ -23,7 +23,7 @@ sys.path.append("./src")
 from utils.consts import *
 from utils.types import RobotType, PickBestModelArgs, EvaluateMode
 from utils.RobotConfig import RobotConfig
-from model.test_rep_only import infer_human2robot
+from model.test_two_stage import infer_human2robot
 from utils.evaluate import evaluate
 
 
