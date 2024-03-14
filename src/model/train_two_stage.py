@@ -31,6 +31,7 @@ from utils.consts import *
 
 def train(args: TrainArgs):
     robot_config = RobotConfig(args.robot_type)
+    robot_name = robot_config.robot_type.name
 
     # hyperparameters
     num_data = NUM_SEEDS
@@ -62,12 +63,8 @@ def train(args: TrainArgs):
         wandb.run.name = run_name
 
     # create directory to save models
-    if args.extreme_filter:
-        model_save_path = f"out/models/{robot_config.robot_type.name}/same_epoch/ex/"
-    else:
-        model_save_path = f"out/models/{robot_config.robot_type.name}/same_epoch/no_ex/"
-
-    os.makedirs(model_save_path, exist_ok=True)
+    model_save_dir = MODEL_WEIGHTS_DIR(robot_name, args.extreme_filter)
+    os.makedirs(model_save_dir, exist_ok=True)
 
     # load data
     # fmt: off
@@ -227,13 +224,10 @@ def train(args: TrainArgs):
             best_pre_loss = 1e10
             best_post_loss = 1e10
 
-        # fmt: off
-        pre_weight_name  = f"human2{robot_config.robot_type.name}_pre_{epoch // MODEL_SAVE_EPOCH}.pth"
-        post_weight_name = f"human2{robot_config.robot_type.name}_post_{epoch // MODEL_SAVE_EPOCH}.pth"
-        # fmt: on
-
-        pre_weight_path = os.path.join(model_save_path, pre_weight_name)
-        post_weight_path = os.path.join(model_save_path, post_weight_name)
+        pre_weight_name = PRE_MODEL_WEIGHT_NAME(robot_name, epoch // MODEL_SAVE_EPOCH)
+        post_weight_name = POST_MODEL_WEIGHT_NAME(robot_name, epoch // MODEL_SAVE_EPOCH)
+        pre_weight_path = os.path.join(model_save_dir, pre_weight_name)
+        post_weight_path = os.path.join(model_save_dir, post_weight_name)
 
         best_pre_loss = min(best_pre_loss, test_pre_loss)
         if best_pre_loss == test_pre_loss:

@@ -58,49 +58,40 @@ def infer_human2robot(
 
     # Load weights
     # Firstly, set the weight directory
-    if extreme_filter:
-        weight_dir = f"out/models/{robot_config.robot_type.name}/same_epoch/ex/"
-    else:
-        weight_dir = f"out/models/{robot_config.robot_type.name}/same_epoch/no_ex/"
+    robot_name = robot_config.robot_type.name
+    weight_dir = MODEL_WEIGHTS_DIR(robot_name, extreme_filter)
 
     # Then, set the weight path
     # if weight_idx is not given, use the best weight
     if weight_idx == -1:
-        pre_model_path = osp.join(
-            weight_dir,
-            f"human2{robot_config.robot_type.name}_pre_best_{evaluate_mode.value}.pth",
-        )
-        post_model_path = osp.join(
-            weight_dir,
-            f"human2{robot_config.robot_type.name}_post_best_{evaluate_mode.value}.pth",
-        )
+        pre_model_name = PRE_MODEL_BEST_WEIGHT_NAME(robot_name, evaluate_mode.value)
+        post_model_name = POST_MODEL_BEST_WEIGHT_NAME(robot_name, evaluate_mode.value)
 
     # if weight_idx is given, use the weight with the given index
     else:
-        pre_model_path = osp.join(
-            weight_dir,
-            f"human2{robot_config.robot_type.name}_pre_{weight_idx}.pth",
-        )
-        post_model_path = osp.join(
-            weight_dir,
-            f"human2{robot_config.robot_type.name}_post_{weight_idx}.pth",
-        )
+        pre_model_name = PRE_MODEL_WEIGHT_NAME(robot_name, weight_idx)
+        post_model_name = POST_MODEL_WEIGHT_NAME(robot_name, weight_idx)
 
+    pre_model_path = osp.join(weight_dir, pre_model_name)
+    post_model_path = osp.join(weight_dir, post_model_name)
+
+    # Load the weights
     model_pre.load_state_dict(torch.load(pre_model_path, map_location=device))
     model_post.load_state_dict(torch.load(post_model_path, map_location=device))
     model_pre.eval()
     model_post.eval()
 
+    # Load SMPL parameters
     smpl_rep, _ = load_smpl_to_6D_reps(human_pose_path)
 
-    JOINT_KEYS = robot_config.joi_keys
-
+    # Predict robot angles
     with torch.no_grad():
         pre_pred = model_pre(smpl_rep.to(device).float())
         post_pred = model_post(pre_pred)
         post_pred = post_pred.detach().cpu().numpy()[:, :output_dim]
 
-    JOINT_KEYS = sorted(JOINT_KEYS)
+    # Convert the predicted robot angles to a list of dictionaries
+    JOINT_KEYS = sorted(robot_config.joi_keys)
     robot_angles = []
     for p in post_pred:
         robot_angles.append({k: p[i] for i, k in enumerate(JOINT_KEYS)})

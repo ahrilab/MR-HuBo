@@ -28,6 +28,7 @@ import imageio
 import argparse
 import numpy as np
 import os
+import os.path as osp
 from typing import List, Dict
 from scipy.signal import savgol_filter
 
@@ -43,6 +44,7 @@ from utils.consts import *
 def main(args: PybulletRenderArgs):
     # robot의 정보를 가져옴
     robot_config = RobotConfig(args.robot_type)
+    robot_name = robot_config.robot_type.name
     view = args.view
 
     # load motion data (joint) and set output path
@@ -55,7 +57,9 @@ def main(args: PybulletRenderArgs):
             motions = motions[robot_name_for_gt][motion_idx]["q_cf"]
         else:
             motions = motions[robot_name_for_gt][motion_idx]["q"]
-        output_path = f"out/pybullet/{robot_config.robot_type.name}/GT/{args.motion_idx}{'_cf' if args.collision_free else ''}.{args.extention}"
+        output_dir = PYBULLET_GT_VID_DIR(robot_name)
+        output_name = PYBULLET_GT_VID_NAME(robot_name, motion_idx, args.extention)
+        output_path = osp.join(output_dir, output_name)
 
     # if not ground truth, load predicted motion data
     else:
@@ -66,31 +70,12 @@ def main(args: PybulletRenderArgs):
             )
         # if robot_pose_path is not given, load the motion data from the rule based path
         else:
-            if args.arm_only:
-                if args.extreme_filter:
-                    motion_path = f"out/pred_motions/{args.robot_type.name}/arm_only/ef/{args.motion_idx}.pkl"
-                    output_path = f"out/pybullet/{args.robot_type.name}/arm_only/ef/{args.motion_idx}.{args.extention}"
-                else:
-                    motion_path = f"out/pred_motions/{args.robot_type.name}/arm_only/no_ef/{args.motion_idx}.pkl"
-                    output_path = f"out/pybullet/{args.robot_type.name}/arm_only/no_ef/{args.motion_idx}.{args.extention}"
-
-            else:
-                if args.collision_free:
-                    if args.extreme_filter:
-                        motion_path = f"out/pred_motions/{args.robot_type.name}/cf/ef/{args.motion_idx}.pkl"
-                        output_path = f"out/pybullet/{args.robot_type.name}/cf/ef/{args.motion_idx}.{args.extention}"
-                    else:
-                        motion_path = f"out/pred_motions/{args.robot_type.name}/cf/no_ef/{args.motion_idx}.pkl"
-                        output_path = f"out/pybullet/{args.robot_type.name}/cf/no_ef/{args.motion_idx}.{args.extention}"
-                else:
-                    if args.extreme_filter:
-                        motion_path = f"out/pred_motions/{args.robot_type.name}/no_cf/ef/{args.motion_idx}.pkl"
-                        output_path = f"out/pybullet/{args.robot_type.name}/no_cf/ef/{args.motion_idx}.{args.extention}"
-                    else:
-                        motion_path = f"out/pred_motions/{args.robot_type.name}/no_cf/no_ef/{args.motion_idx}.pkl"
-                        output_path = f"out/pybullet/{args.robot_type.name}/no_cf/no_ef/{args.motion_idx}.{args.extention}"
-
+            # fmt: off
+            motions_dir = PRED_MOTIONS_DIR(robot_name, args.extreme_filter, args.motion_idx)
+            motion_name = PRED_MOTION_NAME(robot_name, args.extreme_filter, args.motion_idx)
+            motion_path = osp.join(motions_dir, motion_name)
             motions: List[Dict[str, float]] = pickle.load(open(motion_path, "rb"))
+            # fmt: on
 
     # smooth
     if args.smooth:
@@ -170,6 +155,13 @@ def main(args: PybulletRenderArgs):
     # Save the frames as a gif or mp4 file
     if args.output_path is not None:
         output_path = args.output_path
+
+    else:
+        # fmt: off
+        output_dir = PYBULLET_PRED_VID_DIR(robot_name, args.extreme_filter)
+        output_name = PYBULLET_PRED_VID_NAME(robot_name, args.extreme_filter, args.motion_idx, args.extention)
+        output_path = osp.join(output_dir, output_name)
+        # fmt: on
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 

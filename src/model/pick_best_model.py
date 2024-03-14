@@ -29,6 +29,7 @@ from utils.evaluate import evaluate
 
 def pick_best_model(args: PickBestModelArgs):
     robot_config = RobotConfig(args.robot_type)
+    robot_name = robot_config.robot_type.name
 
     robot_name_for_gt = args.robot_type.name[0] + args.robot_type.name[1:].lower()
     gt_motions = pickle.load(open(GT_PATH, "rb"))
@@ -66,12 +67,22 @@ def pick_best_model(args: PickBestModelArgs):
     mean_errors = np.mean(all_motions_errors, axis=0)  # (20,)
 
     # Pick the best model
-    if args.extreme_filter:
-        weight_dir = f"out/models/{robot_config.robot_type.name}/same_epoch/ex"
-    else:
-        weight_dir = f"out/models/{robot_config.robot_type.name}/same_epoch/no_ex"
+    weight_dir = MODEL_WEIGHTS_DIR(robot_name, args.extreme_filter)
 
     # fmt: off
+    # Save the best model
+    best_model_idx = np.argmin(mean_errors)
+    with open(osp.join(weight_dir, f"best_model_idx_{args.evaluate_mode.value}.txt"), "w") as f:
+        f.write(f"Best model index: {best_model_idx}\n")
+
+    best_pre_model_weight_path = osp.join(weight_dir, PRE_MODEL_WEIGHT_NAME(robot_name, best_model_idx))
+    best_post_model_weight_path = osp.join(weight_dir, POST_MODEL_WEIGHT_NAME(robot_name, best_model_idx))
+    pre_model_save_path = osp.join(weight_dir, PRE_MODEL_BEST_WEIGHT_NAME(robot_name, args.evaluate_mode.value))
+    post_model_save_path = osp.join(weight_dir, POST_MODEL_BEST_WEIGHT_NAME(robot_name, args.evaluate_mode.value))
+
+    copyfile(best_pre_model_weight_path,  pre_model_save_path)
+    copyfile(best_post_model_weight_path, post_model_save_path)
+
     # Plot the errors (motion 1, motion 2, mean)
     x = range(weight_num)
     plt.plot(x, all_motions_errors[0], label="motion 1")
@@ -82,18 +93,6 @@ def pick_best_model(args: PickBestModelArgs):
     fig_name = osp.join(weight_dir, f"{args.robot_type.name}_val_errors_{args.evaluate_mode.value}.png")
     plt.savefig(fig_name)
     print(f"Saved the plot: {fig_name}")
-
-    # Save the best model
-    best_model_idx = np.argmin(mean_errors)
-    with open(osp.join(weight_dir, f"best_model_idx_{args.evaluate_mode.value}.txt"), "w") as f:
-        f.write(f"Best model index: {best_model_idx}\n")
-    best_pre_model_weight_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_pre_{best_model_idx}.pth")
-    best_post_model_weight_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_post_{best_model_idx}.pth")
-    pre_model_save_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_pre_best_{args.evaluate_mode.value}.pth")
-    post_model_save_path = osp.join(weight_dir, f"human2{robot_config.robot_type.name}_post_best_{args.evaluate_mode.value}.pth")
-
-    copyfile(best_pre_model_weight_path,  pre_model_save_path)
-    copyfile(best_post_model_weight_path, post_model_save_path)
     # fmt: on
 
 

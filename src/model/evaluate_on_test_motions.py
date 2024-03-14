@@ -29,19 +29,12 @@ from utils.evaluate import evaluate
 
 def main(args: EvaluateOnTestMotionsArgs):
     robot_config = RobotConfig(args.robot_type)
+    robot_name = robot_config.robot_type.name
 
     gt_motions = pickle.load(open(GT_PATH, "rb"))
     robot_name_for_gt = args.robot_type.name[0] + args.robot_type.name[1:].lower()
 
-    if args.extreme_filter:
-        robot_pred_motion_dir = osp.join(
-            PRED_MOTION_PATH, f"{args.robot_type.name}/same_epoch/ef"
-        )
-    else:
-        robot_pred_motion_dir = osp.join(
-            PRED_MOTION_PATH, f"{args.robot_type.name}/same_epoch/no_ef"
-        )
-
+    robot_pred_motion_dir = PRED_MOTIONS_DIR(robot_name, args.extreme_filter)
     os.makedirs(robot_pred_motion_dir, exist_ok=True)
 
     total_motion_errors = []
@@ -61,7 +54,10 @@ def main(args: EvaluateOnTestMotionsArgs):
 
         # save the predicted motion
         if args.save_pred_motion:
-            pred_motion_path = osp.join(robot_pred_motion_dir, f"{test_motion_idx}.pkl")
+            pred_motion_path = osp.join(
+                robot_pred_motion_dir,
+                PRED_MOTION_NAME(robot_name, args.extreme_filter, test_motion_idx),
+            )
             with open(pred_motion_path, "wb") as f:
                 pickle.dump(pred_motion, f)
             total_pred_motions[test_motion_idx] = pred_motion
@@ -88,7 +84,7 @@ def main(args: EvaluateOnTestMotionsArgs):
 
     # write the result to a file
     result_path = osp.join(
-        robot_pred_motion_dir, f"result_{args.evaluate_mode.name}.txt"
+        robot_pred_motion_dir, EVAL_RESULT_TXT_NAME(args.evaluate_mode.name)
     )
     print(result_path)
     with open(result_path, "w") as f:
