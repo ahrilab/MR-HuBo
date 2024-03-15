@@ -27,11 +27,10 @@ robot_angles_path    = (lambda data_idx: f"angles_{data_idx:04}.pkl"
 smpl_params_path     = (lambda data_idx: f"params_{data_idx:04}.npz"
                         if type(data_idx) == int
                         else f"params_{data_idx}.npz")
-# fmt: on
 
 # Constants for model weights
 MODEL_WEIGHTS_DIR: Callable[[str, bool], str] = (
-    lambda robot_name, ex: f"./out/models/{robot_name}/final/{"ex" if ex else "no_ex"}"
+    lambda robot_name, ex: f"./out/models/{robot_name}/final/{'ex' if ex else 'no_ex'}"
 )
 PRE_MODEL_WEIGHT_NAME: Callable[[str, int], str] = (
     lambda robot_name, weight_idx: f"human2{robot_name}_pre_{weight_idx}.pth"
@@ -71,7 +70,7 @@ PYBULLET_PRED_VID_NAME: Callable[[str, bool, str], str] = (
 PYBULLET_GT_VID_NAME: Callable[[str, str, str], str] = (
     lambda robot_name, motion_idx, extention: f"{robot_name}_gt_{motion_idx}.{extention}"
 )
-
+# fmt: on
 
 ################################
 
