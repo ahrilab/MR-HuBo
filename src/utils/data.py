@@ -33,7 +33,7 @@ def load_smpl_to_6D_reps(human_pose_path: str):
     """
     # fmt: off
     if human_pose_path.endswith(".pkl"):
-        human_pose: np.ndarray = joblib.load(open(human_pose_path, "rb"))["pose"][:, :63]
+        human_pose: np.ndarray = joblib.load(open(human_pose_path, "rb"))["pose"][:, 3:66]
     elif human_pose_path.endswith(".npz"):
         human_pose: np.ndarray = np.load(human_pose_path)["pose_body"]
     # fmt: on
