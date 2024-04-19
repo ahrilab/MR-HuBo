@@ -16,6 +16,7 @@ Example:
 import math
 import sys
 import kinpy as kp
+import numpy as np
 from typing import List
 
 sys.path.append("src")
@@ -39,8 +40,6 @@ def evaluate(
     motion_error = 0.0
 
     if evaluate_mode == EvaluateMode.JOINT:
-        # print(f"common keys: {common_joint_keys}")
-        # print(f"number of keys: {len(common_joint_keys)}")
         for pose_idx in range(len(pred_motion)):
             pose_loss = 0.0
 
@@ -70,9 +69,6 @@ def evaluate(
             pred_fk_result = chain.forward_kinematics(pred_joints)
             gt_fk_result = chain.forward_kinematics(gt_joints)
 
-            if pose_idx == 0:
-                print(f"number of links: {len(robot_config.evaluate_links)}")
-
             for link in robot_config.evaluate_links:
                 pred_value = pred_fk_result[link].pos
                 gt_value = gt_fk_result[link].pos
@@ -82,6 +78,43 @@ def evaluate(
                 pose_loss += link_loss
 
             pose_loss /= len(robot_config.evaluate_links)
+            motion_error += pose_loss
+
+        motion_error /= len(pred_motion)
+
+    elif evaluate_mode == EvaluateMode.COS:
+        chain = kp.build_chain_from_urdf(open(robot_config.URDF_PATH).read())
+
+        for pose_idx in range(len(pred_motion)):
+            pose_loss = 0.0
+
+            # Get the forward kinematics result of preds & GT
+            pred_joints = pred_motion[pose_idx]
+            gt_joints = gt_motion[pose_idx]
+            pred_fk_result = chain.forward_kinematics(pred_joints)
+            gt_fk_result = chain.forward_kinematics(gt_joints)
+
+            for joint_vector in robot_config.joint_vectors:
+
+                # We can calculate vector from the joint position (end pos - start pos)
+                pred_vector = (
+                    pred_fk_result[joint_vector["to"]].pos
+                    - pred_fk_result[joint_vector["from"]].pos
+                )
+                gt_vector = (
+                    gt_fk_result[joint_vector["to"]].pos
+                    - gt_fk_result[joint_vector["from"]].pos
+                )
+
+                # normalize the vectors
+                norm_pred_vector = pred_vector / np.linalg.norm(pred_vector)
+                norm_gt_vector = gt_vector / np.linalg.norm(gt_vector)
+
+                cos_sim = np.dot(norm_pred_vector, norm_gt_vector)
+                cos_dist = 1 - cos_sim
+                pose_loss += cos_dist
+
+            pose_loss /= len(robot_config.joint_vectors)
             motion_error += pose_loss
 
         motion_error /= len(pred_motion)

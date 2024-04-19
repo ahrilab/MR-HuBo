@@ -23,45 +23,18 @@ sys.path.append("src")
 from utils.types import RobotType, EvaluateOnTestMotionsArgs, EvaluateMode
 from utils.RobotConfig import RobotConfig
 from utils.consts import *
-from model.test_rep_only import infer_human2robot
+from model.test_two_stage import infer_human2robot
 from utils.evaluate import evaluate
 
 
 def main(args: EvaluateOnTestMotionsArgs):
     robot_config = RobotConfig(args.robot_type)
+    robot_name = robot_config.robot_type.name
 
     gt_motions = pickle.load(open(GT_PATH, "rb"))
     robot_name_for_gt = args.robot_type.name[0] + args.robot_type.name[1:].lower()
 
-    if args.collision_free:
-        if args.extreme_filter:
-            robot_pred_motion_dir = osp.join(
-                PRED_MOTION_PATH, f"{args.robot_type.name}/cf/ef"
-            )
-        else:
-            robot_pred_motion_dir = osp.join(
-                PRED_MOTION_PATH, f"{args.robot_type.name}/cf/no_ef"
-            )
-    else:
-        if args.extreme_filter:
-            robot_pred_motion_dir = osp.join(
-                PRED_MOTION_PATH, f"{args.robot_type.name}/no_cf/ef"
-            )
-        else:
-            robot_pred_motion_dir = osp.join(
-                PRED_MOTION_PATH, f"{args.robot_type.name}/no_cf/no_ef"
-            )
-
-    if args.arm_only:
-        if args.extreme_filter:
-            robot_pred_motion_dir = osp.join(
-                PRED_MOTION_PATH, f"{args.robot_type.name}/arm_only/ef"
-            )
-        else:
-            robot_pred_motion_dir = osp.join(
-                PRED_MOTION_PATH, f"{args.robot_type.name}/arm_only/no_ef"
-            )
-
+    robot_pred_motion_dir = PRED_MOTIONS_DIR(robot_name, args.extreme_filter)
     os.makedirs(robot_pred_motion_dir, exist_ok=True)
 
     total_motion_errors = []
@@ -73,17 +46,18 @@ def main(args: EvaluateOnTestMotionsArgs):
         amass_data_path = osp.join(AMASS_DATA_PATH, f"{test_motion_idx}_stageii.npz")
         pred_motion = infer_human2robot(
             robot_config=robot_config,
-            collision_free=args.collision_free,
             extreme_filter=args.extreme_filter,
             human_pose_path=amass_data_path,
             device=args.device,
             evaluate_mode=args.evaluate_mode,
-            arm_only=args.arm_only,
         )
 
         # save the predicted motion
         if args.save_pred_motion:
-            pred_motion_path = osp.join(robot_pred_motion_dir, f"{test_motion_idx}.pkl")
+            pred_motion_path = osp.join(
+                robot_pred_motion_dir,
+                PRED_MOTION_NAME(robot_name, args.extreme_filter, test_motion_idx),
+            )
             with open(pred_motion_path, "wb") as f:
                 pickle.dump(pred_motion, f)
             total_pred_motions[test_motion_idx] = pred_motion
@@ -103,20 +77,18 @@ def main(args: EvaluateOnTestMotionsArgs):
     if args.save_pred_motion:
         pred_motion_path = osp.join(
             robot_pred_motion_dir,
-            f"pred_motions{'_cf' if args.collision_free else ''}{'_ef' if args.extreme_filter else ''}.pkl",
+            f"pred_motions{'_ef' if args.extreme_filter else ''}.pkl",
         )
         with open(pred_motion_path, "wb") as f:
             pickle.dump(total_pred_motions, f)
 
     # write the result to a file
     result_path = osp.join(
-        robot_pred_motion_dir, f"result_{args.evaluate_mode.name}.txt"
+        robot_pred_motion_dir, EVAL_RESULT_TXT_NAME(args.evaluate_mode.name)
     )
     print(result_path)
     with open(result_path, "w") as f:
-        f.write(
-            f"Robot: {args.robot_type.name} CF: [{args.collision_free}] EF: [{args.extreme_filter}] Arm_only: [{args.arm_only}]\n"
-        )
+        f.write(f"Robot: {args.robot_type.name} EF: [{args.extreme_filter}]\n")
         f.write(f"Evaluate_mode: {args.evaluate_mode.name}\n")
         f.write(f"Mean_error: {mean_error}\n")
         f.write("===================================================\n")
@@ -129,18 +101,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate the model on test motions")
     parser.add_argument("--robot-type", "-r", type=RobotType, default=RobotType.REACHY)
     parser.add_argument(
-        "--collision-free",
-        "-cf",
-        action="store_true",
-        help="Use collision free model",
-        default=False,
-    )
-    parser.add_argument(
         "--extreme-filter",
         "-ef",
         action="store_true",
         help="Use extreme filter model",
-        default=False,
     )
     parser.add_argument(
         "--evaluate-mode",
@@ -159,11 +123,6 @@ if __name__ == "__main__":
         "-d",
         type=str,
         default="cuda",
-    )
-    parser.add_argument(
-        "--arm-only",
-        "-a",
-        action="store_true",
     )
 
     args: EvaluateOnTestMotionsArgs = parser.parse_args()

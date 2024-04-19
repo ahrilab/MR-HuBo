@@ -2,10 +2,10 @@
 Train the model to predict robot joint angles from SMPL parameters.
 
 Usage:
-    python src/model/train_rep_only.py -r [robot_type] [-w] [-cf] [-ef] [-d <device>]
+    python src/model/train_rep_only.py -r [robot_type] [-w] [-ef] [-d <device>]
 
 Example:
-    python src/model/train_rep_only.py -r REACHY -w -cf -ef
+    python src/model/train_rep_only.py -r REACHY -w -ef
     python src/model/train_rep_only.py -r NAO -ef -d cuda:2
 """
 
@@ -31,10 +31,10 @@ from utils.consts import *
 
 def train(args: TrainArgs):
     robot_config = RobotConfig(args.robot_type)
+    robot_name = robot_config.robot_type.name
 
     # hyperparameters
     num_data = NUM_SEEDS
-    split_ratio = 50
 
     dim_hidden = HIDDEN_DIM
     lr = LEARNING_RATE
@@ -50,67 +50,27 @@ def train(args: TrainArgs):
     # input & output dimensions
     # input: SMPL joint 6D representations (H)
     # output: robot joint angles (q)
-    if args.arm_only:
-        input_dim = SMPL_ARM_JOINT_REPS_DIM
-    else:
-        input_dim = SMPL_JOINT_REPS_DIM
-
-    if args.collision_free:
-        output_dim = robot_config.cf_angles_dim
-    else:
-        output_dim = robot_config.angles_dim
+    input_dim = SMPL_ARM_JOINT_REPS_DIM
+    output_dim = robot_config.angles_dim
 
     if args.wandb:
         wandb.init(project="mr_hubo")
         current_time = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
-        if args.collision_free:
-            if args.extreme_filter:
-                run_name = f"human2{args.robot_type.name}_cf_ef_{current_time}"
-            else:
-                run_name = f"human2{args.robot_type.name}_cf_noef_{current_time}"
+        if args.extreme_filter:
+            run_name = f"human2{args.robot_type.name}_ef_{current_time}"
         else:
-            if args.extreme_filter:
-                run_name = f"human2{args.robot_type.name}_nocf_ef_{current_time}"
-            else:
-                run_name = f"human2{args.robot_type.name}_nocf_noef_{current_time}"
+            run_name = f"human2{args.robot_type.name}_noef_{current_time}"
         wandb.run.name = run_name
 
     # create directory to save models
-    if args.collision_free:
-        if args.extreme_filter:
-            model_save_path = f"out/models/{robot_config.robot_type.name}/cf/ex/"
-        else:
-            model_save_path = f"out/models/{robot_config.robot_type.name}/cf/no_ex/"
-    else:
-        if args.extreme_filter:
-            model_save_path = f"out/models/{robot_config.robot_type.name}/no_cf/ex/"
-        else:
-            model_save_path = f"out/models/{robot_config.robot_type.name}/no_cf/no_ex/"
-
-    # fmt: off
-    if args.arm_only:
-        if args.extreme_filter:
-            model_save_path = f"out/models/{robot_config.robot_type.name}/arm_only/ex/"
-        else:
-            model_save_path = f"out/models/{robot_config.robot_type.name}/arm_only/no_ex/"
-    # fmt: on
-
-    os.makedirs(model_save_path, exist_ok=True)
+    model_save_dir = MODEL_WEIGHTS_DIR(robot_name, args.extreme_filter)
+    os.makedirs(model_save_dir, exist_ok=True)
 
     # load data
-    if args.collision_free:
-        SMPL_PARAMS_PATH = robot_config.CF_SMPL_PARAMS_PATH
-        XYZS_REPS_PATH = robot_config.CF_XYZS_REPS_PATH
-        ANGLES_PATH = robot_config.CF_ANGLES_PATH
-    else:
-        SMPL_PARAMS_PATH = robot_config.SMPL_PARAMS_PATH
-        XYZS_REPS_PATH = robot_config.XYZS_REPS_PATH
-        ANGLES_PATH = robot_config.ANGLES_PATH
-
     # fmt: off
-    input_path  = SMPL_PARAMS_PATH  # input: SMPL parameters        (H)
-    reps_path   = XYZS_REPS_PATH    # target: robot xyzs and reps   (R)
-    target_path = ANGLES_PATH       # target: robot joint angles    (q)
+    input_path  = robot_config.SMPL_PARAMS_PATH  # input: SMPL parameters        (H)
+    reps_path   = robot_config.XYZS_REPS_PATH    # target: robot xyzs and reps   (R)
+    target_path = robot_config.ANGLES_PATH       # target: robot joint angles    (q)
     # fmt: on
 
     robot_xyzs, robot_reps, robot_angles, smpl_reps, smpl_prob = (
@@ -119,10 +79,8 @@ def train(args: TrainArgs):
             reps_path=reps_path,
             target_path=target_path,
             num_data=num_data,
-            split_ratio=split_ratio,
-            collision_free=args.collision_free,
+            split_ratio=DATA_SPLIT_RATIO,
             extreme_filter=args.extreme_filter,
-            arm_only=args.arm_only,
         )
     )
 
@@ -266,15 +224,10 @@ def train(args: TrainArgs):
             best_pre_loss = 1e10
             best_post_loss = 1e10
 
-        if args.arm_only:
-            pre_weight_name = f"human2{robot_config.robot_type.name}_arm_only_pre_{epoch // MODEL_SAVE_EPOCH}.pth"
-            post_weight_name = f"human2{robot_config.robot_type.name}_arm_only_post_{epoch // MODEL_SAVE_EPOCH}.pth"
-        else:
-            pre_weight_name = f"human2{robot_config.robot_type.name}_pre_{epoch // MODEL_SAVE_EPOCH}.pth"
-            post_weight_name = f"human2{robot_config.robot_type.name}_post_{epoch // MODEL_SAVE_EPOCH}.pth"
-
-        pre_weight_path = os.path.join(model_save_path, pre_weight_name)
-        post_weight_path = os.path.join(model_save_path, post_weight_name)
+        pre_weight_name = PRE_MODEL_WEIGHT_NAME(robot_name, epoch // MODEL_SAVE_EPOCH)
+        post_weight_name = POST_MODEL_WEIGHT_NAME(robot_name, epoch // MODEL_SAVE_EPOCH)
+        pre_weight_path = os.path.join(model_save_dir, pre_weight_name)
+        post_weight_path = os.path.join(model_save_dir, post_weight_name)
 
         best_pre_loss = min(best_pre_loss, test_pre_loss)
         if best_pre_loss == test_pre_loss:
@@ -294,12 +247,6 @@ if __name__ == "__main__":
         default=RobotType.REACHY,
     )
     parser.add_argument(
-        "--collision_free",
-        "-cf",
-        action="store_true",
-        help="use collision-free data",
-    )
-    parser.add_argument(
         "--extreme-filter",
         "-ef",
         action="store_true",
@@ -310,12 +257,6 @@ if __name__ == "__main__":
         "-w",
         action="store_true",
         help="Use wandb to log training process",
-    )
-    parser.add_argument(
-        "--arm_only",
-        "-a",
-        action="store_true",
-        help="train model with SMPL's arm joint only",
     )
     parser.add_argument(
         "--device",

@@ -193,21 +193,30 @@ def coman_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> List[np.ndarray]:
     return smpl_xyzs
 
 COMAN_EVALUATE_LINKS = [
-    'RShp',
-    'RShr',
-    'RShy',
+    # 'RShp',
+    # 'RShr',
+    # 'RShy',
     'RElb',
     'RForearm',
     'r_wrist',
     'RSoftHand',
 
-    'LShp',
-    'LShr',
-    'LShy',
+    # 'LShp',
+    # 'LShr',
+    # 'LShy',
     'LElb',
     'LForearm',
     'l_wrist',
     'LSoftHand'
+]
+
+COMAN_JOINT_VECTORS = [
+    {"from": "RShp",      "to": "RElb"},
+    {"from": "RElb",      "to": "r_wrist"},
+    {"from": "r_wrist",   "to": "RSoftHand"},
+    {"from": "LShp",      "to": "LElb"},
+    {"from": "LElb",      "to": "l_wrist"},
+    {"from": "l_wrist",   "to": "LSoftHand"},
 ]
 
 # Train Parameters

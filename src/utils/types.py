@@ -19,6 +19,7 @@ class EvaluateMode(Enum):
 
     JOINT = "joint"
     LINK = "link"
+    COS = "cos"
 
 
 # Argument Types

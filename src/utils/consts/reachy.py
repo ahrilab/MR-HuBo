@@ -150,24 +150,35 @@ reachy_xyzs_to_smpl_xyzs: Callable[[List[np.ndarray]], List[np.ndarray]] = (
 )
 
 REACHY_EVALUATE_LINKS = [
-    "head",
-    "top_neck_arm",
-    "left_camera",
-    "right_camera",
+    # "head",
+    # "top_neck_arm",
+    # "left_camera",
+    # "right_camera",
 
-    "r_shoulder",
+    # "r_shoulder",
     "r_forearm",
     "r_wrist2hand",
     "r_gripper_thumb",
     "r_gripper_finger",
     "right_tip",
 
-    "l_shoulder",
+    # "l_shoulder",
     "l_forearm",
     "l_wrist2hand",
     "l_gripper_thumb",
     "l_gripper_finger",
     "left_tip",
+]
+
+REACHY_JOINT_VECTORS = [
+    {"from": "r_shoulder",      "to": "r_forearm"},
+    {"from": "r_forearm",       "to": "r_wrist2hand"},
+    {"from": "r_wrist2hand",    "to": "r_gripper_thumb"},
+    {"from": "r_wrist2hand",    "to": "right_tip"},
+    {"from": "l_shoulder",      "to": "l_forearm"},
+    {"from": "l_forearm",       "to": "l_wrist2hand"},
+    {"from": "l_wrist2hand",    "to": "l_gripper_thumb"},
+    {"from": "l_wrist2hand",    "to": "left_tip"},
 ]
 
 # Train Parameters

@@ -217,15 +217,24 @@ NAO_FINGER_LINKS = [
 NAO_EXCLUDE_LINKS += NAO_FINGER_LINKS
 
 NAO_EVALUATE_LINKS = [
-    'LShoulder',
+    # 'LShoulder',
     'LElbow',
     'l_wrist',
     'l_gripper',
 
-    'RShoulder',
+    # 'RShoulder',
     'RElbow',
     'r_wrist',
     'r_gripper',
+]
+
+NAO_JOINT_VECTORS = [
+    {"from": "LShoulder",   "to": "LElbow"},
+    {"from": "LElbow",      "to": "l_wrist"},
+    {"from": "l_wrist",     "to": "l_gripper"},
+    {"from": "RShoulder",   "to": "RElbow"},
+    {"from": "RElbow",      "to": "r_wrist"},
+    {"from": "r_wrist",     "to": "r_gripper"},
 ]
 
 # Train Parameters
