@@ -23,6 +23,18 @@ class EvaluateMode(Enum):
 
 
 # Argument Types
+class GenerateDataArgs(argparse.Namespace):
+    """
+    Arguments for Generating <Robot-Human> Paired Motion Data Python Codes
+    """
+
+    robot_type: RobotType
+    num_seeds: int
+    poses_per_seed: int
+    device: str
+    restart_idx: int
+
+
 class SampleArgs(argparse.Namespace):
     """
     Arguments for Sampling Python Codes

@@ -2,7 +2,7 @@ from typing import Callable
 
 # Constants for seeds
 NUM_SEEDS = 1000
-MOTION_PER_SEED = 2000
+POSE_PER_SEED = 2000
 
 # Constants for training
 DATA_SPLIT_RATIO = 50

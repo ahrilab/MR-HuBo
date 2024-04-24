@@ -29,6 +29,47 @@ from utils.types import RobotType, Fit2SMPLArgs
 from utils.RobotConfig import RobotConfig
 
 
+def fit2smpl(
+    robot_config: RobotConfig,
+    original_xyzs4smpl: np.ndarray,
+    device: str,
+    verbosity: int = 0,
+) -> dict:
+    """
+    Fit robot's pose data to SMPL parameters by running VPoser's Inverse Kinematics Engine.
+
+    Args:
+        robot_config (RobotConfig): Robot configuration
+        original_xyzs4smpl (np.ndarray): Original xyzs4smpl data
+        device (str): Device for running the code
+        verbosity (int): Verbosity level
+
+    Returns:
+        smpl_data (dict): SMPL parameters
+    """
+
+    # Convert (x, y, z) => (y, z, x)
+    xyzs4smpl = np.zeros_like(original_xyzs4smpl)
+
+    xyzs4smpl[:, :, 0] = original_xyzs4smpl[:, :, 1]
+    xyzs4smpl[:, :, 1] = original_xyzs4smpl[:, :, 2]
+    xyzs4smpl[:, :, 2] = original_xyzs4smpl[:, :, 0]
+
+    # Run VPoser's Inverse Kinematics Engine to fit the robot's pose data to SMPL parameters
+    smpl_data = run_ik_engine(
+        motion=xyzs4smpl,
+        batch_size=BATCH_SIZE,
+        smpl_path=SMPL_PATH,
+        vposer_path=VPOSER_PATH,
+        num_betas=NUM_BETAS,
+        device=device,
+        verbosity=verbosity,
+        smpl_joint_idx=robot_config.smpl_joint_idx,
+    )
+
+    return smpl_data
+
+
 def main(args: Fit2SMPLArgs, core_idx: int):
     robot_config = RobotConfig(args.robot_type)
     batch_size = VPOSER_BATCH_SIZE
@@ -89,12 +130,12 @@ def main(args: Fit2SMPLArgs, core_idx: int):
 
             """
             smpl_data: {
-                trans: (2000, 3),
+                trans: (NUM_POSES, 3),
                 betas: (16,),
-                root_orient: (2000, 3),
-                poZ_body: (2000, 32),
-                pose_body: (2000, 63),
-                poses: (2000, 165),
+                root_orient: (NUM_POSES, 3),
+                poZ_body: (NUM_POSES, 32),
+                pose_body: (NUM_POSES, 63),
+                poses: (NUM_POSES, 165),
                 surface_model_type: 'smplx',
                 gender: 'neutral',
                 mocap_frame_rate: 30,
