@@ -37,11 +37,11 @@ class GenerateDataArgs(argparse.Namespace):
 
 class TrainArgs(argparse.Namespace):
     robot_type: RobotType
-    collision_free: bool
     extreme_filter: bool
-    arm_only: bool
+    one_stage: bool
     wandb: bool
     device: str
+    num_data: int
 
 
 class TestArgs(argparse.Namespace):
