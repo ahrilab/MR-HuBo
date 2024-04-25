@@ -12,14 +12,9 @@ from utils.consts.smpl import SMPLX_JOINT_INDEX
 COMAN_URDF_PATH             = "./data/coman/coman.urdf"
 COMAN_URDF_4_RENDER_PATH    = "./data/coman/coman_nohands.urdf"
 
-COMAN_ANGLES_PATH           = "./data/coman/motions/original/robot/angles"
-COMAN_XYZS_REPS_PATH        = "./data/coman/motions/original/robot/xyzs+reps"
-COMAN_SMPL_PARAMS_PATH      = "./data/coman/motions/original/smpl_params"
-
-COMAN_CF_MAT_PATH           = "./data/coman/motions/cf/mats"
-COMAN_CF_ANGLES_PATH        = "./data/coman/motions/cf/robot/angles"
-COMAN_CF_XYZS_REPS_PATH     = "./data/coman/motions/cf/robot/xyzs+reps"
-COMAN_CF_SMPL_PARAMS_PATH   = "./data/coman/motions/cf/smpl_params"
+COMAN_ANGLES_PATH           = "./data/coman/motions/robot/angles"
+COMAN_XYZS_REPS_PATH        = "./data/coman/motions/robot/xyzs+reps"
+COMAN_SMPL_PARAMS_PATH      = "./data/coman/motions/smpl_params"
 
 # link index of coman
 class ComanLinkIndex(Enum):
