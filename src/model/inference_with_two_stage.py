@@ -15,7 +15,7 @@ from utils.data import load_smpl_to_6D_reps
 from model.net import MLP
 
 
-def infer_human2robot(
+def infer_two_stage(
     robot_config: RobotConfig,
     extreme_filter: bool,
     human_pose_path: str,
@@ -64,13 +64,15 @@ def infer_human2robot(
     # Then, set the weight path
     # if weight_idx is not given, use the best weight
     if weight_idx == -1:
-        pre_model_name = PRE_MODEL_BEST_WEIGHT_NAME(robot_name, evaluate_mode.value)
-        post_model_name = POST_MODEL_BEST_WEIGHT_NAME(robot_name, evaluate_mode.value)
+        # fmt: off
+        pre_model_name = MODEL_BEST_WEIGHT_NAME(robot_name, "pre", evaluate_mode.value)
+        post_model_name = MODEL_BEST_WEIGHT_NAME(robot_name, "post", evaluate_mode.value)
+        # fmt: on
 
     # if weight_idx is given, use the weight with the given index
     else:
-        pre_model_name = PRE_MODEL_WEIGHT_NAME(robot_name, weight_idx)
-        post_model_name = POST_MODEL_WEIGHT_NAME(robot_name, weight_idx)
+        pre_model_name = MODEL_WEIGHT_NAME(robot_name, "pre", weight_idx)
+        post_model_name = MODEL_WEIGHT_NAME(robot_name, "post", weight_idx)
 
     pre_model_path = osp.join(weight_dir, pre_model_name)
     post_model_path = osp.join(weight_dir, post_model_name)
