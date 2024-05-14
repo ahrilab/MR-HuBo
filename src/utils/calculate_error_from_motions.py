@@ -1,16 +1,6 @@
 """
 Evaluate the performance of the motion retargeting model.
 Compare the predicted robot joint angles or link position distance with the ground truth in terms of the MSE.
-
-Usage:
-    python src/evaluate.py -r [robot_type] -e [evaluate_type]
-
-    robot_type: RobotType
-    evaluate_type: str, choices=["joint", "link"]
-
-Example:
-    python src/evaluate.py -r REACHY -e joint
-    python src/evaluate.py -r COMAN -e link
 """
 
 import math
@@ -24,21 +14,23 @@ from utils.types import EvaluateMode
 from utils.RobotConfig import RobotConfig
 
 
-def evaluate(
+def calculate_error(
     robot_config: RobotConfig,
     evaluate_mode: EvaluateMode,
     pred_motion: List[dict],
     gt_motion: List[dict],
 ) -> float:
-    # print(f"Evaluate Mode: {evaluate_mode.value}")
-
+    # obtain the joint keys of the predicted and ground truth motions and find the common keys
     pred_motion_joint_keys = list(pred_motion[0].keys())
     gt_motion_joint_keys = list(gt_motion[0].keys())
     common_joint_keys = list(
         set(pred_motion_joint_keys).intersection(gt_motion_joint_keys)
     )
+
+    # initialize the motion error (average of the pose errors)
     motion_error = 0.0
 
+    # calculate the angular difference between the predicted and ground truth joint angles
     if evaluate_mode == EvaluateMode.JOINT:
         for pose_idx in range(len(pred_motion)):
             pose_loss = 0.0
@@ -57,7 +49,10 @@ def evaluate(
             motion_error += pose_loss
         motion_error /= len(pred_motion)
 
+    # calculate the l2 distance between the predicted and ground truth link positions
     elif evaluate_mode == EvaluateMode.LINK:
+        # build the kinematic chain of the robot to calculate the forward kinematics
+        # (obtain the link positions from the joint angles)
         chain = kp.build_chain_from_urdf(open(robot_config.URDF_PATH).read())
 
         for pose_idx in range(len(pred_motion)):
@@ -82,7 +77,10 @@ def evaluate(
 
         motion_error /= len(pred_motion)
 
+    # calculate the cosine distance between the predicted and ground truth link vectors
     elif evaluate_mode == EvaluateMode.COS:
+        # build the kinematic chain of the robot to calculate the forward kinematics
+        # (obtain the link positions from the joint angles)
         chain = kp.build_chain_from_urdf(open(robot_config.URDF_PATH).read())
 
         for pose_idx in range(len(pred_motion)):
@@ -119,5 +117,4 @@ def evaluate(
 
         motion_error /= len(pred_motion)
 
-    # print(f"motion error: {motion_error}")
     return motion_error
