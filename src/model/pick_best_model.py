@@ -11,8 +11,8 @@ from shutil import copyfile
 from tqdm import tqdm
 
 sys.path.append("./src")
-from model.inference_with_one_stage import infer_one_stage
-from model.inference_with_two_stage import infer_two_stage
+from model.infer_with_one_stage import infer_one_stage
+from model.infer_with_two_stage import infer_two_stage
 from utils.consts import *
 from utils.RobotConfig import RobotConfig
 from utils.types import EvaluateMode

@@ -4,4 +4,3 @@
 - model: codes for defineing, training, and inference the model.
 - visualize: codes for visualizing.
 - utils: utility codes which are used in the above feature codes.
-- playgrond: test or temp code for own developer. (git ignored)
