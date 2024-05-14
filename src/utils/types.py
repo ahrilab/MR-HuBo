@@ -36,6 +36,10 @@ class GenerateDataArgs(argparse.Namespace):
 
 
 class TrainArgs(argparse.Namespace):
+    """
+    Arguments for Training the Model Python Codes
+    """
+
     robot_type: RobotType
     extreme_filter: bool
     one_stage: bool
@@ -44,10 +48,16 @@ class TrainArgs(argparse.Namespace):
     num_data: int
 
 
-class TestArgs(argparse.Namespace):
+class EvaluateArgs(argparse.Namespace):
+    """
+    Arguments for Evaluating the Model Python Codes
+    """
+
     robot_type: RobotType
-    human_pose_path: str
-    robot_pose_result_path: str
+    extreme_filter: bool
+    one_stage: bool
+    device: str
+    evaluate_mode: EvaluateMode
 
 
 class PybulletRenderArgs(argparse.Namespace):
@@ -87,22 +97,3 @@ class PlotWholeInOneArgs(argparse.Namespace):
 
 class ConvertMat2PklArgs(argparse.Namespace):
     robot_type: RobotType
-
-
-class PickBestModelArgs(argparse.Namespace):
-    robot_type: RobotType
-    collision_free: bool
-    extreme_filter: bool
-    evaluate_mode: EvaluateMode
-    device: str
-    arm_only: bool
-
-
-class EvaluateOnTestMotionsArgs(argparse.Namespace):
-    robot_type: RobotType
-    collision_free: bool
-    extreme_filter: bool
-    evaluate_mode: EvaluateMode
-    save_pred_motion: bool
-    device: str
-    arm_only: bool
