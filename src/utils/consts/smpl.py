@@ -16,6 +16,8 @@ VPOSER_BATCH_SIZE   = 500
 # Hand joint index reference: https://user-images.githubusercontent.com/11267794/97798641-e2a88600-1c62-11eb-887c-0dcab2e11811.png
 # Hand joint index reference is not matched with SMPL-X joints, but you can see how the hand joints look like.
 
+# SMPL FAQ: https://files.is.tue.mpg.de/black/talks/SMPL-made-simple-FAQs.pdf
+
 SMPLX_JOINT_INDEX = Enum('SMPLX_JOINT_INDEX', [
     ###### (0-21): SMPL ######
     "pelvis",           # 0

@@ -20,10 +20,6 @@ class RobotConfig:
             self.ANGLES_PATH = REACHY_ANGLES_PATH
             self.XYZS_REPS_PATH = REACHY_XYZS_REPS_PATH
             self.SMPL_PARAMS_PATH = REACHY_SMPL_PARAMS_PATH
-            self.CF_MATS_PATH = REACHY_CF_MAT_PATH
-            self.CF_ANGLES_PATH = REACHY_CF_ANGLES_PATH
-            self.CF_XYZS_REPS_PATH = REACHY_CF_XYZS_REPS_PATH
-            self.CF_SMPL_PARAMS_PATH = REACHY_CF_SMPL_PARAMS_PATH
 
             self.joi_range = REACHY_JOI_RANGE
             self.joi_keys = REACHY_JOI_KEYS
@@ -44,10 +40,6 @@ class RobotConfig:
             self.ANGLES_PATH = COMAN_ANGLES_PATH
             self.XYZS_REPS_PATH = COMAN_XYZS_REPS_PATH
             self.SMPL_PARAMS_PATH = COMAN_SMPL_PARAMS_PATH
-            self.CF_MATS_PATH = COMAN_CF_MAT_PATH
-            self.CF_ANGLES_PATH = COMAN_CF_ANGLES_PATH
-            self.CF_XYZS_REPS_PATH = COMAN_CF_XYZS_REPS_PATH
-            self.CF_SMPL_PARAMS_PATH = COMAN_CF_SMPL_PARAMS_PATH
 
             self.joi_range = COMAN_JOI_RANGE
             self.joi_keys = COMAN_JOI_KEYS
@@ -67,10 +59,6 @@ class RobotConfig:
             self.ANGLES_PATH = NAO_ANGLES_PATH
             self.XYZS_REPS_PATH = NAO_XYZS_REPS_PATH
             self.SMPL_PARAMS_PATH = NAO_SMPL_PARAMS_PATH
-            self.CF_MATS_PATH = NAO_CF_MAT_PATH
-            self.CF_ANGLES_PATH = NAO_CF_ANGLES_PATH
-            self.CF_XYZS_REPS_PATH = NAO_CF_XYZS_REPS_PATH
-            self.CF_SMPL_PARAMS_PATH = NAO_CF_SMPL_PARAMS_PATH
 
             self.joi_range = NAO_JOI_RANGE
             self.joi_keys = NAO_JOI_KEYS

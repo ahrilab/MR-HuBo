@@ -2,7 +2,7 @@ from typing import Callable
 
 # Constants for seeds
 NUM_SEEDS = 1000
-MOTION_PER_SEED = 2000
+POSE_PER_SEED = 2000
 
 # Constants for training
 DATA_SPLIT_RATIO = 50
@@ -29,26 +29,21 @@ smpl_params_path     = (lambda data_idx: f"params_{data_idx:04}.npz"
                         else f"params_{data_idx}.npz")
 
 # Constants for model weights
-MODEL_WEIGHTS_DIR: Callable[[str, bool], str] = (
-    lambda robot_name, ex: f"./out/models/{robot_name}/final/{'ex' if ex else 'no_ex'}"
+MODEL_WEIGHTS_DIR: Callable[[str, bool, bool], str] = (
+    lambda robot_name, one_stage, ex:
+        f"./out/models/{robot_name}/{'os' if one_stage else 'ts'}/{'ex' if ex else 'no_ex'}"
 )
-PRE_MODEL_WEIGHT_NAME: Callable[[str, int], str] = (
-    lambda robot_name, weight_idx: f"human2{robot_name}_pre_{weight_idx}.pth"
+MODEL_WEIGHT_NAME: Callable[[str, str, int], str] = (
+    lambda robot_name, model_type, weight_idx: f"human2{robot_name}_{model_type}_{weight_idx}.pth"
 )
-PRE_MODEL_BEST_WEIGHT_NAME: Callable[[str, str], str] = (
-    lambda robot_name, evaluation_mode: f"human2{robot_name}_pre_best_{evaluation_mode}.pth"
-)
-POST_MODEL_WEIGHT_NAME: Callable[[str, int], str] = (
-    lambda robot_name, weight_idx: f"human2{robot_name}_post_{weight_idx}.pth"
-)
-POST_MODEL_BEST_WEIGHT_NAME: Callable[[str, str], str] = (
-    lambda robot_name, evaluation_mode: f"human2{robot_name}_post_best_{evaluation_mode}.pth"
+MODEL_BEST_WEIGHT_NAME: Callable[[str, str, str], str] = (
+    lambda robot_name, model_type, evaluation_mode: f"human2{robot_name}_{model_type}_best_{evaluation_mode}.pth"
 )
 
 # Constants for evaluation path
-PRED_MOTIONS_DIR: Callable[[str, bool], str] = (
-    lambda robot_name, extreme_filter:
-        f"./out/pred_motions/{robot_name}/final/{'ex' if extreme_filter else 'no_ex'}"
+PRED_MOTIONS_DIR: Callable[[str, bool, bool], str] = (
+    lambda robot_name, one_stage, extreme_filter:
+        f"./out/pred_motions/{robot_name}/{'os' if one_stage else 'ts'}/{'ex' if extreme_filter else 'no_ex'}"
 )
 EVAL_RESULT_TXT_NAME: Callable[[str], str] = lambda evaluation_mode: f"result_{evaluation_mode}.txt"
 PRED_MOTION_NAME: Callable[[str, bool, str], str] = (
@@ -56,10 +51,10 @@ PRED_MOTION_NAME: Callable[[str, bool, str], str] = (
         f"pred_{robot_name}_{'ex' if extreme_filter else 'no_ex'}_{motion_idx}.pkl"
 )
 
-# Constants for rendered Videos
-PYBULLET_PRED_VID_DIR: Callable[[str, bool], str] = (
-    lambda robot_name, extreme_filter:
-        f"./out/pybullet/{robot_name}/final/{'ex' if extreme_filter else 'no_ex'}"
+# Constants for rendered video files
+PYBULLET_PRED_VID_DIR: Callable[[str, bool, bool], str] = (
+    lambda robot_name, one_stage, extreme_filter:
+        f"./out/pybullet/{robot_name}/{'os' if one_stage else 'ts'}/{'ex' if extreme_filter else 'no_ex'}"
 )
 PYBULLET_GT_VID_DIR: Callable[[str], str] = lambda robot_name: f"./out/pybullet/{robot_name}/gt"
 
@@ -74,15 +69,9 @@ PYBULLET_GT_VID_NAME: Callable[[str, str, str], str] = (
 
 ################################
 
-# Constants for Generating videos
-VIDEO_PATH = "./out/vids"
-TMP_FRAME_PATH = "./out/tmp"
-robot2smpl_vid_path: Callable[[str, int, str], str] = (
-    lambda robot_name, index, extention: f"{robot_name}2smpl_{index}.{extention}"
-)
-
 # Constants for Ground Truth Motions
 GT_PATH = "./data/gt_motions/mr_gt.pkl"
+AMASS_DATA_PATH = "./data/gt_motions/amass_data"
 
 GT_MOTION_IDXS = [
     "02_05",  # punch strike
@@ -102,10 +91,4 @@ VALID_GT_MOTION_IDXS = [
     "13_28",  # direct traffic, wave, point
     "54_16",  # superhero
 ]
-
 TEST_GT_MOTION_IDXS = [idx for idx in GT_MOTION_IDXS if idx not in VALID_GT_MOTION_IDXS]
-
-AMASS_DATA_PATH = "./data/gt_motions/amass_data"
-
-# Constants for Evaluation
-PRED_MOTION_PATH = "./out/pred_motions"

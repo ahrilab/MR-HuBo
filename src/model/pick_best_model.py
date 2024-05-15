@@ -1,40 +1,36 @@
 """
 This module is used to pick the best model from the trained models.
 The Best model is the one that has the lowest errors on the validation motion set of GT.
-
-Usage:
-    python src/model/pick_best_model.py -r <robot_type> -cf -ef -a -em <evaluate_mode> -d <device>
-
-Example:
-    python src/model/pick_best_model.py -r REACHY -cf -ef -em link
-    python src/model/pick_best_model.py -r COMAN -ef -em joint
-    python src/model/pick_best_model.py -r REACHY -a -ef -em link
 """
 
 import pickle
 import sys
-import argparse
 import os.path as osp
 import matplotlib.pyplot as plt
 from shutil import copyfile
 from tqdm import tqdm
 
 sys.path.append("./src")
+from model.infer_with_one_stage import infer_one_stage
+from model.infer_with_two_stage import infer_two_stage
 from utils.consts import *
-from utils.types import RobotType, PickBestModelArgs, EvaluateMode
 from utils.RobotConfig import RobotConfig
-from model.test_two_stage import infer_human2robot
-from utils.evaluate import evaluate
+from utils.types import EvaluateMode
+from utils.calculate_error_from_motions import calculate_error
 
 
-def pick_best_model(args: PickBestModelArgs):
-    robot_config = RobotConfig(args.robot_type)
+def pick_best_model(
+    robot_config: RobotConfig,
+    extreme_filter: bool,
+    one_stage: bool,
+    device: str,
+    evaluate_mode: EvaluateMode,
+) -> int:
     robot_name = robot_config.robot_type.name
-
-    robot_name_for_gt = args.robot_type.name[0] + args.robot_type.name[1:].lower()
+    robot_name_for_gt = robot_name[0] + robot_name[1:].lower()
     gt_motions = pickle.load(open(GT_PATH, "rb"))
 
-    if args.extreme_filter:
+    if extreme_filter:
         weight_num = EF_EPOCHS // MODEL_SAVE_EPOCH
     else:
         weight_num = NUM_EPOCHS // MODEL_SAVE_EPOCH
@@ -45,17 +41,26 @@ def pick_best_model(args: PickBestModelArgs):
         motion_errors = []  # (20,)
 
         for weight_idx in tqdm(range(weight_num)):
-            pred_motion = infer_human2robot(
-                robot_config=robot_config,
-                extreme_filter=args.extreme_filter,
-                human_pose_path=amass_data_path,
-                device=args.device,
-                weight_idx=weight_idx,
-            )
+            if one_stage:
+                pred_motion = infer_one_stage(
+                    robot_config=robot_config,
+                    extreme_filter=extreme_filter,
+                    human_pose_path=amass_data_path,
+                    device=device,
+                    weight_idx=weight_idx,
+                )
+            else:
+                pred_motion = infer_two_stage(
+                    robot_config=robot_config,
+                    extreme_filter=extreme_filter,
+                    human_pose_path=amass_data_path,
+                    device=device,
+                    weight_idx=weight_idx,
+                )
 
-            error: float = evaluate(
+            error: float = calculate_error(
                 robot_config=robot_config,
-                evaluate_mode=args.evaluate_mode,
+                evaluate_mode=evaluate_mode,
                 pred_motion=pred_motion,
                 gt_motion=gt_motion,
             )
@@ -65,23 +70,28 @@ def pick_best_model(args: PickBestModelArgs):
 
     all_motions_errors = np.array(all_motions_errors)  # (2, 20)
     mean_errors = np.mean(all_motions_errors, axis=0)  # (20,)
+    best_model_idx = np.argmin(mean_errors)
 
     # Pick the best model
-    weight_dir = MODEL_WEIGHTS_DIR(robot_name, args.extreme_filter)
+    weight_dir = MODEL_WEIGHTS_DIR(robot_name, one_stage, extreme_filter)
 
     # fmt: off
     # Save the best model
-    best_model_idx = np.argmin(mean_errors)
-    with open(osp.join(weight_dir, f"best_model_idx_{args.evaluate_mode.value}.txt"), "w") as f:
+    with open(osp.join(weight_dir, f"best_model_idx_{evaluate_mode.value}.txt"), "w") as f:
         f.write(f"Best model index: {best_model_idx}\n")
 
-    best_pre_model_weight_path = osp.join(weight_dir, PRE_MODEL_WEIGHT_NAME(robot_name, best_model_idx))
-    best_post_model_weight_path = osp.join(weight_dir, POST_MODEL_WEIGHT_NAME(robot_name, best_model_idx))
-    pre_model_save_path = osp.join(weight_dir, PRE_MODEL_BEST_WEIGHT_NAME(robot_name, args.evaluate_mode.value))
-    post_model_save_path = osp.join(weight_dir, POST_MODEL_BEST_WEIGHT_NAME(robot_name, args.evaluate_mode.value))
+    if one_stage:
+        best_model_weight_path = osp.join(weight_dir, MODEL_WEIGHT_NAME(robot_name, "os", best_model_idx))
+        model_save_path = osp.join(weight_dir, MODEL_BEST_WEIGHT_NAME(robot_name, "os", evaluate_mode.value))
+        copyfile(best_model_weight_path, model_save_path)
 
-    copyfile(best_pre_model_weight_path,  pre_model_save_path)
-    copyfile(best_post_model_weight_path, post_model_save_path)
+    else:
+        best_pre_model_weight_path = osp.join(weight_dir, MODEL_WEIGHT_NAME(robot_name, "pre", best_model_idx))
+        best_post_model_weight_path = osp.join(weight_dir, MODEL_WEIGHT_NAME(robot_name, "post", best_model_idx))
+        pre_model_save_path = osp.join(weight_dir, MODEL_BEST_WEIGHT_NAME(robot_name, "pre", evaluate_mode.value))
+        post_model_save_path = osp.join(weight_dir, MODEL_BEST_WEIGHT_NAME(robot_name, "post", evaluate_mode.value))
+        copyfile(best_pre_model_weight_path,  pre_model_save_path)
+        copyfile(best_post_model_weight_path, post_model_save_path)
 
     # Plot the errors (motion 1, motion 2, mean)
     x = range(weight_num)
@@ -89,42 +99,11 @@ def pick_best_model(args: PickBestModelArgs):
     plt.plot(x, all_motions_errors[1], label="motion 2")
     plt.plot(x, mean_errors, label="mean")
     plt.legend()
+
     # save the plot
-    fig_name = osp.join(weight_dir, f"{args.robot_type.name}_val_errors_{args.evaluate_mode.value}.png")
+    fig_name = osp.join(weight_dir, f"{robot_name}_val_errors_{evaluate_mode.value}.png")
     plt.savefig(fig_name)
     print(f"Saved the plot: {fig_name}")
     # fmt: on
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--robot-type",
-        "-r",
-        type=RobotType,
-        choices=list(RobotType),
-        default=RobotType.REACHY,
-        help="Type of robot to use",
-    )
-    parser.add_argument(
-        "--extreme-filter",
-        "-ef",
-        action="store_true",
-        help="Use extreme filter model",
-    )
-    parser.add_argument(
-        "--evaluate-mode",
-        "-em",
-        type=EvaluateMode,
-        choices=list(EvaluateMode),
-        default=EvaluateMode.LINK,
-    )
-    parser.add_argument(
-        "--device",
-        "-d",
-        type=str,
-        default="cuda",
-    )
-    args: PickBestModelArgs = parser.parse_args()
-
-    pick_best_model(args)
+    return best_model_idx

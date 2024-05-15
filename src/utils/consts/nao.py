@@ -11,14 +11,9 @@ from utils.consts.smpl import SMPLX_JOINT_INDEX
 # fmt: off
 NAO_URDF_PATH = "./data/nao/nao.urdf"
 
-NAO_ANGLES_PATH          = "./data/nao/motions/original/robot/angles"
-NAO_XYZS_REPS_PATH       = "./data/nao/motions/original/robot/xyzs+reps"
-NAO_SMPL_PARAMS_PATH     = "./data/nao/motions/original/smpl_params"
-
-NAO_CF_MAT_PATH          = "./data/nao/motions/cf/mats"
-NAO_CF_ANGLES_PATH       = "./data/nao/motions/cf/robot/angles"
-NAO_CF_XYZS_REPS_PATH    = "./data/nao/motions/cf/robot/xyzs+reps"
-NAO_CF_SMPL_PARAMS_PATH  = "./data/nao/motions/cf/smpl_params"
+NAO_ANGLES_PATH          = "./data/nao/motions/robot/angles"
+NAO_XYZS_REPS_PATH       = "./data/nao/motions/robot/xyzs+reps"
+NAO_SMPL_PARAMS_PATH     = "./data/nao/motions/smpl_params"
 
 # The Joint names of NAO
 # ref: http://doc.aldebaran.com/1-14/family/robots/links_robot.html

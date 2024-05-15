@@ -9,7 +9,3 @@
 - transform: Codes for transformming rotation matrix, quaternion, and 6D representation.
 - types: Type definition for Enum classes and Arguments.
 
----
-### Outdated
-- loss: geodesic_loss defined
-- viz: rendering code for kinpy
