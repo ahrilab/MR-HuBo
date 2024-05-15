@@ -1,6 +1,13 @@
 """
 This script is used to evaluate the model.
 Picks the best model on the validation set and evaluates it on the test motions.
+
+# Usage
+    python tools/evaluate_model.py -r ROBOT_TYPE [-ef] [-os] [-d DEVICE] [-em EVALUATE_MODE]
+
+# Example
+    python tools/evaluate_model.py -r REACHY
+    python tools/evaluate_model.py -r REACHY -ef -os -d cuda -em joint
 """
 
 import argparse
