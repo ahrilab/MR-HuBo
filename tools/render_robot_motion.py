@@ -2,17 +2,17 @@
 Render the motion of the robot with pybullet simulator and save it as a gif or mp4 file.
 
 Usage:
-    python src/visualize/pybullet_render.py -r ROBOT_TYPE -mi MOTION_IDX [-ef] -e EXTENTION --fps FPS [-s]  # for pred_motion
-    python src/visualize/pybullet_render.py -r ROBOT_TYPE -gt -mi MOTION_IDX -e EXTENTION --fps FPS [-s]    # for gt_motion
+    python tools/render_robot_motion.py -r ROBOT_TYPE -mi MOTION_IDX [-ef] -e EXTENTION --fps FPS [-s]  # for pred_motion
+    python tools/render_robot_motion.py -r ROBOT_TYPE -gt -mi MOTION_IDX -e EXTENTION --fps FPS [-s]    # for gt_motion
 
 Example:
     # render for prediction motion
-    python src/visualize/pybullet_render.py -r COMAN -mi 13_08 -ef -e mp4 --fps 120 -s
-    python src/visualize/pybullet_render.py -r COMAN -mi 13_18 -e mp4 --fps 120 -s
+    python tools/render_robot_motion.py -r COMAN -mi 13_08 -ef -e mp4 --fps 120 -s
+    python tools/render_robot_motion.py -r COMAN -mi 13_18 -e mp4 --fps 120 -s
 
     # render for GT motion
-    python src/visualize/pybullet_render.py -r=COMAN -gt -mi="13_08" -e mp4 --fps 120 -s
-    python src/visualize/pybullet_render.py -r=COMAN -gt -mi="13_18" -e mp4 --fps 120
+    python tools/render_robot_motion.py -r=COMAN -gt -mi="13_08" -e mp4 --fps 120 -s
+    python tools/render_robot_motion.py -r=COMAN -gt -mi="13_18" -e mp4 --fps 120
 """
 
 import argparse
