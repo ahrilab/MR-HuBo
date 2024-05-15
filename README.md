@@ -41,8 +41,7 @@ pip install -r requirements.txt
 
 ### Download GT motions of robots
 
-  <!-- TODO: GT 링크 수정하기 -->
-  You can download ground truth motions of robots via [this link](https://drive.google.com/file/d/102uf0paypd8zQCJhIqqBLtXoFDrjxh04/view?usp=sharing).\
+  You can download ground truth motions of robots via [this link](https://drive.google.com/file/d/10V06RXFEpKfnt00iGE1qXnCQDbsODUqK/view?usp=sharing).\
   Please move this 'mr_gt.pkl' file into 'data/gt_motions/' path.
 
 ### Download AMASS dataset for GT motions of human
