@@ -72,28 +72,3 @@ class PybulletRenderArgs(argparse.Namespace):
     collision_free: bool
     extreme_filter: bool
     motion_idx: str
-    arm_only: bool
-
-
-class PybulletRenderOnePoseArgs(argparse.Namespace):
-    robot_type: RobotType
-    data_index: int
-    pose_index: int
-
-
-class PlotBaseArgs(argparse.Namespace):
-    robot_type: RobotType
-    random_pose: bool
-
-
-class PlotWholeInOneArgs(argparse.Namespace):
-    robot_type: RobotType
-    data_idx: int
-    pose_num: int
-    out_extention: str
-    fps: int
-    collision_free: bool
-
-
-class ConvertMat2PklArgs(argparse.Namespace):
-    robot_type: RobotType
