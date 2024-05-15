@@ -23,7 +23,25 @@ matplotlib==3.2.2
 joblib
 pybullet
 wandb
+tqdm
 
+# Libaraies that are not installed by pip install -r requirements.txt
+# Please install them manually with `pip install <package_name>`.
+# TODO: fix this bug
+    # kinpy
+    # pytorch3d
+    # colour
+    # human_body_prior
+    # omegaconf
+    # loguru
+    # body_visualizer
+    # opencv-python==4.5.1.48
+    # trimesh==3.9.5
+    # wandb
+    # joblib
+    # scikit-learn
+
+# TODO: Change the below repositories to the official repository or to the lab account, not the personal account.
 git+https://github.com/cotton-ahn/human_body_prior
 git+https://github.com/cotton-ahn/body_visualizer
 git+https://github.com/MPI-IS/configer.git

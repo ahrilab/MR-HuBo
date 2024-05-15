@@ -1,98 +1,118 @@
-# retargeting4reachy
+# MR. HuBo: Redefining Data Pairing for Motion Retargeting Leveraging a Human Body Prior
 
-## Installation
-- Prepare conda environment.Tested on the recent PyTorch. Prepare the torch based on your GPU/CPU settings.
+Code repository for the paper:
+**Redefining Data Pairing for Motion Retargeting Leveraging a Human Body Prior**
+[Xiyana Figuera](https://github.com/xiyanafiguera), [Soogeun Park](https://github.com/bwmelon97), and [Hyemin Ahn](https://hyeminahn.oopy.io)
+
+<!-- TODO: 페이퍼 Arxiv 링크, 웹사이트 링크 등 추가하기 -->
+<!-- TODO: 데모 이미지 혹은 비디오 추가하기 -->
+
+## Installation & Setup
+### Prepare conda environment and set pytorch and cuda environment.
 ```bash
-conda create rr38 -n python=3.8
-conda activate rr38
-conda install pytorch torchvision torchaudio pytorch-cuda=11.6 -c pytorch -c nvidia
+conda create -n mr-hubo python=3.8
+conda activate mr-hubo
+pip install torch==1.7.0+cu110 torchvision==0.8.1+cu110 torchaudio==0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
+conda install pytorch-cuda=11.6 cuda-toolkit=11.6.1 -c pytorch -c nvidia
 ```
 
-- Clone the GitHub repository and install requirements.
+### Clone the GitHub repository and install requirements.
 
+<!-- TODO: 깃헙 레포 이름 변경하기 -->
 ```bash
 git clone https://github.com/ahrilab/Retargeting4Reachy.git
-# If you are using the fork option, please modify 'ahrilab' as 'your GitHub account username'.
 cd retargeting4reachy
 pip install -r requirements.txt
 ```
 
-- Download data for SMPL
+### Download SMPL-X models
   
-  You can download data for rendering SMPL-X & VPoser Model via [this link](https://smpl-x.is.tue.mpg.de/download.php).\
-  You should move `bodymodel/` and `poser_v2_05/` into the `data/` folder.
+  You can download SMPL-X & VPoser Model via [this link](https://smpl-x.is.tue.mpg.de/download.php).\
+  We use the 'smplx neutral' model, and 'vposer_v2_05'.\
+  Please make sure that you put the `bodymodel/smplx/neutral.npz` and `vposer_v2_05/` into the `data/` folder.
 
-- Download GT motions of robots
+### Download GT motions of robots
 
+  <!-- TODO: GT 링크 수정하기 -->
   You can download ground truth motions of robots via [this link](https://drive.google.com/file/d/102uf0paypd8zQCJhIqqBLtXoFDrjxh04/view?usp=sharing).\
-  You should move this 'mr_gt.pkl' file into 'data/gt_motions/' path.
+  Please move this 'mr_gt.pkl' file into 'data/gt_motions/' path.
+
+### Download AMASS dataset for GT motions of human
+
+  You can download AMASS dataset via [this link](https://amass.is.tue.mpg.de/index.html).\
+  Please download the 'CMU/SMPL-X N' data from the downloads tab.\
+  Please move the motion files (e.g. `02_05_stageii.npz`) that we use for the ground truth into 'data/gt_motions/amass_data/'. You can see the motions used for GT in 'data/gt_motions/README.md'.
 
 ## Directory Structure
 - data: Store the data of Robot's urdf, meshes, and motions data, VPoser & SMPL model, GT motions data.
 - imgs: Images for README.md
-- log: Log files for background python process (data generation, model training etc.). (git ignored)
-- out: Outputs of code such as model weights, predicted motions, rendered videos, etc. (git ignored)
-- src: codes for processing data, model defining, training, and inference, visualization, and utilities.
-- tools: shell script for running code. (need to update)
+- out: Outputs of code such as model weights, predicted motions, rendered videos, etc.
+- src: Fragmented Codes, each individual file is responsible for a single function.
+- tools: Integrated codes that perform each feature.
 
 
-## How to use codes.
-> (We should reorganize this README file)
+## How to use codes
 
-### (Temp block for Prof. Ahn) How to visualize the COMAN robot in Pybullet simulator.
-- Run an interactive simulator
-  ```bash
-  python src/visualize/pybullet_interactive.py -r [robot_type] -v [view]
-  ```
+### Generate \<Robot-Human\> Data for Training
 
-- Load a COMAN motion data and generate a video
-  ```bash
-  python src/visualize/pybullet_render.py -v VIEW --fps FPS [-s] -rp ROBOT_POSE_PATH -op OUTPUT_PATH
-  ```
-
-  Check each code file for details.
-
-
-1. run `src/process_data/sample.py` to sample the robot pose. 
 ```bash
-python src/process_data/sample.py -r REACHY
+python tools/generate_data.py -r [robot_type] -s [num_seeds] -p [poses_per_seed] -d [device] -i [restart_idx]
+
+# example
+python tools/generate_data.py -r COMAN
 ```
 
-2. run `src/process_data/fit2smpl.py` to fit human SMPL from the robot pose
+
+### Train the Motion Retargeting Network
+
 ```bash
-python src/process_data/fit2smpl.py -r REACHY
+python tools/train.py -r [robot_type] [-d <device>] [-n <num_data>] [-ef] [-os] [-w]
+
+# example
+python tools/train.py -r REACHY -ef -os -w
+python tools/train.py -r COMAN -ef -d cuda:2
 ```
-- add -viz arguments if you want to save the converted human SMPL as a data
-  
-3. run `src/process_data/adjust_neck.py` to make the neck angle the same as smpl
+
+### Evaluation the Model
+
 ```bash
-python src/process_data/adjust_neck.py
+python tools/evaluate_model.py -r ROBOT_TYPE [-ef] [-os] [-d DEVICE] [-em EVALUATE_MODE]
+
+# Example
+python tools/evaluate_model.py -r REACHY
+python tools/evaluate_model.py -r REACHY -ef -os -d cuda -em joint
 ```
 
-4. run `src/visualize/makevid_reachy.py` to visualize the robot's joint angle information.
+### Visualize the Motion Retargeting Results
 
-5. run `src/visualize/makevid_pymaf.py` to visualize the result obtained from pymaf.
+```bash
+# Usage:
+    python src/visualize/pybullet_render.py -r ROBOT_TYPE -mi MOTION_IDX [-ef] -e EXTENTION --fps FPS [-s]  # for pred_motion
+    python src/visualize/pybullet_render.py -r ROBOT_TYPE -gt -mi MOTION_IDX -e EXTENTION --fps FPS [-s]    # for gt_motion
+
+# Example:
+    # render for prediction motion
+    python src/visualize/pybullet_render.py -r COMAN -mi 13_08 -ef -e mp4 --fps 120 -s
+    python src/visualize/pybullet_render.py -r COMAN -mi 13_18 -e mp4 --fps 120 -s
+
+    # render for GT motion
+    python src/visualize/pybullet_render.py -r=COMAN -gt -mi="13_08" -e mp4 --fps 120 -s
+    python src/visualize/pybullet_render.py -r=COMAN -gt -mi="13_18" -e mp4 --fps 120
+```
+
+## Add New Robot Configuration
+Mr. HuBo is general method which can be adapted to any humanoid robots, if a URDF (unified robot description format) of robot and scale factor for converting robot's position into SMPL position is given.
+
+<!-- # TODO: 다른 로봇에 대한 데이터를 만들기 위한 방법 추가하기 -->
 
 
-## Codes for model training (unorganized)
-* src/model/train_human2reachy_dualmlp.py 
-    - Use sampled ROBOT-HUMAN random pose information for training two MLP-based models
-    - One model is called pre-model (model_pre). It converts human SMPL 6D REP into Reachy XYZ + 6D REP
-    - Another model is called post-model (model_post). It converts Reachy XYZ + 6D REP to Reachy's angle.
-    - It saves the model with the minimum test loss.
 
-* src/model/test_human2reachy_dualmlp.py
-    - It loads the pre- and post-models whose training procedure ended.
-    - It reads the prediction results from pymaf as an input to pre- and post-models. 
-    - And saves the angle result to ./output/pymaf_robot_v2.pkl.
+## Acknowledgements
+Parts of the code are taken or adapted from the following repos:
+<!-- TODO: Add items & link -->
+- human-body-prior
 
 
-## Work Flows
-1. Try to sample out random robot pose.
-2. Try to visualize one of the random robots poses in the video.
-3. Try to convert the robot pose to human SMPL with V-Poser
-4. Try to align neck information between reachy and human, by moving human neck info into reachy.
-5. Try to train the model which converts XYZ+6D of humans to XYZ+6D of robots. 
-6. Try to visualize the result. if you obtain `output/pymaf_robot_v2.pkl`, you can visualize with `src/visualize/makevid_reachy.py`
+<!-- TODO: Add citations (bibtex), when the paper is accepted -->
 
-### Check "TODO" in the codes. I wrote some issues to be solved.
+
