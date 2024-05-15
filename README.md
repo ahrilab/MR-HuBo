@@ -7,6 +7,14 @@ Code repository for the paper:
 <!-- TODO: 페이퍼 Arxiv 링크, 웹사이트 링크 등 추가하기 -->
 <!-- TODO: 데모 이미지 혹은 비디오 추가하기 -->
 
+## Demo Videos
+<p align="center">
+<img src="./imgs/1_baseline.gif" height="400" />
+</p>
+<p align="center">
+<img src="./imgs/4_Reachy.gif" height="400" />
+</p>
+
 ## Installation & Setup
 ### Prepare conda environment and set pytorch and cuda environment.
 ```bash
