@@ -1,95 +1,48 @@
-"""
-This script is for fitting reachy's pose data to SMPL parameters
-by running Inverse Kinematics engine of VPoser.
-
-smpl_params = run_ik_engine(xyzs4smpl of reachy)
-"""
-
-import argparse
 import numpy as np
-import os.path as osp
-import os
-import glob
 import sys
 
 sys.path.append("./src")
-from utils.hbp import run_ik_engine, make_vids
+from utils.hbp import run_ik_engine
 from utils.consts import *
+from utils.RobotConfig import RobotConfig
 
 
-def main(args):
-    num_betas = 16
-    batch_size = 100
-    device = "cuda"
+def fit2smpl(
+    robot_config: RobotConfig,
+    original_xyzs4smpl: np.ndarray,
+    device: str,
+    verbosity: int = 0,
+) -> dict:
+    """
+    Fit robot's pose data to SMPL parameters by running VPoser's Inverse Kinematics Engine.
 
-    if osp.isdir(args.reachy_path):
-        os.makedirs(args.human_path, exist_ok=True)
-        os.makedirs(args.vid_path, exist_ok=True)
+    Args:
+        robot_config (RobotConfig): Robot configuration
+        original_xyzs4smpl (np.ndarray): Original xyzs4smpl data
+        device (str): Device for running the code
+        verbosity (int): Verbosity level
 
-        files = sorted(glob.glob(osp.join(args.reachy_path, "*.npz")))  # reachy의 xyz + reps 데이터
-    else:
-        files = [args.reachy_path]
+    Returns:
+        smpl_data (dict): SMPL parameters
+    """
 
-    for f in files:
-        data_idx = f.split("/")[-1].split("_")[-1][:3]  # DATA_PATH/xyzs+reps_000.npz => 000
+    # Convert (x, y, z) => (y, z, x)
+    xyzs4smpl = np.zeros_like(original_xyzs4smpl)
 
-        if int(data_idx) > -1:
-            reachy_data = np.load(f)
+    xyzs4smpl[:, :, 0] = original_xyzs4smpl[:, :, 1]
+    xyzs4smpl[:, :, 1] = original_xyzs4smpl[:, :, 2]
+    xyzs4smpl[:, :, 2] = original_xyzs4smpl[:, :, 0]
 
-            motion = reachy_data["xyzs4smpl"]
-            motion = np.zeros_like(reachy_data["xyzs4smpl"])  # shape: (Num_iters, 21, 3)
-            # (x, y, z) => (y, z, x)
-            motion[:, :, 0] = reachy_data["xyzs4smpl"][:, :, 1]
-            motion[:, :, 1] = reachy_data["xyzs4smpl"][:, :, 2]
-            motion[:, :, 2] = reachy_data["xyzs4smpl"][:, :, 0]
+    # Run VPoser's Inverse Kinematics Engine to fit the robot's pose data to SMPL parameters
+    smpl_data = run_ik_engine(
+        motion=xyzs4smpl,
+        batch_size=BATCH_SIZE,
+        smpl_path=SMPL_PATH,
+        vposer_path=VPOSER_PATH,
+        num_betas=NUM_BETAS,
+        device=device,
+        verbosity=verbosity,
+        smpl_joint_idx=robot_config.smpl_joint_idx,
+    )
 
-            # running IK from the code makes huge memory usage. Doesn't it empty cache?
-            # TODO: memory leak seems to happen in codes from VPoser. Any possible solution?
-            smpl_data = run_ik_engine(
-                osp.join(args.human_path, "params_{}.npz".format(data_idx)),
-                motion,
-                batch_size,
-                args.smpl_path,
-                args.vposer_path,
-                num_betas,
-                device,
-                args.verbosity,
-            )
-            # smpl_data: {
-            #   trans: (2000, 3),
-            #   betas: (16,),
-            #   root_orient: (2000, 3),
-            #   poZ_body: (2000, 32),
-            #   pose_body: (2000, 63),
-            #   poses: (2000, 165),
-            #   surface_model_type: 'smplx',
-            #   gender: 'neutral',
-            #   mocap_frame_rate: 30,
-            #   num_betas: 16}
-
-        if args.visualize:
-            print("start visualizing...")
-            make_vids(
-                osp.join(args.vid_path, reachy2smpl_vid_path(data_idx)),
-                smpl_data,
-                len(motion),
-                args.smpl_path,
-                num_betas,
-                args.fps,
-            )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="args for fitting reachy to smpl")
-    parser.add_argument("--vposer-path", type=str, default=VPOSER_PATH)
-    parser.add_argument("--smpl-path", type=str, default=SMPL_PATH)
-    parser.add_argument("--reachy-path", type=str, default=REACHY_RAW_PATH)
-    parser.add_argument("--human-path", type=str, default=HUMAN_PARAM_PATH)
-    parser.add_argument("--vid-path", type=str, default=VIDEO_PATH)
-    parser.add_argument("--visualize", type=int, default=0)
-    parser.add_argument("--verbosity", type=int, default=0)
-    parser.add_argument("--fps", type=int, default=5)
-
-    args = parser.parse_args()
-
-    main(args)
+    return smpl_data
