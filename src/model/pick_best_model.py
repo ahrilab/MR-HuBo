@@ -6,6 +6,7 @@ The Best model is the one that has the lowest errors on the validation motion se
 import pickle
 import sys
 import os.path as osp
+import os
 import matplotlib.pyplot as plt
 from shutil import copyfile
 from tqdm import tqdm
@@ -41,6 +42,7 @@ def pick_best_model(
         motion_errors = []  # (20,)
 
         for weight_idx in tqdm(range(weight_num)):
+            # predict the robot motion from the human pose
             if one_stage:
                 pred_motion = infer_one_stage(
                     robot_config=robot_config,
@@ -58,6 +60,17 @@ def pick_best_model(
                     weight_idx=weight_idx,
                 )
 
+            # save the predicted motion
+            pred_motion_dir = PRED_MOTIONS_DIR(robot_name, one_stage, extreme_filter)
+            pred_motion_name = PRED_MOTION_NAME(
+                robot_name, extreme_filter, val_motion_idx
+            )
+            pred_motion_path = osp.join(pred_motion_dir, pred_motion_name)
+            os.makedirs(pred_motion_dir, exist_ok=True)
+            with open(pred_motion_path, "wb") as f:
+                pickle.dump(pred_motion, f)
+
+            # calculate the error between the predicted motion and the ground truth motion
             error: float = calculate_error(
                 robot_config=robot_config,
                 evaluate_mode=evaluate_mode,

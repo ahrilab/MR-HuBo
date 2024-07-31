@@ -58,7 +58,7 @@ PYBULLET_PRED_VID_DIR: Callable[[str, bool, bool], str] = (
 )
 PYBULLET_GT_VID_DIR: Callable[[str], str] = lambda robot_name: f"./out/pybullet/{robot_name}/gt"
 
-PYBULLET_PRED_VID_NAME: Callable[[str, bool, str], str] = (
+PYBULLET_PRED_VID_NAME: Callable[[str, bool, str, str], str] = (
     lambda robot_name, extreme_filter, motion_idx, extention:
         f"{robot_name}_{'ex' if extreme_filter else 'no_ex'}_{motion_idx}.{extention}"
 )

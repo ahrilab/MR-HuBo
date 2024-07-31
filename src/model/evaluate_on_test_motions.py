@@ -30,7 +30,7 @@ def evaluate_on_test_motions(
     gt_motions = pickle.load(open(GT_PATH, "rb"))
     robot_name_for_gt = robot_name[0] + robot_name[1:].lower()
 
-    robot_pred_motion_dir = PRED_MOTIONS_DIR(robot_name, extreme_filter)
+    robot_pred_motion_dir = PRED_MOTIONS_DIR(robot_name, one_stage, extreme_filter)
     os.makedirs(robot_pred_motion_dir, exist_ok=True)
 
     total_motion_errors = []

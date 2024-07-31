@@ -66,5 +66,6 @@ class PybulletRenderArgs(argparse.Namespace):
     extention: str
     fps: int
     ground_truth: bool
+    one_stage: bool
     extreme_filter: bool
     motion_idx: str
