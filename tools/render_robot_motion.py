@@ -2,17 +2,17 @@
 Render the motion of the robot with pybullet simulator and save it as a gif or mp4 file.
 
 Usage:
-    python tools/render_robot_motion.py -r ROBOT_TYPE -mi MOTION_IDX [-ef] -e EXTENTION --fps FPS [-s]  # for pred_motion
-    python tools/render_robot_motion.py -r ROBOT_TYPE -gt -mi MOTION_IDX -e EXTENTION --fps FPS [-s]    # for gt_motion
+    python tools/render_robot_motion.py -r ROBOT_TYPE -e EXTENTION --fps FPS [-mi MOTION_IDX] [-ef-off] [-s-off]    # for pred_motion
+    python tools/render_robot_motion.py -r ROBOT_TYPE -gt -e EXTENTION --fps FPS [-mi MOTION_IDX] [-s-off]          # for gt_motion
 
 Example:
     # render for prediction motion
-    python tools/render_robot_motion.py -r COMAN -mi 13_08 -ef -e mp4 --fps 120 -s
-    python tools/render_robot_motion.py -r COMAN -mi 13_18 -e mp4 --fps 120 -s
-    python tools/render_robot_motion.py -r COMAN -ef -e mp4 --fps 120 -s
+    python tools/render_robot_motion.py -r COMAN -mi 13_08 -e mp4 --fps 120
+    python tools/render_robot_motion.py -r COMAN -mi 13_18 -e mp4 --fps 120 -ef-off -s-off
+    python tools/render_robot_motion.py -r COMAN -ef -e mp4 --fps 120
 
     # render for GT motion
-    python tools/render_robot_motion.py -r=COMAN -gt -mi="13_08" -e mp4 --fps 120 -s
+    python tools/render_robot_motion.py -r=COMAN -gt -mi="13_08" -e mp4 --fps 120 -s-off
     python tools/render_robot_motion.py -r=COMAN -gt -mi="13_18" -e mp4 --fps 120
 """
 
@@ -58,14 +58,14 @@ def render_motion(args: PybulletRenderArgs, motion_idx: str):
     # if not ground truth, load predicted motion data
     else:
         # fmt: off
-        motions_dir = PRED_MOTIONS_DIR(robot_name, args.one_stage, args.extreme_filter)
-        motion_name = PRED_MOTION_NAME(robot_name, args.extreme_filter, motion_idx)
+        motions_dir = PRED_MOTIONS_DIR(robot_name, args.one_stage, args.extreme_filter_off)
+        motion_name = PRED_MOTION_NAME(robot_name, args.extreme_filter_off, motion_idx)
         motion_path = osp.join(motions_dir, motion_name)
         motions: List[Dict[str, float]] = pickle.load(open(motion_path, "rb"))
         # fmt: on
 
     # render the motion with pybullet
-    frames = pybullet_render(motions, robot_config, args.smooth)
+    frames = pybullet_render(motions, robot_config, args.smooth_off)
 
     # Save the frames as a gif or mp4 file
     # fmt: off
@@ -74,8 +74,8 @@ def render_motion(args: PybulletRenderArgs, motion_idx: str):
         output_name = PYBULLET_GT_VID_NAME(robot_name, motion_idx, args.extention)
         output_path = osp.join(output_dir, output_name)
     else:
-        output_dir = PYBULLET_PRED_VID_DIR(robot_name, args.one_stage, args.extreme_filter)
-        output_name = PYBULLET_PRED_VID_NAME(robot_name, args.extreme_filter, motion_idx, args.extention)
+        output_dir = PYBULLET_PRED_VID_DIR(robot_name, args.one_stage, args.extreme_filter_off)
+        output_name = PYBULLET_PRED_VID_NAME(robot_name, args.extreme_filter_off, motion_idx, args.extention)
         output_path = osp.join(output_dir, output_name)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     extension = output_path.split(".")[-1]
@@ -98,10 +98,10 @@ if __name__ == "__main__":
     parser.add_argument("--robot-type", "-r", type=RobotType, default=RobotType.COMAN)
     parser.add_argument("--ground-truth", "-gt", action="store_true")
     parser.add_argument("--motion-idx", "-mi", type=str)
-    parser.add_argument("--extreme-filter", "-ef", action="store_true")
+    parser.add_argument("--extreme-filter-off", "-ef-off", action="store_true")
     parser.add_argument("--one-stage", "-os", action="store_true")
     parser.add_argument("--fps", type=int, default=120)
-    parser.add_argument("--smooth", "-s", action="store_true")
+    parser.add_argument("--smooth-off", "-s-off", action="store_true")
     parser.add_argument("--extention", "-e", type=str, default="gif")
 
     args: PybulletRenderArgs = parser.parse_args()

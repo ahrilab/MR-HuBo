@@ -2,11 +2,11 @@
 Train the model to predict robot joint angles from SMPL parameters.
 
 Usage:
-    python tools/train.py -r [robot_type] [-d <device>] [-n <num_data>] [-ef] [-os] [-w]
+    python tools/train.py -r [robot_type] [-d <device>] [-n <num_data>] [-ef-off] [-os] [-w]
 
 Example:
-    python tools/train.py -r REACHY -ef -os -w
-    python tools/train.py -r COMAN -ef -d cuda:2
+    python tools/train.py -r REACHY -os -w
+    python tools/train.py -r COMAN -d cuda:2
 """
 
 import argparse
@@ -32,24 +32,24 @@ def train(args: TrainArgs):
         wandb.init(project="mr_hubo")
         current_time = time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime())
         if args.one_stage:
-            if args.extreme_filter:
-                run_name = f"human2{args.robot_type.name}_os_ef_{current_time}"
-            else:
+            if args.extreme_filter_off:
                 run_name = f"human2{args.robot_type.name}_os_noef_{current_time}"
-        else:
-            if args.extreme_filter:
-                run_name = f"human2{args.robot_type.name}_ts_ef_{current_time}"
             else:
+                run_name = f"human2{args.robot_type.name}_os_ef_{current_time}"
+        else:
+            if args.extreme_filter_off:
                 run_name = f"human2{args.robot_type.name}_ts_noef_{current_time}"
+            else:
+                run_name = f"human2{args.robot_type.name}_ts_ef_{current_time}"
         wandb.run.name = run_name
 
     # set hyperparameters
-    if args.extreme_filter:
+    if args.extreme_filter_off:
+        num_epochs = EF_OFF_NUM_EPOCHS
+        batch_size = EF_OFF_BATCH_SIZE
+    else:
         num_epochs = EF_EPOCHS
         batch_size = EF_BATCH_SIZE
-    else:
-        num_epochs = NUM_EPOCHS
-        batch_size = BATCH_SIZE
 
     # load data
     num_data = args.num_data
@@ -66,7 +66,7 @@ def train(args: TrainArgs):
             target_path=target_path,
             num_data=num_data,
             split_ratio=DATA_SPLIT_RATIO,
-            extreme_filter=args.extreme_filter,
+            extreme_filter_off=args.extreme_filter_off,
         )
     )
 
@@ -76,7 +76,7 @@ def train(args: TrainArgs):
         robot_angles["train"],
         smpl_reps["train"],
         smpl_prob["train"],
-        args.extreme_filter,
+        args.extreme_filter_off,
     )
     test_dataset = H2RMotionData(
         robot_xyzs["test"],
@@ -84,7 +84,7 @@ def train(args: TrainArgs):
         robot_angles["test"],
         smpl_reps["test"],
         smpl_prob["test"],
-        args.extreme_filter,
+        args.extreme_filter_off,
     )
 
     train_dataloader = DataLoader(train_dataset, batch_size, shuffle=True)
@@ -95,7 +95,7 @@ def train(args: TrainArgs):
         train_one_stage(
             robot_config=robot_config,
             device=args.device,
-            extreme_filter=args.extreme_filter,
+            extreme_filter_off=args.extreme_filter_off,
             train_dataloader=train_dataloader,
             test_dataloader=test_dataloader,
             num_epochs=num_epochs,
@@ -105,7 +105,7 @@ def train(args: TrainArgs):
         train_two_stage(
             robot_config=robot_config,
             device=args.device,
-            extreme_filter=args.extreme_filter,
+            extreme_filter_off=args.extreme_filter_off,
             train_dataloader=train_dataloader,
             test_dataloader=test_dataloader,
             num_epochs=num_epochs,
@@ -129,8 +129,8 @@ if __name__ == "__main__":
         help="Device to run the model",
     )
     parser.add_argument(
-        "--extreme-filter",
-        "-ef",
+        "--extreme-filter-off",
+        "-ef-off",
         action="store_true",
         help="train model with extreme filter",
     )
