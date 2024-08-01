@@ -55,6 +55,7 @@ def load_smpl_to_6D_reps(human_pose_path: str):
     smpl_rep = matrix_to_rotation_6d(smpl_rot)
     smpl_rep = smpl_rep.reshape(num_poses, num_joints, 6).reshape(num_poses, -1)
 
+    # return the 6D representation of arm joints and the original human pose in axis-angle format
     return smpl_rep, human_pose
 
 
@@ -64,7 +65,7 @@ def load_and_split_train_test(
     target_path: str,
     num_data: int,
     split_ratio: int = 10,
-    extreme_filter: bool = False,
+    extreme_filter_off: bool = True,
 ):
     """
     Load SMPL parameters, robot xyzs, reps, and joint angles, and split them into train and test.
@@ -78,7 +79,8 @@ def load_and_split_train_test(
     split_ratio (int): ratio of train/test split
     extreme_filter (bool): whether to apply extreme filter to the data
     """
-    if extreme_filter:
+    # if use extreme filter, load VPoser model
+    if not extreme_filter_off:
         vp, _ = load_model(
             VPOSER_PATH,
             model_code=VPoser,
@@ -87,8 +89,10 @@ def load_and_split_train_test(
         )
         vp = vp.to(DEVICE)
 
+    # set the number of test data
     test_num = num_data // split_ratio
 
+    # initialize the data
     all_robot_xyzs = {"train": [], "test": []}
     all_robot_reps = {"train": [], "test": []}
     all_robot_angles = {"train": [], "test": []}
@@ -97,15 +101,15 @@ def load_and_split_train_test(
 
     print("Loading data...")
     for idx in tqdm(range(num_data)):
-        # print(idx, "/", num_data)
 
-        # Human data processing
-        smpl_rep, smpl_pose = load_smpl_to_6D_reps(
-            osp.join(input_path, f"params_{idx:04}.npz")
-        )
+        # load human pose (rep: 6D representation of arm joints, pose: original human pose in axis-angle format)
+        # fmt: off
+        smpl_rep, smpl_pose = load_smpl_to_6D_reps(osp.join(input_path, f"params_{idx:04}.npz"))
         num_poses = len(smpl_rep)
+        # fmt: on
 
-        if extreme_filter:
+        # if extreme filter is on, calculate the reconstruction error
+        if not extreme_filter_off:
             z: torch.Tensor = vp.encode(torch.from_numpy(smpl_pose[:]).to(DEVICE))
             z_mean = z.mean
 
@@ -128,14 +132,19 @@ def load_and_split_train_test(
 
             # Threshold value for the reconstruction error.
             # If the reconstruction error is greater than this value, it is considered as an extreme value.
-            # threshold = 0.005
+            threshold = 0.005
+
+            probs = np.zeros_like(rec_errors)
+            probs[rec_errors > threshold] = 0
+            probs[rec_errors <= threshold] = 1
 
             # probs = 1 - (rec_errors / threshold)
             # probs[probs < 0] = 0
             # probs[probs > 0] = 1
 
-            p = lambda e: torch.sigmoid((0.003 - e) * 1000) + 0.04
-            probs = p(rec_errors)
+            # use the sigmoid function to make the probability values between 0 and 1
+            # p = lambda e: torch.sigmoid((0.003 - e) * 1000) + 0.04
+            # probs = p(rec_errors)
 
             smpl_probs = probs.numpy()
 
@@ -169,7 +178,7 @@ def load_and_split_train_test(
         all_robot_reps[target].append(robot_reps)
         all_robot_angles[target].append(angle_chunk)
         all_smpl_reps[target].append(smpl_rep)
-        if extreme_filter:
+        if not extreme_filter_off:
             all_smpl_probs[target].append(smpl_probs)
 
     for target in ["test", "train"]:
@@ -177,7 +186,7 @@ def load_and_split_train_test(
         all_robot_reps[target] = np.concatenate(all_robot_reps[target], axis=0)
         all_robot_angles[target] = np.concatenate(all_robot_angles[target], axis=0)
         all_smpl_reps[target] = np.concatenate(all_smpl_reps[target], axis=0)
-        if extreme_filter:
+        if not extreme_filter_off:
             all_smpl_probs[target] = np.concatenate(all_smpl_probs[target], axis=0)
 
     return (
@@ -197,14 +206,14 @@ class H2RMotionData(Dataset):
         robot_angle,
         smpl_rep,
         smpl_prob,
-        extreme_filter=False,
+        extreme_filter_off=True,
     ):
         self.robot_xyz = robot_xyz
         self.robot_rep = robot_rep
         self.robot_angle = robot_angle
         self.smpl_rep = smpl_rep
         self.smpl_prob = smpl_prob
-        self.extreme_filter = extreme_filter
+        self.extreme_filter_off = extreme_filter_off
 
     def __len__(self):
         return len(self.smpl_rep)
@@ -216,7 +225,7 @@ class H2RMotionData(Dataset):
         sample["robot_rep"] = self.robot_rep[idx]
         sample["robot_angle"] = self.robot_angle[idx]
         sample["smpl_rep"] = self.smpl_rep[idx]
-        if self.extreme_filter:
+        if not self.extreme_filter_off:
             sample["smpl_prob"] = self.smpl_prob[idx]
 
         return sample

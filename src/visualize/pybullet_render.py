@@ -10,9 +10,9 @@ from utils.types import RobotType
 from utils.consts import *
 
 
-def pybullet_render(motions, robot_config: RobotConfig, smooth: bool):
-    # smooth
-    if smooth:
+def pybullet_render(motions, robot_config: RobotConfig, smooth_off: bool):
+    # smoothing the motion data
+    if not smooth_off:
         print("median filtering....")
         for ki, k in enumerate(motions[0].keys()):
             # for ki, k in enumerate(robot_config.joi_keys):

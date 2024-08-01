@@ -17,7 +17,7 @@ from model.net import MLP
 
 def infer_two_stage(
     robot_config: RobotConfig,
-    extreme_filter: bool,
+    extreme_filter_off: bool,
     human_pose_path: str,
     device: str,
     evaluate_mode: EvaluateMode = EvaluateMode.LINK,
@@ -59,7 +59,7 @@ def infer_two_stage(
     # Load weights
     # Firstly, set the weight directory
     robot_name = robot_config.robot_type.name
-    weight_dir = MODEL_WEIGHTS_DIR(robot_name, extreme_filter)
+    weight_dir = MODEL_WEIGHTS_DIR(robot_name, False, extreme_filter_off)
 
     # Then, set the weight path
     # if weight_idx is not given, use the best weight

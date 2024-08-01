@@ -19,7 +19,7 @@ from utils.calculate_error_from_motions import calculate_error
 
 def evaluate_on_test_motions(
     robot_config: RobotConfig,
-    extreme_filter: bool,
+    extreme_filter_off: bool,
     one_stage: bool,
     device: str,
     evaluate_mode: EvaluateMode,
@@ -30,7 +30,7 @@ def evaluate_on_test_motions(
     gt_motions = pickle.load(open(GT_PATH, "rb"))
     robot_name_for_gt = robot_name[0] + robot_name[1:].lower()
 
-    robot_pred_motion_dir = PRED_MOTIONS_DIR(robot_name, extreme_filter)
+    robot_pred_motion_dir = PRED_MOTIONS_DIR(robot_name, one_stage, extreme_filter_off)
     os.makedirs(robot_pred_motion_dir, exist_ok=True)
 
     total_motion_errors = []
@@ -43,7 +43,7 @@ def evaluate_on_test_motions(
         if one_stage:
             pred_motion = infer_one_stage(
                 robot_config=robot_config,
-                extreme_filter=extreme_filter,
+                extreme_filter_off=extreme_filter_off,
                 human_pose_path=amass_data_path,
                 device=device,
                 evaluate_mode=evaluate_mode,
@@ -52,7 +52,7 @@ def evaluate_on_test_motions(
         else:
             pred_motion = infer_two_stage(
                 robot_config=robot_config,
-                extreme_filter=extreme_filter,
+                extreme_filter_off=extreme_filter_off,
                 human_pose_path=amass_data_path,
                 device=device,
                 evaluate_mode=evaluate_mode,
@@ -62,7 +62,7 @@ def evaluate_on_test_motions(
         # save the predicted motion
         pred_motion_path = osp.join(
             robot_pred_motion_dir,
-            PRED_MOTION_NAME(robot_name, extreme_filter, test_motion_idx),
+            PRED_MOTION_NAME(robot_name, extreme_filter_off, test_motion_idx),
         )
         with open(pred_motion_path, "wb") as f:
             pickle.dump(pred_motion, f)
@@ -87,7 +87,7 @@ def evaluate_on_test_motions(
     )
     print(result_path)
     with open(result_path, "w") as f:
-        f.write(f"Robot: {robot_name} EF: [{extreme_filter}]\n")
+        f.write(f"Robot: {robot_name} EF: [{'OFF' if extreme_filter_off else 'ON'}]\n")
         f.write(f"Evaluate_mode: {evaluate_mode.name}\n")
         f.write(f"Mean_error: {mean_error}\n")
         f.write("===================================================\n")

@@ -41,7 +41,7 @@ class TrainArgs(argparse.Namespace):
     """
 
     robot_type: RobotType
-    extreme_filter: bool
+    extreme_filter_off: bool
     one_stage: bool
     wandb: bool
     device: str
@@ -54,7 +54,7 @@ class EvaluateArgs(argparse.Namespace):
     """
 
     robot_type: RobotType
-    extreme_filter: bool
+    extreme_filter_off: bool
     one_stage: bool
     device: str
     evaluate_mode: EvaluateMode
@@ -62,9 +62,10 @@ class EvaluateArgs(argparse.Namespace):
 
 class PybulletRenderArgs(argparse.Namespace):
     robot_type: RobotType
-    smooth: bool
+    smooth_off: bool
     extention: str
     fps: int
     ground_truth: bool
-    extreme_filter: bool
+    one_stage: bool
+    extreme_filter_off: bool
     motion_idx: str
