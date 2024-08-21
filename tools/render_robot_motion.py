@@ -9,7 +9,7 @@ Example:
     # render for prediction motion
     python tools/render_robot_motion.py -r COMAN -mi 13_08 -e mp4 --fps 120
     python tools/render_robot_motion.py -r COMAN -mi 13_18 -e mp4 --fps 120 -ef-off -s-off
-    python tools/render_robot_motion.py -r COMAN -ef -e mp4 --fps 120
+    python tools/render_robot_motion.py -r COMAN -e mp4 --fps 120
 
     # render for GT motion
     python tools/render_robot_motion.py -r=COMAN -gt -mi="13_08" -e mp4 --fps 120 -s-off
@@ -32,11 +32,15 @@ from utils.consts import *
 
 
 def main(args: PybulletRenderArgs):
+    # if the motion index is not given, render all the motions
     if args.motion_idx is None:
         motion_idxs = GT_MOTION_IDXS
     else:
+        # check the motion index is valid
         if args.motion_idx not in GT_MOTION_IDXS:
             raise ValueError(f"Invalid motion index: {args.motion_idx}")
+
+        # if the motion index is given, render only the given motion
         motion_idxs = [args.motion_idx]
 
     for motion_idx in motion_idxs:
@@ -44,7 +48,7 @@ def main(args: PybulletRenderArgs):
 
 
 def render_motion(args: PybulletRenderArgs, motion_idx: str):
-    # robot의 정보를 가져옴
+    # load the robot configuration
     robot_config = RobotConfig(args.robot_type)
     robot_name = robot_config.robot_type.name
 
@@ -65,7 +69,8 @@ def render_motion(args: PybulletRenderArgs, motion_idx: str):
         # fmt: on
 
     # render the motion with pybullet
-    frames = pybullet_render(motions, robot_config, args.smooth_off)
+    # The first frame has an issue with the camera view, so we skip the first frame
+    frames = pybullet_render(motions, robot_config, args.smooth_off)[1:]
 
     # Save the frames as a gif or mp4 file
     # fmt: off
