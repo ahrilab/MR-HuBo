@@ -145,8 +145,10 @@ def coman_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> List[np.ndarray]:
     r_el2wr = xyzs[ComanLinkIndex.R_WRIST_IDX.value] - xyzs[ComanLinkIndex.R_ELB_IDX.value]
     l_sh2el = xyzs[ComanLinkIndex.L_ELB_IDX.value] - xyzs[ComanLinkIndex.L_SH_R_IDX.value]
     l_el2wr = xyzs[ComanLinkIndex.L_WRIST_IDX.value] - xyzs[ComanLinkIndex.L_ELB_IDX.value]
-    sh2el_scale = 0.25
-    el2wr_scale = 0.15
+    # sh2el_scale = 0.45
+    # el2wr_scale = 0.20
+    sh2el_scale = 0.25  # IROS version
+    el2wr_scale = 0.15  # IROS version
 
     smpl_xyzs = [
         xyzs[ComanLinkIndex.WASIT_IDX.value],                                                   # pelvis
@@ -188,17 +190,17 @@ def coman_xyzs_to_smpl_xyzs(xyzs: List[np.ndarray]) -> List[np.ndarray]:
     return smpl_xyzs
 
 COMAN_EVALUATE_LINKS = [
-    # 'RShp',
-    # 'RShr',
-    # 'RShy',
+    'RShp',
+    'RShr',
+    'RShy',
     'RElb',
     'RForearm',
     'r_wrist',
     'RSoftHand',
 
-    # 'LShp',
-    # 'LShr',
-    # 'LShy',
+    'LShp',
+    'LShr',
+    'LShy',
     'LElb',
     'LForearm',
     'l_wrist',

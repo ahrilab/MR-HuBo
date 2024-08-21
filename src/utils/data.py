@@ -134,7 +134,7 @@ def load_and_split_train_test(
             # If the reconstruction error is greater than this value, it is considered as an extreme value.
             threshold = 0.005
 
-            probs = np.zeros_like(rec_errors)
+            probs = torch.zeros_like(rec_errors)
             probs[rec_errors > threshold] = 0
             probs[rec_errors <= threshold] = 1
 
