@@ -34,10 +34,10 @@ def evaluate_on_test_motions(
     os.makedirs(robot_pred_motion_dir, exist_ok=True)
 
     total_motion_errors = []
-    for test_motion_idx in tqdm(TEST_GT_MOTION_IDXS):
+    for motion_idx in tqdm(GT_MOTION_IDXS):
         # load the ground truth motion and the human pose
-        gt_motion = gt_motions[robot_name_for_gt][test_motion_idx]["q"]
-        amass_data_path = osp.join(AMASS_DATA_PATH, f"{test_motion_idx}_stageii.npz")
+        gt_motion = gt_motions[robot_name_for_gt][motion_idx]["q"]
+        amass_data_path = osp.join(AMASS_DATA_PATH, f"{motion_idx}_stageii.npz")
 
         # predict the robot motion from the human pose
         if one_stage:
@@ -62,10 +62,14 @@ def evaluate_on_test_motions(
         # save the predicted motion
         pred_motion_path = osp.join(
             robot_pred_motion_dir,
-            PRED_MOTION_NAME(robot_name, extreme_filter_off, test_motion_idx),
+            PRED_MOTION_NAME(robot_name, extreme_filter_off, motion_idx),
         )
         with open(pred_motion_path, "wb") as f:
             pickle.dump(pred_motion, f)
+
+        # if the motion is not in the test motions, skip calculating the error
+        if motion_idx not in TEST_GT_MOTION_IDXS:
+            continue
 
         # calculate the error between the predicted motion and the ground truth motion
         error = calculate_error(

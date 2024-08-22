@@ -31,7 +31,7 @@ def main(args: EvaluateArgs):
         evaluate_mode=args.evaluate_mode,
     )
 
-    print(f"Best model index: {best_model_idx}")
+    print(f"Best model index on eval motions: {best_model_idx}")
 
     evaluate_on_test_motions(
         robot_config=robot_config,

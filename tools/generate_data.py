@@ -49,6 +49,7 @@ def generate_data(args: GenerateDataArgs):
         angles_list, xyzs_array, reps_array, xyzs4smpl_array = sample_robot_data(
             args.robot_type,
             args.poses_per_seed,
+            seed,
         )
 
         # fits the robot joints to SMPL parameters
