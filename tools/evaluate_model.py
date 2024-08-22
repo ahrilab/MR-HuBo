@@ -3,11 +3,11 @@ This script is used to evaluate the model.
 Picks the best model on the validation set and evaluates it on the test motions.
 
 # Usage
-    python tools/evaluate_model.py -r ROBOT_TYPE [-ef] [-os] [-d DEVICE] [-em EVALUATE_MODE]
+    python tools/evaluate_model.py -r ROBOT_TYPE [-ef-off] [-os] [-d DEVICE] [-em EVALUATE_MODE]
 
 # Example
     python tools/evaluate_model.py -r REACHY
-    python tools/evaluate_model.py -r REACHY -ef -os -d cuda -em joint
+    python tools/evaluate_model.py -r REACHY -ef-off -os -d cuda:2 -em joint
 """
 
 import argparse
@@ -25,17 +25,17 @@ def main(args: EvaluateArgs):
 
     best_model_idx: int = pick_best_model(
         robot_config=robot_config,
-        extreme_filter=args.extreme_filter,
+        extreme_filter_off=args.extreme_filter_off,
         one_stage=args.one_stage,
         device=args.device,
         evaluate_mode=args.evaluate_mode,
     )
 
-    print(f"Best model index: {best_model_idx}")
+    print(f"Best model index on eval motions: {best_model_idx}")
 
     evaluate_on_test_motions(
         robot_config=robot_config,
-        extreme_filter=args.extreme_filter,
+        extreme_filter_off=args.extreme_filter_off,
         one_stage=args.one_stage,
         device=args.device,
         evaluate_mode=args.evaluate_mode,
@@ -53,7 +53,7 @@ if __name__ == "__main__":
         choices=list(RobotType),
         default=RobotType.REACHY,
     )
-    parser.add_argument("--extreme-filter", "-ef", action="store_true")
+    parser.add_argument("--extreme-filter-off", "-ef-off", action="store_true")
     parser.add_argument("--one-stage", "-os", action="store_true")
     parser.add_argument("--device", "-d", type=str, default="cuda")
     parser.add_argument(

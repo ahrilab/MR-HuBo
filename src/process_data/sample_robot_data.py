@@ -9,7 +9,7 @@ from utils.RobotConfig import RobotConfig
 from utils.forward_kinematics import forward_kinematics
 
 
-def sample_robot_data(robot_type: RobotType, num_poses: int):
+def sample_robot_data(robot_type: RobotType, num_poses: int, seed: int):
     """
     Sample random robot poses for each seed.
 
@@ -23,6 +23,9 @@ def sample_robot_data(robot_type: RobotType, num_poses: int):
         reps_array (ndarray): Numpy array of 6D representations of robot links
         xyzs4smpl_array (ndarray): Numpy array of xyz positions of SMPL joints
     """
+
+    # set the random seed
+    np.random.seed(seed)
 
     # load the robot configurations and build a kinematic chain
     robot_config = RobotConfig(robot_type)

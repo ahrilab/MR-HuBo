@@ -6,6 +6,7 @@ The Best model is the one that has the lowest errors on the validation motion se
 import pickle
 import sys
 import os.path as osp
+import os
 import matplotlib.pyplot as plt
 from shutil import copyfile
 from tqdm import tqdm
@@ -21,7 +22,7 @@ from utils.calculate_error_from_motions import calculate_error
 
 def pick_best_model(
     robot_config: RobotConfig,
-    extreme_filter: bool,
+    extreme_filter_off: bool,
     one_stage: bool,
     device: str,
     evaluate_mode: EvaluateMode,
@@ -30,10 +31,10 @@ def pick_best_model(
     robot_name_for_gt = robot_name[0] + robot_name[1:].lower()
     gt_motions = pickle.load(open(GT_PATH, "rb"))
 
-    if extreme_filter:
-        weight_num = EF_EPOCHS // MODEL_SAVE_EPOCH
+    if extreme_filter_off:
+        weight_num = EF_OFF_NUM_EPOCHS // MODEL_SAVE_EPOCH
     else:
-        weight_num = NUM_EPOCHS // MODEL_SAVE_EPOCH
+        weight_num = EF_EPOCHS // MODEL_SAVE_EPOCH
     all_motions_errors = []  # (2, 20)
     for val_motion_idx in VALID_GT_MOTION_IDXS:
         gt_motion = gt_motions[robot_name_for_gt][val_motion_idx]["q"]
@@ -41,10 +42,11 @@ def pick_best_model(
         motion_errors = []  # (20,)
 
         for weight_idx in tqdm(range(weight_num)):
+            # predict the robot motion from the human pose
             if one_stage:
                 pred_motion = infer_one_stage(
                     robot_config=robot_config,
-                    extreme_filter=extreme_filter,
+                    extreme_filter_off=extreme_filter_off,
                     human_pose_path=amass_data_path,
                     device=device,
                     weight_idx=weight_idx,
@@ -52,12 +54,13 @@ def pick_best_model(
             else:
                 pred_motion = infer_two_stage(
                     robot_config=robot_config,
-                    extreme_filter=extreme_filter,
+                    extreme_filter_off=extreme_filter_off,
                     human_pose_path=amass_data_path,
                     device=device,
                     weight_idx=weight_idx,
                 )
 
+            # calculate the error between the predicted motion and the ground truth motion
             error: float = calculate_error(
                 robot_config=robot_config,
                 evaluate_mode=evaluate_mode,
@@ -73,7 +76,7 @@ def pick_best_model(
     best_model_idx = np.argmin(mean_errors)
 
     # Pick the best model
-    weight_dir = MODEL_WEIGHTS_DIR(robot_name, one_stage, extreme_filter)
+    weight_dir = MODEL_WEIGHTS_DIR(robot_name, one_stage, extreme_filter_off)
 
     # fmt: off
     # Save the best model

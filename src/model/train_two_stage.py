@@ -17,7 +17,7 @@ from utils.consts import *
 def train_two_stage(
     robot_config: RobotConfig,
     device: str,
-    extreme_filter: bool,
+    extreme_filter_off: bool,
     train_dataloader: DataLoader,
     test_dataloader: DataLoader,
     num_epochs: int,
@@ -43,7 +43,7 @@ def train_two_stage(
     lr = LEARNING_RATE
 
     # create directory to save models
-    model_save_dir = MODEL_WEIGHTS_DIR(robot_name, False, extreme_filter)
+    model_save_dir = MODEL_WEIGHTS_DIR(robot_name, False, extreme_filter_off)
     os.makedirs(model_save_dir, exist_ok=True)
 
     # input & output dimensions
@@ -76,7 +76,13 @@ def train_two_stage(
         model_post.train()
 
         for sample in train_dataloader:
-            if extreme_filter:
+            if extreme_filter_off:
+                # if extreme filter is not used, use the whole data
+                smpl_rep = sample["smpl_rep"].float().to(device)
+                gt_rep = sample["robot_rep"].float().to(device)
+                gt_angle = sample["robot_angle"].float().to(device)
+
+            else:
                 # if extreme filter is used, sample the data with the probability of smpl_prob
                 prob = sample["smpl_prob"]
                 bernoulli_dist = Bernoulli(prob)
@@ -85,19 +91,13 @@ def train_two_stage(
                 chosen_samples = bernoulli_dist.sample()
 
                 # we use same batch size for each epoch whether we use extreme filter or not
-                sample_index = (chosen_samples == 1).nonzero()[:BATCH_SIZE, 0]
+                sample_index = (chosen_samples == 1).nonzero()[:EF_OFF_BATCH_SIZE, 0]
 
                 ### We still need to do this for each sample[" "]
                 # Extract the corresponding values in random_samples
                 smpl_rep = sample["smpl_rep"][sample_index].float().to(device)
                 gt_rep = sample["robot_rep"][sample_index].float().to(device)
                 gt_angle = sample["robot_angle"][sample_index].float().to(device)
-
-            else:
-                # if extreme filter is not used, use the whole data
-                smpl_rep = sample["smpl_rep"].float().to(device)
-                gt_rep = sample["robot_rep"].float().to(device)
-                gt_angle = sample["robot_angle"].float().to(device)
 
             # forward pass
             pred_rep: torch.Tensor = model_pre(smpl_rep)

@@ -36,7 +36,7 @@ def fit2smpl(
     # Run VPoser's Inverse Kinematics Engine to fit the robot's pose data to SMPL parameters
     smpl_data = run_ik_engine(
         motion=xyzs4smpl,
-        batch_size=BATCH_SIZE,
+        batch_size=VPOSER_BATCH_SIZE,
         smpl_path=SMPL_PATH,
         vposer_path=VPOSER_PATH,
         num_betas=NUM_BETAS,
