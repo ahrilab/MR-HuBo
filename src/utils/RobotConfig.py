@@ -13,6 +13,7 @@ class RobotConfig:
         ), f"robot type should be a member of ({RobotType._member_names_})."
 
         self.robot_type = robot_type
+        self.name = robot_type.name
 
         # Set the config as the reachy robot
         if robot_type == RobotType.REACHY:
