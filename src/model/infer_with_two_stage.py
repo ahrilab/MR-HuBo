@@ -6,6 +6,7 @@ Load a pre-trained model and given SMPL parameters, predict robot angles.
 import torch
 import sys
 import os.path as osp
+from typing import Union
 
 sys.path.append("./src")
 from utils.RobotConfig import RobotConfig
@@ -18,7 +19,7 @@ from model.net import MLP
 def infer_two_stage(
     robot_config: RobotConfig,
     extreme_filter_off: bool,
-    human_pose_path: str,
+    human_pose: Union[str, np.ndarray],
     device: str,
     evaluate_mode: EvaluateMode = EvaluateMode.LINK,
     weight_idx: int = -1,
@@ -29,7 +30,7 @@ def infer_two_stage(
     Args:
         robot_config: RobotConfig
         extreme_filter: bool
-        human_pose_path: str
+        human_pose: Union[str, np.ndarray]
         device: str
         evaluate_mode: EvaluateMode
         weight_idx: int
@@ -84,7 +85,7 @@ def infer_two_stage(
     model_post.eval()
 
     # Load SMPL parameters
-    smpl_rep, _ = load_smpl_to_6D_reps(human_pose_path)
+    smpl_rep, _ = load_smpl_to_6D_reps(human_pose)
 
     # Predict robot angles
     with torch.no_grad():
