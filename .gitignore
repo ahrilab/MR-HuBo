@@ -23,6 +23,8 @@ data/vposer_v2_05/
 data/gt_motions/mr_gt.pkl
 
 data/temp/
+data/pymaf_x/
+data/demo_images/
 
 # ignore amass motions, only provide the list of motions we use
 # data/gt_motions/amass_data/*.npz

@@ -5,6 +5,7 @@ import torch
 import random
 import joblib
 import sys
+from typing import Union
 from tqdm import tqdm
 from torch.utils.data import Dataset
 from pytorch3d.transforms import matrix_to_rotation_6d
@@ -27,16 +28,31 @@ def draw(probs):
         return i
 
 
-def load_smpl_to_6D_reps(human_pose_path: str):
+def load_smpl_to_6D_reps(human_pose: Union[str, np.ndarray]):
     """
     load SMPL parameters from a file and convert it to SMPL joint 6D representations.
+
+    Args:
+    ----------
+    human_pose (Union[str, np.ndarray]): path to load SMPL parameters or SMPL parameters
+
+    Returns:
+    ----------
+    smpl_rep (np.ndarray): SMPL joint 6D representations
     """
-    # fmt: off
-    if human_pose_path.endswith(".pkl"):
-        human_pose: np.ndarray = joblib.load(open(human_pose_path, "rb"))["pose"][:, 3:66]
-    elif human_pose_path.endswith(".npz"):
-        human_pose: np.ndarray = np.load(human_pose_path)["pose_body"]
-    # fmt: on
+
+    # If the input is a string, load the SMPL parameters from the file.
+    # If the input is an numpy array, use it as the SMPL parameters.
+    if type(human_pose) == str:
+        human_pose_path = human_pose
+        # fmt: off
+        if human_pose_path.endswith(".pkl"):
+            human_pose: np.ndarray = joblib.load(open(human_pose_path, "rb"))["pose"][:, 3:66]
+        elif human_pose_path.endswith(".npz"):
+            human_pose: np.ndarray = np.load(human_pose_path)["pose_body"]
+        # fmt: on
+    else:
+        human_pose = human_pose[:, 3:66]
 
     # We only get the last 18 values, which is the axis-angle of the arm joints.
     human_arm_pose = human_pose[:, -18:]

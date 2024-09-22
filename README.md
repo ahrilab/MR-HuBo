@@ -4,6 +4,9 @@ Code repository for the paper:
 **Redefining Data Pairing for Motion Retargeting Leveraging a Human Body Prior**
 [Xiyana Figuera](https://github.com/xiyanafiguera), [Soogeun Park](https://github.com/bwmelon97), and [Hyemin Ahn](https://hyeminahn.oopy.io)
 
+Our paper has been accepted @ IROS 2024! 🎉 \
+Project Page: [🏠](https://sites.google.com/view/mr-hubo/home) | Arxiv Link: [📄]()
+
 <!-- TODO: 페이퍼 Arxiv 링크, 웹사이트 링크 등 추가하기 -->
 
 ## Demo Videos
@@ -119,14 +122,14 @@ Parts of the code are taken or adapted from the following repos:
 - human-body-prior
 - pymaf-x
 - body-visualizer
-
+<!-- Reachy 코드? -->
 
 ## Citations
 ```bibtext
 @inproceedings{MR_HuBo:2024,
   title         = {Redefining Data Pairing for Motion Retargeting Leveraging Human Body Prior},
   author        = {Figuera, Xiyana and Park, Soogeun and Ahn, Hyemin.},
-  year=2024,
+  year          = 2024,
   month         = october,
   booktitle     = {2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
   event_place   = {Abu Zaby (Abu Dhabi), United Arab Emirates},
