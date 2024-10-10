@@ -5,7 +5,7 @@ Code repository for the paper:
 [Xiyana Figuera](https://github.com/xiyanafiguera), [Soogeun Park](https://github.com/bwmelon97), and [Hyemin Ahn](https://hyeminahn.oopy.io)
 
 Our paper has been accepted @ IROS 2024! 🎉 \
-Project Page: [🏠](https://sites.google.com/view/mr-hubo/home) | Arxiv Link: [📄]()
+Project Page: [🏠](https://sites.google.com/view/mr-hubo/home) | Arxiv Link: [📄](https://www.arxiv.org/abs/2409.13208)
 
 <!-- TODO: 페이퍼 Arxiv 링크, 웹사이트 링크 등 추가하기 -->
 
@@ -110,7 +110,7 @@ python tools/evaluate_model.py -r REACHY -ef -os -d cuda -em joint
 ```
 
 ## Add New Robot Configuration
-Mr. HuBo is general method which can be adapted to any humanoid robots, if a URDF (unified robot description format) of robot and scale factor for converting robot's position into SMPL position is given.
+Mr. HuBo is a general method which can be adapted to any humanoid robot if a URDF (unified robot description format) of robot and scale factor for converting robot's position into SMPL position is given.
 
 <!-- # TODO: 다른 로봇에 대한 데이터를 만들기 위한 방법 추가하기 -->
 
